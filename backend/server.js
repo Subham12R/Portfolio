@@ -33,6 +33,7 @@ app.use(cors({
     process.env.FRONTEND_URL || 'http://localhost:5173',
     'https://portfolio-bice-beta-a4ejdfdsaj.vercel.app',
     'https://portfolio-two-nu-547du2vksm.vercel.app',
+    'https://portfolio-core-flax.vercel.app',
     'http://localhost:5173'
   ],
   credentials: true,

@@ -56,7 +56,7 @@ SPOTIFY_TOKEN_EXPIRES_AT=YOUR_EXPIRES_TIMESTAMP
 
 ### **API Configuration**
 ```env
-VITE_API_URL=https://portfolio-backend-six-azure.vercel.app
+VITE_API_URL=https://portfolio-core-flax.vercel.app
 ```
 
 ---
@@ -96,12 +96,12 @@ Add each variable from the list above.
 ## 🧪 **Testing Your Setup**
 
 ### **Backend Health Check**
-- `https://portfolio-backend-six-azure.vercel.app/health`
-- `https://portfolio-backend-six-azure.vercel.app/api/projects`
+- `https://portfolio-core-flax.vercel.app/health`
+- `https://portfolio-core-flax.vercel.app/api/projects`
 
 ### **Spotify Integration**
-- `https://portfolio-backend-six-azure.vercel.app/api/spotify/status`
-- `https://portfolio-backend-six-azure.vercel.app/api/spotify/currently-playing`
+- `https://portfolio-core-flax.vercel.app/api/spotify/status`
+- `https://portfolio-core-flax.vercel.app/api/spotify/currently-playing`
 
 ### **Frontend**
 - `https://portfolio-two-nu-547du2vksm.vercel.app`
@@ -137,7 +137,7 @@ Add each variable from the list above.
 ## 📱 **Your Deployment URLs**
 
 - **Frontend**: https://portfolio-two-nu-547du2vksm.vercel.app
-- **Backend API**: https://portfolio-backend-six-azure.vercel.app
+- **Backend API**: https://portfolio-core-flax.vercel.app
 - **Admin Panel**: https://portfolio-two-nu-547du2vksm.vercel.app/admin
 
 ---
