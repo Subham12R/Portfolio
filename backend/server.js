@@ -31,13 +31,7 @@ app.use(limiter);
 
 // CORS configuration
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:5173',
-    'https://portfolio-bice-beta-a4ejdfdsaj.vercel.app',
-    'https://portfolio-two-nu-547du2vksm.vercel.app',
-    'https://portfolio-core-flax.vercel.app',
-    'http://localhost:5173'
-  ],
+  origin: true, // Allow all origins temporarily for testing
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
