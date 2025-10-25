@@ -99,8 +99,8 @@ const Spotify = () => {
     // Initial fetch
     fetchNowPlaying()
     
-    // Poll every 10 seconds for live updates
-    const interval = setInterval(fetchNowPlaying, 10000)
+    // Poll every 2 minutes for updates (120000 ms)
+    const interval = setInterval(fetchNowPlaying, 120000)
     
     // Also refresh when user focuses the window
     const handleFocus = () => fetchNowPlaying()
