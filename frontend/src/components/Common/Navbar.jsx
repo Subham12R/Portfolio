@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import logo from '../../assets/pfp.jpeg'
+import logo from '../../assets/profile.png'
 import { FaMoon, FaTimes, FaBars } from 'react-icons/fa'
 
 const navLinks = [

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from './Navbar';
-import profileImage from '../../assets/pfp.jpeg';
+import profileImage from '../../assets/profile.png';
 import DecryptedText from './DecryptedText';
 import ContactModal from './ContactModal';
 import {FaReact} from 'react-icons/fa';

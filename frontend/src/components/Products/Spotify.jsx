@@ -27,7 +27,18 @@ const Spotify = () => {
   const checkSpotifyAuth = async () => {
     try {
       // Check if user is already authenticated
-      const statusResponse = await fetch('https://portfolio-fqur.vercel.app/api/spotify/status')
+      const statusResponse = await fetch('https://portfolio-fqur.vercel.app/api/spotify/status', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors'
+      })
+      
+      if (!statusResponse.ok) {
+        throw new Error(`HTTP error! status: ${statusResponse.status}`)
+      }
+      
       const statusData = await statusResponse.json()
       
       if (statusData.authenticated) {
@@ -47,7 +58,18 @@ const Spotify = () => {
 
   const fetchCurrentTrack = async () => {
     try {
-      const response = await fetch('https://portfolio-fqur.vercel.app/api/spotify/currently-playing')
+      const response = await fetch('https://portfolio-fqur.vercel.app/api/spotify/currently-playing', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors'
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const data = await response.json()
       
       if (data.success) {

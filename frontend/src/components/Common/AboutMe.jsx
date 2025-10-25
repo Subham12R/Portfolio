@@ -1,5 +1,5 @@
 import React from 'react'
-import profileImage from '../../assets/pfp.jpeg'
+import profileImage from '../../assets/profile.png'
 import { FaReact } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri'
 import { SiTypescript, SiJavascript, SiExpress, SiPostgresql } from 'react-icons/si'
