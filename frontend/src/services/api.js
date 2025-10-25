@@ -96,17 +96,17 @@ class ApiService {
 
   // Projects API
   async getProjects() {
-    const response = await this.request('/projects');
+    const response = await this.request('/api/projects');
     return response.projects || [];
   }
 
   async getProject(id) {
-    const response = await this.request(`/projects/${id}`);
+    const response = await this.request(`/api/projects/${id}`);
     return response.project;
   }
 
   async createProject(projectData) {
-    const response = await this.request('/projects', {
+    const response = await this.request('/api/projects', {
       method: 'POST',
       body: JSON.stringify(projectData),
     });
@@ -114,7 +114,7 @@ class ApiService {
   }
 
   async updateProject(id, projectData) {
-    const response = await this.request(`/projects/${id}`, {
+    const response = await this.request(`/api/projects/${id}`, {
       method: 'PUT',
       body: JSON.stringify(projectData),
     });
@@ -122,24 +122,24 @@ class ApiService {
   }
 
   async deleteProject(id) {
-    return await this.request(`/projects/${id}`, {
+    return await this.request(`/api/projects/${id}`, {
       method: 'DELETE',
     });
   }
 
   // Work Experience API
   async getWorkExperience() {
-    const response = await this.request('/work');
+    const response = await this.request('/api/work');
     return response.workExperience || [];
   }
 
   async getWorkExperienceById(id) {
-    const response = await this.request(`/work/${id}`);
+    const response = await this.request(`/api/work/${id}`);
     return response.experience;
   }
 
   async createWorkExperience(experienceData) {
-    const response = await this.request('/work', {
+    const response = await this.request('/api/work', {
       method: 'POST',
       body: JSON.stringify(experienceData),
     });
@@ -147,7 +147,7 @@ class ApiService {
   }
 
   async updateWorkExperience(id, experienceData) {
-    const response = await this.request(`/work/${id}`, {
+    const response = await this.request(`/api/work/${id}`, {
       method: 'PUT',
       body: JSON.stringify(experienceData),
     });
@@ -155,24 +155,24 @@ class ApiService {
   }
 
   async deleteWorkExperience(id) {
-    return await this.request(`/work/${id}`, {
+    return await this.request(`/api/work/${id}`, {
       method: 'DELETE',
     });
   }
 
   // Certificates API
   async getCertificates() {
-    const response = await this.request('/certificates');
+    const response = await this.request('/api/certificates');
     return response.certificates || [];
   }
 
   async getCertificate(id) {
-    const response = await this.request(`/certificates/${id}`);
+    const response = await this.request(`/api/certificates/${id}`);
     return response.certificate;
   }
 
   async createCertificate(certificateData) {
-    const response = await this.request('/certificates', {
+    const response = await this.request('/api/certificates', {
       method: 'POST',
       body: JSON.stringify(certificateData),
     });
@@ -180,7 +180,7 @@ class ApiService {
   }
 
   async updateCertificate(id, certificateData) {
-    const response = await this.request(`/certificates/${id}`, {
+    const response = await this.request(`/api/certificates/${id}`, {
       method: 'PUT',
       body: JSON.stringify(certificateData),
     });
@@ -188,24 +188,24 @@ class ApiService {
   }
 
   async deleteCertificate(id) {
-    return await this.request(`/certificates/${id}`, {
+    return await this.request(`/api/certificates/${id}`, {
       method: 'DELETE',
     });
   }
 
   // Gears API
   async getGears() {
-    const response = await this.request('/gears');
+    const response = await this.request('/api/gears');
     return response.gears || { devices: [], extensions: [] };
   }
 
   async getGear(id) {
-    const response = await this.request(`/gears/${id}`);
+    const response = await this.request(`/api/gears/${id}`);
     return response.gear;
   }
 
   async createGear(gearData) {
-    const response = await this.request('/gears', {
+    const response = await this.request('/api/gears', {
       method: 'POST',
       body: JSON.stringify(gearData),
     });
@@ -213,7 +213,7 @@ class ApiService {
   }
 
   async updateGear(id, gearData) {
-    const response = await this.request(`/gears/${id}`, {
+    const response = await this.request(`/api/gears/${id}`, {
       method: 'PUT',
       body: JSON.stringify(gearData),
     });
@@ -221,19 +221,19 @@ class ApiService {
   }
 
   async deleteGear(id) {
-    return await this.request(`/gears/${id}`, {
+    return await this.request(`/api/gears/${id}`, {
       method: 'DELETE',
     });
   }
 
   // About Me API
   async getAboutMe() {
-    const response = await this.request('/about');
+    const response = await this.request('/api/about');
     return response.aboutMe;
   }
 
   async updateAboutMe(aboutData) {
-    const response = await this.request('/about', {
+    const response = await this.request('/api/about', {
       method: 'PUT',
       body: JSON.stringify(aboutData),
     });
@@ -242,28 +242,28 @@ class ApiService {
 
   // Bulk operations
   async bulkProjects(action, projects) {
-    return await this.request('/projects/bulk', {
+    return await this.request('/api/projects/bulk', {
       method: 'POST',
       body: JSON.stringify({ action, projects }),
     });
   }
 
   async bulkWorkExperience(action, workExperience) {
-    return await this.request('/work/bulk', {
+    return await this.request('/api/work/bulk', {
       method: 'POST',
       body: JSON.stringify({ action, workExperience }),
     });
   }
 
   async bulkCertificates(action, certificates) {
-    return await this.request('/certificates/bulk', {
+    return await this.request('/api/certificates/bulk', {
       method: 'POST',
       body: JSON.stringify({ action, certificates }),
     });
   }
 
   async bulkGears(action, gears) {
-    return await this.request('/gears/bulk', {
+    return await this.request('/api/gears/bulk', {
       method: 'POST',
       body: JSON.stringify({ action, gears }),
     });
@@ -271,7 +271,7 @@ class ApiService {
 
   // Upload methods
   async uploadToCloudinary(formData) {
-    const url = `${this.baseURL}/upload/cloudinary`;
+    const url = `${this.baseURL}/api/upload/cloudinary`;
     const headers = {};
     
     if (this.token) {
@@ -298,14 +298,14 @@ class ApiService {
   }
 
   async validateImageUrl(url) {
-    return await this.request('/upload/validate-url', {
+    return await this.request('/api/upload/validate-url', {
       method: 'POST',
       body: JSON.stringify({ url }),
     });
   }
 
   async deleteFromCloudinary(publicId) {
-    return await this.request(`/upload/cloudinary/${publicId}`, {
+    return await this.request(`/api/upload/cloudinary/${publicId}`, {
       method: 'DELETE',
     });
   }
