@@ -267,7 +267,7 @@ const Home = () => {
 
   <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 cursor-pointer'>
     {projectData.map((project, idx) => (
-      <div key={project.id || idx} className='rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-zinc-950 dark:border-zinc-800'>
+      <div key={project.id || idx} className='rounded-xl overflow-hidden border border-gray-200  shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-zinc-950 dark:border-zinc-800'>
         
         {/* Project Image */}
         <div className='h-48 w-full bg-gray-100 dark:bg-zinc-800'>
