@@ -11,7 +11,10 @@ const SpotifyCallback = () => {
     if (code) {
       console.log('Spotify Auth Code:', code)
     }
-  }, [code])
+    // Debug: log the full URL
+    console.log('Current URL:', window.location.href)
+    console.log('Search params:', Object.fromEntries(searchParams))
+  }, [code, searchParams])
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center px-4">
@@ -77,15 +80,34 @@ const SpotifyCallback = () => {
             </div>
           </>
         ) : (
-          <div className="text-center">
-            <div className="text-gray-400 text-5xl mb-4">⏳</div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Waiting for Spotify...
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              You will be redirected shortly
-            </p>
-          </div>
+          <>
+            <div className="text-center mb-6">
+              <div className="text-gray-400 text-5xl mb-4">⏳</div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Waiting for Spotify...
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                You will be redirected shortly
+              </p>
+            </div>
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2 font-semibold">
+                ⚠️ No authorization code found
+              </p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-300 mb-2">
+                This page should only be reached after authorizing with Spotify.
+              </p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                <strong>Next steps:</strong>
+              </p>
+              <ol className="text-xs text-yellow-700 dark:text-yellow-300 mt-2 list-decimal list-inside space-y-1">
+                <li>Run the token generation script: <code className="bg-yellow-100 dark:bg-yellow-900/40 px-1 rounded">node backend/scripts/get-spotify-tokens.js</code></li>
+                <li>Copy the authorization URL from the terminal</li>
+                <li>Paste and open it in a new browser tab</li>
+                <li>After authorizing, you'll be redirected back here with a code</li>
+              </ol>
+            </div>
+          </>
         )}
       </div>
     </div>
