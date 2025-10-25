@@ -105,10 +105,10 @@ const Work = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <section className="max-w-2xl mx-auto px-4 py-12">
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading work experience...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-zinc-100 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-zinc-400">Loading work experience...</p>
         </div>
       </section>
     )
@@ -117,7 +117,7 @@ const Work = () => {
   // Show error state
   if (error) {
     return (
-      <section className="max-w-2xl mx-auto px-4 py-12">
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
         <div className="text-center">
           <p className="text-red-600">Error loading work experience: {error}</p>
         </div>
@@ -126,11 +126,11 @@ const Work = () => {
   }
 
   return (
-    <section className="max-w-2xl mx-auto px-4 py-12">
+    <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
       <div className="mb-8">
-        <p className="text-gray-400 mb-2">Career</p>
-        <h1 className="text-black font-bold text-3xl">Work Experience</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-400 dark:text-gray-500 mb-2">Career</p>
+        <h1 className="text-black dark:text-white font-bold text-3xl">Work Experience</h1>
+        <p className="text-gray-600 dark:text-zinc-400 mt-2">
           My professional journey and the companies I've had the privilege to work with.
         </p>
       </div>
@@ -138,7 +138,7 @@ const Work = () => {
       {/* Timeline */}
       <div className="relative">
         {/* Timeline Line */}
-        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-zinc-700"></div>
 
         {/* Timeline Items */}
         <div className="space-y-8">
@@ -148,10 +148,10 @@ const Work = () => {
               <div className="absolute left-4 top-2 w-4 h-4 bg-blue-500 rounded-full border-4 border-white shadow-md z-10"></div>
 
               {/* Content Card */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                                   <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
                 <div className="flex items-center gap-3 mb-3 p-4">
                   {/* Logo */}
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center">
                     {exp.logo ? (
                       <img src={exp.logo} alt={exp.company} className="w-12 h-12 object-cover rounded-lg" />
                     ) : (
@@ -161,37 +161,37 @@ const Work = () => {
 
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-lg text-black">{exp.company}</span>
+                      <span className="font-semibold text-lg text-black dark:text-white">{exp.company}</span>
                       <span className="text-xs px-2 py-1 rounded-md bg-green-100 text-green-700 font-medium border border-green-200">
                         {exp.status}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-500">{exp.role}</div>
+                    <div className="text-sm text-gray-500 dark:text-zinc-400">{exp.role}</div>
                   </div>
 
-                  <div className="text-xs text-gray-400 text-right hidden sm:block">
+                  <div className="text-xs text-gray-400 dark:text-zinc-500 text-right hidden sm:block">
                     <div>{exp.start} - {exp.end}</div>
                   </div>
                 </div>
 
                 {/* Date (mobile) */}
                 <div className="px-4 pb-2 sm:hidden">
-                  <div className="text-xs text-gray-400">{exp.start} - {exp.end}</div>
-                  <div className="text-xs text-gray-400">{exp.location}</div>
+                  <div className="text-xs text-gray-400 dark:text-zinc-500">{exp.start} - {exp.end}</div>
+                  <div className="text-xs text-gray-400 dark:text-zinc-500">{exp.location}</div>
                 </div>
 
                 {/* Details */}
                 <div className="px-4 pb-4">
-                  <div className="text-xs text-gray-400 mb-3 hidden sm:block">{exp.location}</div>
+                  <div className="text-xs text-gray-400 dark:text-zinc-500 mb-3 hidden sm:block">{exp.location}</div>
                   
                   {/* Technologies */}
                   <div className="mb-3">
-                    <div className="font-semibold text-gray-700 mb-2 text-sm">Technologies & Tools</div>
+                    <div className="font-semibold text-gray-700 dark:text-zinc-300 mb-2 text-sm">Technologies & Tools</div>
                     <div className="flex flex-wrap gap-2">
                       {exp.tech.map((tech, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-md border border-dashed cursor-pointer text-xs font-medium text-gray-700"
+                          className="inline-flex items-center gap-1 bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded-md border border-dashed dark:border-zinc-700 cursor-pointer text-xs font-medium text-gray-700 dark:text-zinc-300"
                         >
                           {tech.icon}
                           {tech.name}
@@ -202,8 +202,8 @@ const Work = () => {
 
                   {/* Accomplishments */}
                   <div>
-                    <div className="font-semibold text-gray-700 mb-2 text-sm">Key Accomplishments</div>
-                    <ul className="list-disc pl-5 text-gray-600 text-sm leading-relaxed space-y-1">
+                    <div className="font-semibold text-gray-700 dark:text-zinc-300 mb-2 text-sm">Key Accomplishments</div>
+                    <ul className="list-disc pl-5 text-gray-600 dark:text-zinc-400 text-sm leading-relaxed space-y-1">
                       {exp.bullets.map((bullet, i) => (
                         <li key={i}>{bullet}</li>
                       ))}

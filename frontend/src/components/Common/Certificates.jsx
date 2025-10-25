@@ -24,7 +24,7 @@ const Certificates = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
-        <div className="text-gray-500">Loading certificates...</div>
+        <div className="text-gray-500 dark:text-zinc-400">Loading certificates...</div>
       </div>
     )
   }
@@ -42,15 +42,15 @@ const Certificates = () => {
       {certificateData.map((certificate, index) => {
         const isExpanded = expandedCertificate === index
         return (
-          <div key={certificate.id} className="bg-white rounded-xl mb-2">
+                           <div key={certificate.id} className="bg-white dark:bg-zinc-950 rounded-xl mb-2 border border-gray-200 dark:border-zinc-700">
             <div className="flex items-center justify-between p-2 cursor-pointer">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-lg text-black">{certificate.name}</span>
+                  <span className="font-semibold text-lg text-black dark:text-white">{certificate.name}</span>
                   {!isExpanded && (
                     <button
                       onClick={() => setExpandedCertificate(index)}
-                      className="text-gray-400 hover:text-black transition"
+                      className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
                     >
                       <HiChevronDown className="text-xl" />
                     </button>
@@ -58,15 +58,15 @@ const Certificates = () => {
                   {isExpanded && (
                     <button
                       onClick={() => setExpandedCertificate(null)}
-                      className="text-gray-400 hover:text-black transition"
+                      className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
                     >
                       <HiChevronUp className="text-xl" />
                     </button>
                   )}
                 </div>
-                <div className="text-sm text-gray-500">{certificate.issuer}</div>
+                <div className="text-sm text-gray-500 dark:text-zinc-400">{certificate.issuer}</div>
               </div>
-              <div className="text-xs text-gray-400 text-right">
+              <div className="text-xs text-gray-400 dark:text-zinc-500 text-right">
                 {certificate.issueDate}
               </div>
             </div>
@@ -74,7 +74,7 @@ const Certificates = () => {
               <div className="px-2 pb-2">
                 {/* Certificate Image */}
                 {certificate.image && (
-                  <div className="mb-3 rounded-lg overflow-hidden border border-gray-200">
+                  <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
                     <img
                       src={certificate.image}
                       alt={certificate.name}
@@ -85,19 +85,19 @@ const Certificates = () => {
                 
                 {/* Description */}
                 <div className="mb-3">
-                  <p className="text-gray-600 text-sm leading-relaxed">
+                  <p className="text-gray-600 dark:text-zinc-400 text-sm leading-relaxed">
                     {certificate.description}
                   </p>
                 </div>
 
                 {/* Skills */}
                 <div>
-                  <div className="font-semibold text-gray-700 mb-2 text-md">Key Topics</div>
+                  <div className="font-semibold text-gray-700 dark:text-zinc-300 mb-2 text-md">Key Topics</div>
                   <div className="flex flex-wrap gap-2">
                     {certificate.skills.map((skill, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center bg-blue-50 px-2 py-1 rounded-md border border-blue-200 cursor-pointer text-xs font-medium text-blue-700"
+                        className="inline-flex items-center bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-md border border-blue-200 dark:border-blue-800 cursor-pointer text-xs font-medium text-blue-700 dark:text-blue-400"
                       >
                         {skill}
                       </span>
@@ -113,7 +113,7 @@ const Certificates = () => {
       <div className="w-full flex justify-center items-center mt-4">
         <Link
           to="/certificates"
-          className="text-zinc-900 border border-gray-100 px-4 py-2 rounded-md bg-gray-50 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] transition-all duration-100"
+          className="text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100"
         >
           View all Certificates
         </Link>

@@ -81,10 +81,10 @@ const Certificates = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <section className="max-w-2xl mx-auto px-4 py-12">
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading certificates...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-zinc-100 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-zinc-400">Loading certificates...</p>
         </div>
       </section>
     )
@@ -93,7 +93,7 @@ const Certificates = () => {
   // Show error state
   if (error) {
     return (
-      <section className="max-w-2xl mx-auto px-4 py-12">
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
         <div className="text-center">
           <p className="text-red-600">Error loading certificates: {error}</p>
         </div>
@@ -102,14 +102,14 @@ const Certificates = () => {
   }
 
   return (
-    <section className="max-w-2xl mx-auto px-4 py-12">
+    <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
       <div className="mb-8">
-        <p className="text-gray-400 mb-2">Certifications</p>
-        <h1 className="text-black font-bold text-3xl">My Certificates</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-400 dark:text-gray-500 mb-2">Certifications</p>
+        <h1 className="text-black dark:text-white font-bold text-3xl">My Certificates</h1>
+        <p className="text-gray-600 dark:text-zinc-400 mt-2">
           Professional certifications and achievements in software development and cloud technologies.
         </p>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">
           Total Certificates: {certificateData.length}
         </p>
       </div>
@@ -121,7 +121,7 @@ const Certificates = () => {
           return (
             <div
               key={certificate.id}
-              className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                                   className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
             >
               {/* Certificate Header */}
               <div
@@ -130,12 +130,12 @@ const Certificates = () => {
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-lg text-black">
+                    <h3 className="font-semibold text-lg text-black dark:text-white">
                       {certificate.name}
                     </h3>
                     {!isExpanded && (
                       <button
-                        className="text-gray-400 hover:text-black transition"
+                        className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleCertificate(index)
@@ -146,7 +146,7 @@ const Certificates = () => {
                     )}
                     {isExpanded && (
                       <button
-                        className="text-gray-400 hover:text-black transition"
+                        className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleCertificate(index)
@@ -156,21 +156,21 @@ const Certificates = () => {
                       </button>
                     )}
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">
+                  <div className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
                     {certificate.issuer}
                   </div>
                 </div>
-                <div className="text-sm text-gray-400 text-right">
+                <div className="text-sm text-gray-400 dark:text-zinc-500 text-right">
                   {certificate.issueDate}
                 </div>
               </div>
 
               {/* Expanded Content */}
               {isExpanded && (
-                <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+                <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-zinc-700">
                   {/* Certificate Image */}
                   {certificate.image && (
-                    <div className="mb-4 rounded-lg overflow-hidden border border-gray-200">
+                    <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
                       <img
                         src={certificate.image}
                         alt={certificate.name}
@@ -180,11 +180,11 @@ const Certificates = () => {
                   )}
 
                   {/* Credential ID and Verification */}
-                  <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="mb-4 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Credential ID</p>
-                        <p className="text-sm font-mono text-gray-800">
+                        <p className="text-xs text-gray-500 dark:text-zinc-400 mb-1">Credential ID</p>
+                        <p className="text-sm font-mono text-gray-800 dark:text-zinc-200">
                           {certificate.credentialId}
                         </p>
                       </div>
@@ -202,21 +202,21 @@ const Certificates = () => {
 
                   {/* Description */}
                   <div className="mb-4">
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                    <p className="text-sm text-gray-700 dark:text-zinc-400 leading-relaxed">
                       {certificate.description}
                     </p>
                   </div>
 
                   {/* Skills/Topics Covered */}
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                       Key Topics Covered
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {certificate.skills.map((skill, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center bg-blue-50 px-3 py-1 rounded-full text-xs font-medium text-blue-700 border border-blue-200"
+                          className="inline-flex items-center bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full text-xs font-medium text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
                         >
                           {skill}
                         </span>

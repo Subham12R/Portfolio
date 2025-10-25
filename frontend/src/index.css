@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Smooth transitions for theme switching */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
 
 #root {
   font-family: "Open Sans", sans-serif;
@@ -26,4 +32,13 @@ h2{
 }
 ::-webkit-scrollbar {
   display: none;
+}
+
+/* Dark mode styles */
+.dark {
+  color-scheme: dark;
+}
+
+.light {
+  color-scheme: light;
 }

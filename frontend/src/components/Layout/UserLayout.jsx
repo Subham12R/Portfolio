@@ -11,11 +11,9 @@ const UserLayout = () => {
 
   return (
     <>
-      {isHomePage ? (
-        <Header />
-      ) : (
+
         <Navbar />
-      )}
+
 
       <main>
         <Outlet />

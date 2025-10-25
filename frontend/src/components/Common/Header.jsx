@@ -40,23 +40,22 @@ const Header = () => {
 
   return (
     <header className="border-gray-200">
-        {/* Navbar - Already sticky */}
-        <Navbar />
+
 
         {/* Profile Content */}
-        <div className='bg-white w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
+        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
                     <div className='w-full flex justify-between items-start mb-10 mt-6'>
                                     <div className="relative">
                                         <img src={profileImage} alt="profile image" className='w-24 h-24 rounded-full object-cover shadow-md ' />
 
-                                        <span className="absolute bottom-1 right-3 inline-block w-2 h-2 bg-green-500 rounded-full ring-2 ring-green-200 ring-offset-2 z-10"></span>
+                                        <span className="absolute bottom-1 right-3 inline-block w-2 h-2 bg-green-500 rounded-full ring-2 ring-green-200 dark:ring-green-700 ring-offset-2 dark:ring-offset-zinc-950 z-10"></span>
                                     </div>
 
                             </div>
                  <div className='w-full inline-flex flex-col justify-center items-start space-y-2'>
                     <div className='mb-2'>
                         
-                    <h1 className='text-3xl font-bold mb-2'>Hi, I'm <span className='text-zinc-800 font-bold '>Subham Karmakar.{" "} </span></h1>
+                    <h1 className='text-3xl font-bold mb-2 dark:text-white'>Hi, I'm <span className='text-zinc-800 dark:text-zinc-200 font-bold '>Subham Karmakar.{" "} </span></h1>
                     <DecryptedText
                         text="A Full Stack Web Developer."
                         speed={200}
@@ -70,18 +69,18 @@ const Header = () => {
                     </div>
 
                     <div className=' mb-6 w-full leading-normal '>
-                    <p className='gap-2 inline-flex flex-wrap justify-start items-center text-md text-zinc-600 font-medium '>I build interactive and responsive web apps using {" "}  
-                     <button className='inline-flex justify-center gap-2 items-center bg-gray-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]  px-2 py-0.5  rounded-md border-dashed border  text-black font-semibold cursor-pointer'><FaReact className='text-blue-500'/>React</button>
+                    <p className='gap-2 inline-flex flex-wrap justify-start items-center text-md text-zinc-600 dark:text-zinc-400 font-medium '>I build interactive and responsive web apps using {" "}  
+                     <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5  rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><FaReact className='text-blue-500'/>React</button>
                     <span>, {" "}</span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]  px-2 py-0.5 rounded-md border-dashed border  text-black font-semibold cursor-pointer'><RiNextjsFill  className='text-black'/>NextJS</button>
+                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><RiNextjsFill  className='text-black dark:text-white'/>NextJS</button>
                     <span>, {" "}</span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]  px-2 py-0.5 rounded-md border-dashed border  text-black font-semibold cursor-pointer'><RiTailwindCssFill  className='text-blue-800'/>TailwindCSS</button>
+                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><RiTailwindCssFill  className='text-blue-800'/>TailwindCSS</button>
                     <span>, {" "}</span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]  px-2 py-0.5 rounded-md border-dashed border  text-black font-semibold cursor-pointer'><RiNodejsFill  className='text-emerald-500'/>NodeJs</button>
+                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><RiNodejsFill  className='text-emerald-500'/>NodeJs</button>
                     <span>, {" "}</span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]  px-2 py-0.5 rounded-md border-dashed border  text-black font-semibold cursor-pointer'><SiExpress className='text-red-800'/>Express</button>
+                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><SiExpress className='text-red-800'/>Express</button>
                     <span>, and </span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]  px-2 py-0.5 rounded-md border-dashed border  text-black font-semibold cursor-pointer'><BiLogoPostgresql  className='text-blue-800'/>PostgreSQL</button>
+                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><BiLogoPostgresql  className='text-blue-800'/>PostgreSQL</button>
                      <span>. </span>
                     With a focus on UI design and user experience. Currently keeping a close eye on the latest technologies and trends in web development.
                     </p>
@@ -90,13 +89,13 @@ const Header = () => {
                     <div className='mb-6 w-full flex justify-start items-center gap-4'>
                         <button 
                             onClick={downloadResume}
-                            className='inline-flex justify-center items-center gap-2 bg-black text-white shadow hover:bg-zinc-800  transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer'
+                            className='inline-flex justify-center items-center gap-2 bg-black dark:bg-white text-white dark:text-black shadow hover:bg-zinc-800 dark:hover:bg-gray-200  transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer'
                         >
                             <RiClipboardFill/> Resume/CV
                         </button>
                         <button 
                             onClick={() => setIsContactModalOpen(true)}
-                            className='inline-flex justify-center items-center gap-2 bg-transparent py-2 px-4 border border-zinc-200 rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]  text-black hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]  transition-all ease-in-out duration-300 cursor-pointer'
+                            className='inline-flex justify-center items-center gap-2 bg-transparent dark:bg-transparent py-2 px-4 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  text-black dark:text-zinc-200 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] dark:hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)]  transition-all ease-in-out duration-300 cursor-pointer'
                         >
                             <BiPaperPlane />Get in Touch
                         </button>
@@ -104,10 +103,10 @@ const Header = () => {
                     </div>
 
                      <div className='mb-2 flex flex-row justify-center items-center gap-4'>
-                        <a href="#" className='text-zinc-400 hover:text-zinc-900 transition-all duration-150'><FaEnvelope size={30}/></a>
-                        <a href="#" className='text-zinc-400 hover:text-zinc-900 transition-all duration-150'><FaLinkedin size={30}/></a>
-                        <a href="#" className='text-zinc-400 hover:text-zinc-900 transition-all duration-150'><FaGithub size={30}/></a>
-                        <a href="#" className='text-zinc-400 hover:text-zinc-900 transition-all duration-150'><FaSquareXTwitter size={30}/></a>
+                        <a href="#" className='text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-150'><FaEnvelope size={30}/></a>
+                        <a href="#" className='text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-150'><FaLinkedin size={30}/></a>
+                        <a href="#" className='text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-150'><FaGithub size={30}/></a>
+                        <a href="#" className='text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-150'><FaSquareXTwitter size={30}/></a>
                     </div>
                 </div>
 

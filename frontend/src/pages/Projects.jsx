@@ -270,10 +270,10 @@ const Projects = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <section className="max-w-2xl mx-auto px-4 py-12">
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading projects...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-zinc-100 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-zinc-400">Loading projects...</p>
         </div>
       </section>
     )
@@ -282,7 +282,7 @@ const Projects = () => {
   // Show error state
   if (error) {
     return (
-      <section className="max-w-2xl mx-auto px-4 py-12">
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
         <div className="text-center">
           <p className="text-red-600">Error loading projects: {error}</p>
         </div>
@@ -291,14 +291,14 @@ const Projects = () => {
   }
 
   return (
-    <section className="max-w-2xl mx-auto px-4 py-12">
+    <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
       <div className="mb-8">
-        <p className="text-gray-400 mb-2">Portfolio</p>
-        <h1 className="text-black font-bold text-3xl">My Projects</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-400 dark:text-gray-500 mb-2">Portfolio</p>
+        <h1 className="text-black dark:text-white font-bold text-3xl">My Projects</h1>
+        <p className="text-gray-600 dark:text-zinc-400 mt-2">
           A collection of web applications and projects I've built using modern technologies.
         </p>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">
           Total Projects: {projectData.length}
         </p>
       </div>
@@ -310,7 +310,7 @@ const Projects = () => {
           return (
             <div
               key={project.id}
-              className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                                   className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
             >
               {/* Project Header */}
               <div
@@ -319,7 +319,7 @@ const Projects = () => {
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-lg text-black">
+                    <h3 className="font-semibold text-lg text-black dark:text-white">
                       {project.name}
                     </h3>
                     {project.status && (
@@ -333,7 +333,7 @@ const Projects = () => {
                     )}
                     {!isExpanded && (
                       <button
-                        className="text-gray-400 hover:text-black transition"
+                        className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleProject(index)
@@ -344,7 +344,7 @@ const Projects = () => {
                     )}
                     {isExpanded && (
                       <button
-                        className="text-gray-400 hover:text-black transition"
+                        className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleProject(index)
@@ -354,21 +354,21 @@ const Projects = () => {
                       </button>
                     )}
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">
+                  <div className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
                     {project.category}
                   </div>
                 </div>
-                <div className="text-sm text-gray-400 text-right">
+                <div className="text-sm text-gray-400 dark:text-zinc-500 text-right">
                   {project.date}
                 </div>
               </div>
 
               {/* Expanded Content */}
               {isExpanded && (
-                <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+                <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-zinc-700">
                   {/* Project Image */}
                   {project.image && (
-                    <div className="mb-4 rounded-lg overflow-hidden border border-gray-200">
+                    <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
                       <img
                         src={project.image}
                         alt={project.name}
@@ -379,7 +379,7 @@ const Projects = () => {
                     </div>
                   )}
                   {!project.image && (
-                    <div className="mb-4 p-4 bg-gray-100 rounded-lg text-center text-gray-500">
+                    <div className="mb-4 p-4 bg-gray-100 dark:bg-zinc-800 rounded-lg text-center text-gray-500 dark:text-zinc-400">
                       No image available for this project
                     </div>
                   )}
@@ -390,7 +390,7 @@ const Projects = () => {
                       href={project.github}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-gray-600 hover:text-black text-sm font-medium"
+                      className="flex items-center gap-2 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white text-sm font-medium"
                     >
                       <FaGithub className="text-lg" />
                       View Code
@@ -399,7 +399,7 @@ const Projects = () => {
                       href={project.liveUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-gray-600 hover:text-black text-sm font-medium"
+                      className="flex items-center gap-2 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white text-sm font-medium"
                     >
                       <FaGlobe className="text-lg" />
                       Live Demo
@@ -408,24 +408,24 @@ const Projects = () => {
 
                   {/* Description */}
                   <div className="mb-4">
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                    <p className="text-sm text-gray-700 dark:text-zinc-400 leading-relaxed">
                       {project.description}
                     </p>
                   </div>
 
                   {/* Tech Stack */}
                   <div className="mb-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                       Technologies & Tools
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {project.tech.map((tech, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                         >
                           {getTechIcon(tech)}
-                          <span className="text-sm font-medium text-gray-700">{tech}</span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-zinc-300">{tech}</span>
                         </span>
                       ))}
                     </div>
@@ -433,10 +433,10 @@ const Projects = () => {
 
                   {/* Features */}
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                       Key Features
                     </p>
-                    <ul className="list-disc pl-5 text-gray-600 text-sm leading-relaxed space-y-1">
+                    <ul className="list-disc pl-5 text-gray-600 dark:text-zinc-400 text-sm leading-relaxed space-y-1">
                       {project.features.map((feature, i) => (
                         <li key={i}>{feature}</li>
                       ))}

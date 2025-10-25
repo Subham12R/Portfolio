@@ -9,6 +9,7 @@ import AboutMe from '../components/Common/AboutMe'
 import Certificates from '../components/Common/Certificates'
 import { GoGear } from "react-icons/go";
 import { usePortfolio } from '../contexts/PortfolioContext';
+import Header from '../components/Common/Header'
 // Dummy data - now using backend data via PortfolioContext
 // const experienceData = [...]
 // const projectData = [...]
@@ -176,29 +177,30 @@ const Home = () => {
   }
 
   return (
-    <div className='bg-white w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
+    <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
+      <Header />
       <Spotify />
 
       {/* Work */}
       <div className='mt-8 mb-8'>
-        <p className='text-gray-400'>Featured.</p>
-        <h1 className='text-black font-bold text-3xl'>Experience</h1>
+        <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
+        <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
       </div>
       <div className="mb-4">
         {experienceData.map((exp, idx) => {
           const isExpanded = expandedExperience === idx;
           return (
-            <div key={exp.id || idx} className="bg-white rounded-xl mb-2 ">
+                              <div key={exp.id || idx} className="bg-white dark:bg-zinc-950 rounded-xl mb-2 border border-gray-200 dark:border-zinc-700">
               <div className="flex items-center gap-3 mb-2 p-2">
                 {/* Logo */}
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xl font-bold">
+                <div className="w-10 h-10 bg-gray-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-xl font-bold">
                   {exp.logo ? <img src={exp.logo} alt={exp.company} className="w-10 h-10 object-cover rounded" /> : exp.company[0]}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-lg text-black">{exp.company}</span>
-                    <a href="" className='text-gray-500 text-lg hover:text-black transition'><FaGlobe /></a>
-                    <a href="" className='text-gray-500 text-lg hover:text-black transition'><FaGithub /></a>
+                    <span className="font-semibold text-lg text-black dark:text-white">{exp.company}</span>
+                    <a href="" className='text-gray-500 dark:text-gray-400 text-lg hover:text-black dark:hover:text-white transition'><FaGlobe /></a>
+                    <a href="" className='text-gray-500 dark:text-gray-400 text-lg hover:text-black dark:hover:text-white transition'><FaGithub /></a>
                     {!isExpanded && (
                       <button
                       onClick={() => setExpandedExperience(idx)}
@@ -217,9 +219,9 @@ const Home = () => {
                     )}
                     {isExpanded && <span className="text-xs px-2 py-1 rounded-md bg-green-100 text-green-700 font-medium border border-green-200">{exp.status}</span>}
                   </div>
-                  <div className="text-sm text-gray-500">{exp.role}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{exp.role}</div>
                 </div>
-                <div className="text-xs text-gray-400 text-right">
+                <div className="text-xs text-gray-400 dark:text-gray-500 text-right">
                   <div>{exp.start} - {exp.end}</div>
                   <div>{exp.location}</div>
                 </div>
@@ -227,17 +229,17 @@ const Home = () => {
               {isExpanded && (
                 <div className="px-2 pb-2">
                   <div className="mb-2">
-                    <div className="font-semibold text-gray-700 mb-1 text-md">Technologies &amp; Tools</div>
+                    <div className="font-semibold text-gray-700 dark:text-gray-300 mb-1 text-md">Technologies &amp; Tools</div>
                     <div className="flex flex-wrap gap-2">
                       {exp.tech?.map((tech, i) => (
-                        <span key={i} className="inline-flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors cursor-pointer">
+                        <span key={i} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer">
                           {getTechIcon(tech.name || tech)}
-                          <span className="text-xs font-medium text-gray-700">{tech.name || tech}</span>
+                          <span className="text-xs font-medium text-gray-700 dark:text-zinc-300">{tech.name || tech}</span>
                         </span>
                       ))}
                     </div>
                   </div>
-                  <ul className="list-disc pl-5 text-gray-600 text-sm leading-relaxed space-y-1">
+                  <ul className="list-disc pl-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed space-y-1">
                     {exp.bullets?.map((b, i) => (
                       <li key={i}>{b}</li>
                     ))}
@@ -249,7 +251,7 @@ const Home = () => {
         })}
         
         <div className='w-full flex justify-center items-center mt-4'>
-            <Link to="/work" className='text-zinc-900 border border-gray-100 px-4 py-2 rounded-md bg-gray-50 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] transition-all duration-100'>Show all Work Experiences </Link>
+            <Link to="/work" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Work Experiences </Link>
         </div>
       </div>
 
@@ -257,18 +259,18 @@ const Home = () => {
     <div>
 
      <div className='mt-8 mb-8'>
-        <p className='text-gray-400'>Featured.</p>
-        <h1 className='text-black font-bold text-3xl'>Projects</h1>
+        <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
+        <h1 className='text-black dark:text-white font-bold text-3xl'>Projects</h1>
       </div>
       
   
 
   <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 cursor-pointer'>
     {projectData.map((project, idx) => (
-      <div key={project.id || idx} className='rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 bg-white'>
+      <div key={project.id || idx} className='rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-zinc-950 dark:border-zinc-800'>
         
         {/* Project Image */}
-        <div className='h-48 w-full bg-gray-100'>
+        <div className='h-48 w-full bg-gray-100 dark:bg-zinc-800'>
           <img
             src={project.image || 'https://picsum.photos/200'}
             alt={project.name}
@@ -281,13 +283,13 @@ const Home = () => {
         {/* Project Info */}
         <div className='p-4'>
           <div className='flex items-center justify-between'>
-            <h2 className='font-semibold text-xl text-gray-900'>{project.name}</h2>
+            <h2 className='font-semibold text-xl text-gray-900 dark:text-white'>{project.name}</h2>
                  {/* Links */}
-          <div className='flex items-center gap-3 text-gray-400 text-lg'>
-            <a href={project.github} target="_blank" rel="noopener noreferrer" className='flex items-center gap-1 hover:text-black transition'>
+          <div className='flex items-center gap-3 text-gray-400 dark:text-gray-500 text-lg'>
+            <a href={project.github} target="_blank" rel="noopener noreferrer" className='flex items-center gap-1 hover:text-black dark:hover:text-white transition'>
               <FaGithub />
             </a>
-            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className='flex items-center gap-1 hover:text-black transition'>
+            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className='flex items-center gap-1 hover:text-black dark:hover:text-white transition'>
               <FaGlobe /> 
             </a>
           </div>
@@ -295,7 +297,7 @@ const Home = () => {
           </div>
 
           <div className='mt-1 mb-3'>
-            <p className='text-gray-600 text-md font-medium'>
+            <p className='text-gray-600 dark:text-gray-400 text-md font-medium'>
               {expandedProjects[project.id] 
                 ? project.description 
                 : project.description?.length > 100 
@@ -315,11 +317,11 @@ const Home = () => {
 
           {/* Tech Stack */}
           <div className='flex flex-wrap gap-2 mb-3'>
-            <p className='text-gray-600 text-sm w-full'>Technologies &amp; Tools</p>
+            <p className='text-gray-600 dark:text-gray-400 text-sm w-full'>Technologies &amp; Tools</p>
             {project.tech?.map((tech, i) => (
-              <span key={i} className='inline-flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors'>
+              <span key={i} className='inline-flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors'>
                 {getTechIcon(tech.name || tech)}
-                <span className='text-sm font-medium text-gray-700'>{tech.name || tech}</span>
+                <span className='text-sm font-medium text-gray-700 dark:text-zinc-300'>{tech.name || tech}</span>
               </span>
             ))}
           </div>
@@ -331,20 +333,20 @@ const Home = () => {
     ))}
   </div>
           <div className='w-full flex justify-center items-center mt-4'>
-            <Link to="/projects" className='text-zinc-900 border border-gray-100 px-4 py-2 rounded-md bg-gray-50 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] transition-all duration-100'>Show all Projects</Link>
+            <Link to="/projects" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Projects</Link>
         </div>
     </div>
 
 
     <div className='mt-8 mb-8'>
-        <p className='text-gray-400'>About</p>
-        <h1 className='text-black font-bold text-3xl'>Me</h1>
+        <p className='text-gray-400 dark:text-gray-500'>About</p>
+        <h1 className='text-black dark:text-white font-bold text-3xl'>Me</h1>
       </div>
       <AboutMe />
 
       <div className='mt-8 mb-8'>
-        <p className='text-gray-400'>Certificates</p>
-        <h1 className='text-black font-bold text-3xl'>Certificates</h1>
+        <p className='text-gray-400 dark:text-gray-500'>Certificates</p>
+        <h1 className='text-black dark:text-white font-bold text-3xl'>Certificates</h1>
       </div>
       <Certificates />
 
@@ -352,27 +354,27 @@ const Home = () => {
 
 
       <div className='mt-8 mb-8'>
-        <div className='w-full flex flex-col justify-center items-center p-10 gap-2 border border-gray-200 rounded-md border-dashed'>
-            <p>Hey,hope you enjoyed my portfolio. Lets Talk.</p>
-            <button className='text-zinc-900 border  px-4 py-1 border-dashed border-zinc-200 rounded-md bg-gray-50 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] transition-all duration-100 cursor-pointer'>Get in Touch</button>
+        <div className='w-full flex flex-col justify-center items-center p-10 gap-2 border border-gray-200 dark:border-zinc-700 rounded-md border-dashed bg-white dark:bg-zinc-900'>
+            <p className='text-black dark:text-zinc-200'>Hey,hope you enjoyed my portfolio. Lets Talk.</p>
+            <button className='text-zinc-900 dark:text-zinc-200 border  px-4 py-1 border-dashed border-zinc-200 dark:border-zinc-700 rounded-md bg-gray-50 dark:bg-zinc-800 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100 cursor-pointer'>Get in Touch</button>
         </div>
       </div>
 
       <div className='mt-8 mb-8'>
-      <p className='text-gray-400'>Setup</p>
-      <h1 className='text-black font-bold text-3xl'>Development</h1>
+      <p className='text-gray-400 dark:text-gray-500'>Setup</p>
+      <h1 className='text-black dark:text-white font-bold text-3xl'>Development</h1>
         <Link to="/gears">
         <div className='flex justify-between items-start mt-6 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
-          <div className='flex bg-transparent border border-gray-200 w-full p-4 rounded-md'>
-            <div className='h-full p-2 bg-gray-100 rounded'>
-              <GoGear size={30} className='text-gray-900'/>
+          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-4 rounded-md'>
+            <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded'>
+              <GoGear size={30} className='text-gray-900 dark:text-zinc-200'/>
             </div>
             <div className='ml-2'>
-              <h1 className='text-lg font-semibold tracking-tighter'>Gears Used</h1>
-              <p className='text-sm tracking-tighter'>Tools and the setup i use to get the work done.</p>
+              <h1 className='text-lg font-semibold tracking-tighter dark:text-white'>Gears Used</h1>
+              <p className='text-sm tracking-tighter dark:text-zinc-400'>Tools and the setup i use to get the work done.</p>
             </div>
             <div className='ml-auto p-4'>
-              <FaArrowRight className='text-sm text-gray-400 hover:translate-x-2 transition duration-200 ease-in-out'/>
+              <FaArrowRight className='text-sm text-gray-400 dark:text-zinc-500 hover:translate-x-2 transition duration-200 ease-in-out'/>
             </div>
           </div>
         </div>
@@ -380,16 +382,16 @@ const Home = () => {
 
         <Link to="/setup">
         <div className='flex justify-between items-start mt-6 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
-          <div className='flex bg-transparent border border-gray-200 w-full p-4 rounded-md'>
-            <div className='h-full p-2 bg-gray-100 rounded'>
-              <FaCode size={30} className='text-gray-900'/>
+          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-4 rounded-md'>
+            <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded'>
+              <FaCode size={30} className='text-gray-900 dark:text-zinc-200'/>
             </div>
             <div className='ml-2'>
-              <h1 className='text-lg font-semibold tracking-tighter'>IDE Setup</h1>
-              <p className='text-sm tracking-tighter'>This VSCODE / Cursor setup helps me complete my workflow swiftly.</p>
+              <h1 className='text-lg font-semibold tracking-tighter dark:text-white'>IDE Setup</h1>
+              <p className='text-sm tracking-tighter dark:text-zinc-400'>This VSCODE / Cursor setup helps me complete my workflow swiftly.</p>
             </div>
             <div className='ml-auto p-4'>
-              <FaArrowRight className='text-sm text-gray-400 hover:translate-x-2 transition duration-200 ease-in-out'/>
+              <FaArrowRight className='text-sm text-gray-400 dark:text-zinc-500 hover:translate-x-2 transition duration-200 ease-in-out'/>
             </div>
           </div>
         </div>

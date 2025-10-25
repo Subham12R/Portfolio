@@ -81,23 +81,23 @@ const Gears = () => {
       const getIcon = (type) => {
         switch (type) {
           case 'laptop':
-            return <FaLaptop className="text-2xl text-gray-700" />
+            return <FaLaptop className="text-2xl text-gray-700 dark:text-zinc-300" />
           case 'desktop':
-            return <FaComputer className="text-2xl text-gray-700" />
+            return <FaComputer className="text-2xl text-gray-700 dark:text-zinc-300" />
           case 'monitor':
-            return <FaDesktop className="text-2xl text-gray-700" />
+            return <FaDesktop className="text-2xl text-gray-700 dark:text-zinc-300" />
           case 'keyboard':
-            return <FaKeyboard className="text-2xl text-gray-700" />
+            return <FaKeyboard className="text-2xl text-gray-700 dark:text-zinc-300" />
           case 'mouse':
-            return <FaMouse className="text-2xl text-gray-700" />
+            return <FaMouse className="text-2xl text-gray-700 dark:text-zinc-300" />
           case 'headphones':
-            return <FaHeadphones className="text-2xl text-gray-700" />
+            return <FaHeadphones className="text-2xl text-gray-700 dark:text-zinc-300" />
           case 'tablet':
-            return <FaTablet className="text-2xl text-gray-700" />
+            return <FaTablet className="text-2xl text-gray-700 dark:text-zinc-300" />
           case 'mobile':
-            return <FaMobileAlt className="text-2xl text-gray-700" />
+            return <FaMobileAlt className="text-2xl text-gray-700 dark:text-zinc-300" />
           default:
-            return <FaLaptop className="text-2xl text-gray-700" />
+            return <FaLaptop className="text-2xl text-gray-700 dark:text-zinc-300" />
         }
       }
 
@@ -117,10 +117,10 @@ const Gears = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <section className="max-w-2xl mx-auto px-4 py-12">
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading gears...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-zinc-100 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-zinc-400">Loading gears...</p>
         </div>
       </section>
     )
@@ -129,7 +129,7 @@ const Gears = () => {
   // Show error state
   if (error) {
     return (
-      <section className="max-w-2xl mx-auto px-4 py-12">
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
         <div className="text-center">
           <p className="text-red-600">Error loading gears: {error}</p>
         </div>
@@ -140,23 +140,23 @@ const Gears = () => {
   // Show empty state
   if (devices.length === 0 && extensions.length === 0) {
     return (
-      <section className="max-w-2xl mx-auto px-4 py-12">
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
         <div className="text-center">
-          <h1 className="text-black font-bold text-4xl mb-2">Gears</h1>
-          <p className="text-gray-600 mb-8">
+          <h1 className="text-black dark:text-white font-bold text-4xl mb-2">Gears</h1>
+          <p className="text-gray-600 dark:text-zinc-400 mb-8">
             My gears and tools I use to get my work done.
           </p>
-          <p className="text-gray-500">No gears data available.</p>
+          <p className="text-gray-500 dark:text-zinc-500">No gears data available.</p>
         </div>
       </section>
     )
   }
 
   return (
-    <section className="max-w-2xl mx-auto px-4 py-12">
+    <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
       <div className="mb-8">
-        <h1 className="text-black font-bold text-4xl mb-2">Gears</h1>
-        <p className="text-gray-600">
+        <h1 className="text-black dark:text-white font-bold text-4xl mb-2">Gears</h1>
+        <p className="text-gray-600 dark:text-zinc-400">
           My gears and tools I use to get my work done.
         </p>
       </div>
@@ -164,20 +164,20 @@ const Gears = () => {
       {/* Devices Section */}
       {devices.length > 0 && (
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-black mb-4">Devices</h2>
+          <h2 className="text-2xl font-bold text-black dark:text-white mb-4">Devices</h2>
           <div className="space-y-3">
             {devices.map((device, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4 hover:shadow-md transition-all duration-200"
+                                 className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 p-4 flex items-center gap-4 hover:shadow-md transition-all duration-200"
               >
                 <div className="flex-shrink-0">
                   {device.icon}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{device.name}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{device.name}</h3>
                   {device.specs && (
-                    <p className="text-sm text-gray-500">{device.specs}</p>
+                    <p className="text-sm text-gray-500 dark:text-zinc-400">{device.specs}</p>
                   )}
                 </div>
               </div>
@@ -189,8 +189,8 @@ const Gears = () => {
       {/* Web Extensions Section */}
       {extensions.length > 0 && (
         <div>
-          <h2 className="text-2xl font-bold text-black mb-4 flex items-center gap-2">
-            <FaGripLinesVertical className="text-gray-400" />
+          <h2 className="text-2xl font-bold text-black dark:text-white mb-4 flex items-center gap-2">
+            <FaGripLinesVertical className="text-gray-400 dark:text-zinc-500" />
             <span>Web Extensions</span>
           </h2>
           <ol className="space-y-3">
@@ -200,15 +200,15 @@ const Gears = () => {
                   href={extension.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3 hover:shadow-md hover:border-blue-500 transition-all duration-200 group"
+                  className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 p-4 flex items-center gap-3 hover:shadow-md hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 group"
                 >
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm">
                     {index + 1}
                   </div>
-                  <span className="font-medium text-gray-900 group-hover:text-blue-600">
+                  <span className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600">
                     {extension.name}
                   </span>
-                  <span className="ml-auto text-gray-400 group-hover:text-blue-600">
+                  <span className="ml-auto text-gray-400 dark:text-zinc-500 group-hover:text-blue-600">
                     →
                   </span>
                 </a>

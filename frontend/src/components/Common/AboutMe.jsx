@@ -19,10 +19,10 @@ const AboutMe = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className='bg-white w-full h-full lg:max-w-2xl mx-auto py-2 mb-2'>
+      <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-2 mb-2'>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-zinc-100 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-zinc-400">Loading profile...</p>
         </div>
       </div>
     )
@@ -31,7 +31,7 @@ const AboutMe = () => {
   // Show error state
   if (error) {
     return (
-      <div className='bg-white w-full h-full lg:max-w-2xl mx-auto py-2 mb-2'>
+      <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-2 mb-2'>
         <div className="text-center">
           <p className="text-red-600">Error loading profile: {error}</p>
         </div>
@@ -40,18 +40,18 @@ const AboutMe = () => {
   }
 
   return (
-    <div className='bg-white w-full h-full lg:max-w-2xl mx-auto  py-2 mb-2'>
+    <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto  py-2 mb-2'>
     <div className='flex lg:flex-row flex-col justify-start items-start gap-2'>
         <div className='w-full'>
             <img src={profileImage} alt="profile image" className='w-64 h-64 rounded object-cover shadow-md ' />
         </div>
 
         <div className='flex flex-col justify-start items-start gap-4'>
-            <h1 className='text-3xl font-bold'>{aboutMeData.name}</h1>
-            <p className='text-gray-600 text-md '>{aboutMeData.bio}</p>
+            <h1 className='text-3xl font-bold dark:text-white'>{aboutMeData.name}</h1>
+            <p className='text-gray-600 dark:text-zinc-400 text-md '>{aboutMeData.bio}</p>
 
             <div className='flex flex-col justify-center items-start gap-2 mt-4'>
-                <h1 className='text-xl font-bold'>Skills</h1>
+                <h1 className='text-xl font-bold dark:text-white'>Skills</h1>
                 <div className='flex justify-start items-center gap-2'>
                     <span className='inline-flex items-center gap-2 py-2 text-3xl'><FaReact className='text-blue-500' /></span>
                     <span className='inline-flex items-center gap-2 py-2 text-3xl'><RiNextjsFill className='text-black' /></span>
@@ -65,12 +65,12 @@ const AboutMe = () => {
             </div>
         </div>
         <div className='mt-8'>
-            <h1 className='text-2xl font-bold'>Github Activity</h1>
-            <p className='text-gray-600 text-sm tracking-tighter'><span className='font-bold tracking-tighter'>Subham12R's</span> journey over the years. </p>
+            <h1 className='text-2xl font-bold dark:text-white'>Github Activity</h1>
+            <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'><span className='font-bold tracking-tighter'>Subham12R's</span> journey over the years. </p>
         </div>
         <div className='mt-2 '>
-            <div className='w-full h-full p-4 border border-gray-200 border-dashed rounded-md overflow-x-auto'>
-                <GitHubCalendar username="subham12r" />
+            <div className='w-full h-full p-4 border border-gray-200 dark:border-zinc-700 border-dashed rounded-md overflow-hidden'>
+                <GitHubCalendar username="subham12r" style={{ width: '100%', height: '100%' }} />
             </div>
         </div>
     </div>

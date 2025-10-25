@@ -45,18 +45,18 @@ const steps = [
 
 const VSCodeSetup = () => {
   return (
-    <section className="max-w-2xl mx-auto px-4 py-12">
+    <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
       <div className="mb-8">
-        <h1 className="text-black font-bold text-4xl mb-2">Setup</h1>
-        <p className="text-gray-600">
+        <h1 className="text-black dark:text-white font-bold text-4xl mb-2">Setup</h1>
+        <p className="text-gray-600 dark:text-zinc-400">
           Complete guide to setup VS Code with my preferences, extensions, and fonts.
         </p>
       </div>
 
       <div className="space-y-8">
         {steps.map((step) => (
-          <div key={step.number} className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-2xl font-bold text-black mb-4">
+          <div key={step.number} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 p-6">
+            <h2 className="text-2xl font-bold text-black dark:text-white mb-4">
               Step {step.number}: {step.title}
             </h2>
 
@@ -65,13 +65,13 @@ const VSCodeSetup = () => {
               {step.items.map((item, index) => (
                 <div
                   key={index}
-                  className="bg-gray-50 rounded-lg border border-gray-200 p-4"
+                  className="bg-gray-50 dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 p-4"
                 >
                   <div className="flex items-center gap-3 mb-2">
                     {item.icon}
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                      <p className="text-sm text-gray-600">{item.description}</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{item.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-zinc-400">{item.description}</p>
                     </div>
                     {item.downloadLink && (
                       <a
@@ -85,7 +85,7 @@ const VSCodeSetup = () => {
                   </div>
                   {item.shortcut && (
                     <div className="mt-2 pl-8">
-                      <code className="bg-white px-3 py-1 rounded border border-gray-300 text-sm font-mono">
+                      <code className="bg-white dark:bg-zinc-950 px-3 py-1 rounded border border-gray-300 dark:border-zinc-700 text-sm font-mono dark:text-zinc-300">
                         {item.shortcut}
                       </code>
                     </div>
@@ -98,7 +98,7 @@ const VSCodeSetup = () => {
             {step.instructions && (
               <div className="space-y-2 mt-4 pl-4 border-l-2 border-blue-500">
                 {step.instructions.map((instruction, index) => (
-                  <p key={index} className="text-gray-700 flex items-start gap-2">
+                  <p key={index} className="text-gray-700 dark:text-zinc-400 flex items-start gap-2">
                     <span className="text-blue-500 mt-1">
                       <FaChevronRight className="text-xs" />
                     </span>
