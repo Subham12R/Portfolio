@@ -994,7 +994,7 @@ const AdminPage = () => {
                     const formData = new FormData();
                     formData.append('resume', e.target.files[0]);
                     
-                    fetch('/api/upload/resume', {
+                    fetch('https://portfolio-fqur.vercel.app/api/upload/resume', {
                       method: 'POST',
                       body: formData,
                       headers: {

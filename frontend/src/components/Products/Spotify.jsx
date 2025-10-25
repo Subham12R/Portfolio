@@ -27,7 +27,7 @@ const Spotify = () => {
   const fetchSpotifyData = async () => {
     try {
       // First, get the auth URL from backend
-      const authResponse = await fetch('/api/spotify/auth-url')
+      const authResponse = await fetch('https://portfolio-fqur.vercel.app/api/spotify/auth-url')
       const authData = await authResponse.json()
       
       if (authData.authUrl) {
@@ -37,7 +37,7 @@ const Spotify = () => {
         
         if (code) {
           // Handle the callback
-          const callbackResponse = await fetch('/api/spotify/callback', {
+          const callbackResponse = await fetch('https://portfolio-fqur.vercel.app/api/spotify/callback', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code })
@@ -51,7 +51,7 @@ const Spotify = () => {
           }
         } else {
           // No code, check if we're already authenticated
-          const statusResponse = await fetch('/api/spotify/status')
+          const statusResponse = await fetch('https://portfolio-fqur.vercel.app/api/spotify/status')
           const statusData = await statusResponse.json()
           
           if (statusData.authenticated) {
@@ -72,7 +72,7 @@ const Spotify = () => {
 
   const fetchCurrentTrack = async () => {
     try {
-      const response = await fetch('/api/spotify/currently-playing')
+      const response = await fetch('https://portfolio-fqur.vercel.app/api/spotify/currently-playing')
       const data = await response.json()
       
       if (data.success) {
@@ -150,7 +150,7 @@ const Spotify = () => {
             <p className='text-gray-400 text-sm mb-2'>Click to connect your Spotify account</p>
             <button 
               onClick={async () => {
-                const response = await fetch('/api/spotify/auth-url')
+                const response = await fetch('https://portfolio-fqur.vercel.app/api/spotify/auth-url')
                 const data = await response.json()
                 if (data.authUrl) {
                   window.location.href = data.authUrl

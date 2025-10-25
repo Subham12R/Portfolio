@@ -18,7 +18,7 @@ const Header = () => {
   // Function to download resume
   const downloadResume = async () => {
     try {
-      const response = await fetch('/api/upload/resume');
+      const response = await fetch('https://portfolio-fqur.vercel.app/api/upload/resume');
       const data = await response.json();
       
       if (data.success) {
