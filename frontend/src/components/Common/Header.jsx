@@ -58,12 +58,12 @@ const Header = () => {
                     <h1 className='text-3xl font-bold mb-2 dark:text-white'>Hi, I'm <span className='text-zinc-800 dark:text-zinc-200 font-bold '>Subham Karmakar.{" "} </span></h1>
                     <DecryptedText
                         text="A Full Stack Web Developer."
-                        speed={200}
+                        speed={100}
                         animateOn='view'
                         maxIterations={20}
                         characters="101010</>?"
-                        className="revealed text-xl md:text-3xl font-bold text-zinc-500 tracking-tighter"
-                        parentClassName="all-letters text-xl  md:text-3xl font-bold text-gray-500 tracking-tighter"
+                        className="revealed text-xl md:text-3xl font-bold text-blue-500 tracking-tighter"
+                        parentClassName="all-letters text-xl  md:text-3xl font-bold text-blue-200 tracking-tighter"
                         encryptedClassName="encrypted"
                     />
                     </div>
