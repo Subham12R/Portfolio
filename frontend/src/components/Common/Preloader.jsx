@@ -11,31 +11,13 @@ const Preloader = ({ onComplete }) => {
     "Bonjour", // French
     "Hallo", // German
     "Ciao", // Italian
-    "Привет", // Russian
-    "こんにちは", // Japanese
     "你好", // Chinese
-    "안녕하세요", // Korean
     "مرحبا", // Arabic
-    "Olá", // Portuguese
-    "Merhaba", // Turkish
-    "Hej", // Swedish
-    "Hei", // Norwegian
-    "Hej", // Danish
-    "Hei", // Finnish
-    "Helló", // Hungarian
-    "Ahoj", // Czech
-    "Cześć", // Polish
-    "Γεια", // Greek
     "নমস্কার", // Bengali
     "नमस्ते", // Hindi
     "Salam", // Persian
     "Shalom", // Hebrew
-    "Kumusta", // Filipino
-    "Sawubona", // Zulu
     "Kamusta", // Indonesian
-    "Xin chào", // Vietnamese
-    "สวัสดี", // Thai
-    "Selamat", // Malay
   ]
 
   useEffect(() => {
