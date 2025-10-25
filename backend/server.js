@@ -46,6 +46,34 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Portfolio Backend API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      auth: '/api/auth',
+      projects: '/api/projects',
+      work: '/api/work',
+      certificates: '/api/certificates',
+      gears: '/api/gears',
+      about: '/api/about',
+      upload: '/api/upload',
+      spotify: '/api/spotify'
+    }
+  });
+});
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
