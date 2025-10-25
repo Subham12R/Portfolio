@@ -1,87 +1,20 @@
 const express = require('express');
 const router = express.Router();
 
-// Spotify API credentials (you'll need to add these to your .env file)
+// Personal Spotify credentials - set these in your .env file
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-const SPOTIFY_REDIRECT_URI = process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:5173/callback';
+const SPOTIFY_REDIRECT_URI = 'https://portfolio-bice-beta-a4ejdfdsaj.vercel.app/callback';
 
-// Store user tokens (in production, use a database)
-const userTokens = new Map();
+// Your personal Spotify tokens (get these once and store in .env)
+let personalAccessToken = process.env.SPOTIFY_ACCESS_TOKEN;
+let personalRefreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
+let tokenExpiresAt = process.env.SPOTIFY_TOKEN_EXPIRES_AT ? parseInt(process.env.SPOTIFY_TOKEN_EXPIRES_AT) : null;
 
-// Get Spotify authorization URL
-router.get('/auth-url', (req, res) => {
-  const scopes = [
-    'user-read-currently-playing',
-    'user-read-recently-played',
-    'user-top-read',
-    'user-read-playback-state'
-  ].join(' ');
-
-  const authUrl = `https://accounts.spotify.com/authorize?` +
-    `client_id=${SPOTIFY_CLIENT_ID}&` +
-    `response_type=code&` +
-    `redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT_URI)}&` +
-    `scope=${encodeURIComponent(scopes)}&` +
-    `show_dialog=true`;
-
-  res.json({ authUrl });
-});
-
-// Exchange authorization code for access token
-router.post('/callback', async (req, res) => {
-  try {
-    const { code } = req.body;
-    
-    if (!code) {
-      return res.status(400).json({ error: 'Authorization code is required' });
-    }
-
-    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64')}`
-      },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: SPOTIFY_REDIRECT_URI
-      })
-    });
-
-    const tokenData = await tokenResponse.json();
-
-    if (tokenData.error) {
-      return res.status(400).json({ error: tokenData.error_description || 'Failed to get access token' });
-    }
-
-    // Store tokens (in production, store in database with user ID)
-    const userId = 'default_user'; // You can use actual user ID from auth
-    userTokens.set(userId, {
-      access_token: tokenData.access_token,
-      refresh_token: tokenData.refresh_token,
-      expires_at: Date.now() + (tokenData.expires_in * 1000)
-    });
-
-    res.json({ 
-      success: true, 
-      message: 'Spotify connected successfully',
-      expiresIn: tokenData.expires_in 
-    });
-
-  } catch (error) {
-    console.error('Spotify callback error:', error);
-    res.status(500).json({ error: 'Failed to connect to Spotify' });
-  }
-});
-
-// Refresh access token
-async function refreshAccessToken(userId) {
-  const userToken = userTokens.get(userId);
-  
-  if (!userToken || !userToken.refresh_token) {
-    throw new Error('No refresh token available');
+// Refresh your personal access token when needed
+async function refreshPersonalToken() {
+  if (!personalRefreshToken) {
+    throw new Error('No refresh token available. Please update your .env file.');
   }
 
   try {
@@ -93,7 +26,7 @@ async function refreshAccessToken(userId) {
       },
       body: new URLSearchParams({
         grant_type: 'refresh_token',
-        refresh_token: userToken.refresh_token
+        refresh_token: personalRefreshToken
       })
     });
 
@@ -103,13 +36,14 @@ async function refreshAccessToken(userId) {
       throw new Error(data.error_description || 'Failed to refresh token');
     }
 
-    // Update stored tokens
-    userTokens.set(userId, {
-      access_token: data.access_token,
-      refresh_token: data.refresh_token || userToken.refresh_token, // Keep old refresh token if not provided
-      expires_at: Date.now() + (data.expires_in * 1000)
-    });
+    // Update tokens
+    personalAccessToken = data.access_token;
+    if (data.refresh_token) {
+      personalRefreshToken = data.refresh_token;
+    }
+    tokenExpiresAt = Date.now() + (data.expires_in * 1000);
 
+    console.log('Spotify token refreshed successfully');
     return data.access_token;
 
   } catch (error) {
@@ -119,27 +53,24 @@ async function refreshAccessToken(userId) {
 }
 
 // Get valid access token (refresh if needed)
-async function getValidAccessToken(userId) {
-  const userToken = userTokens.get(userId);
-  
-  if (!userToken) {
-    throw new Error('No Spotify token found. Please authenticate first.');
+async function getValidAccessToken() {
+  if (!personalAccessToken) {
+    throw new Error('No Spotify access token found. Please set SPOTIFY_ACCESS_TOKEN in your .env file.');
   }
 
   // Check if token is expired (with 5 minute buffer)
-  if (Date.now() >= userToken.expires_at - 300000) {
+  if (tokenExpiresAt && Date.now() >= tokenExpiresAt - 300000) {
     console.log('Token expired, refreshing...');
-    return await refreshAccessToken(userId);
+    return await refreshPersonalToken();
   }
 
-  return userToken.access_token;
+  return personalAccessToken;
 }
 
-// Get currently playing track
+// Get currently playing track (public endpoint - no auth required for visitors)
 router.get('/currently-playing', async (req, res) => {
   try {
-    const userId = 'default_user'; // You can get this from auth middleware
-    const accessToken = await getValidAccessToken(userId);
+    const accessToken = await getValidAccessToken();
 
     const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
@@ -148,7 +79,7 @@ router.get('/currently-playing', async (req, res) => {
     });
 
     if (response.status === 204) {
-      // No content - user not playing anything
+      // No content - not playing anything
       return res.json({ 
         success: true, 
         isPlaying: false, 
@@ -159,7 +90,7 @@ router.get('/currently-playing', async (req, res) => {
     if (response.status === 401) {
       // Token expired, try to refresh
       try {
-        const newToken = await refreshAccessToken(userId);
+        const newToken = await refreshPersonalToken();
         const retryResponse = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
           headers: {
             'Authorization': `Bearer ${newToken}`
@@ -181,9 +112,10 @@ router.get('/currently-playing', async (req, res) => {
           track: retryData.item 
         });
       } catch (refreshError) {
-        return res.status(401).json({ 
-          error: 'Spotify authentication expired. Please reconnect.',
-          needsReauth: true 
+        console.error('Failed to refresh token:', refreshError);
+        return res.status(500).json({ 
+          error: 'Spotify authentication failed. Please check your tokens.',
+          details: refreshError.message 
         });
       }
     }
@@ -205,59 +137,63 @@ router.get('/currently-playing', async (req, res) => {
   }
 });
 
-// Get user's top tracks
-router.get('/top-tracks', async (req, res) => {
+// Get recently played tracks (fallback when not currently playing)
+router.get('/recently-played', async (req, res) => {
   try {
-    const userId = 'default_user';
-    const accessToken = await getValidAccessToken(userId);
+    const accessToken = await getValidAccessToken();
 
-    const response = await fetch('https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=5', {
+    const response = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
       headers: {
         'Authorization': `Bearer ${accessToken}`
       }
     });
 
     if (response.status === 401) {
-      return res.status(401).json({ 
-        error: 'Spotify authentication expired. Please reconnect.',
-        needsReauth: true 
-      });
+      try {
+        const newToken = await refreshPersonalToken();
+        const retryResponse = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+          headers: {
+            'Authorization': `Bearer ${newToken}`
+          }
+        });
+        
+        const retryData = await retryResponse.json();
+        return res.json({ 
+          success: true, 
+          track: retryData.items[0]?.track || null 
+        });
+      } catch (refreshError) {
+        return res.status(500).json({ 
+          error: 'Spotify authentication failed',
+          details: refreshError.message 
+        });
+      }
     }
 
     const data = await response.json();
     
     res.json({ 
       success: true, 
-      tracks: data.items 
+      track: data.items[0]?.track || null 
     });
 
   } catch (error) {
-    console.error('Top tracks error:', error);
+    console.error('Recently played error:', error);
     res.status(500).json({ 
-      error: 'Failed to get top tracks',
+      error: 'Failed to get recently played track',
       details: error.message 
     });
   }
 });
 
-// Check if user is authenticated
+// Health check endpoint
 router.get('/status', (req, res) => {
-  const userId = 'default_user';
-  const userToken = userTokens.get(userId);
-  
-  if (!userToken) {
-    return res.json({ 
-      authenticated: false, 
-      message: 'Not connected to Spotify' 
-    });
-  }
-
-  const isExpired = Date.now() >= userToken.expires_at - 300000;
-  
   res.json({ 
-    authenticated: true, 
-    isExpired,
-    expiresAt: userToken.expires_at 
+    status: 'ok',
+    hasToken: !!personalAccessToken,
+    hasRefreshToken: !!personalRefreshToken,
+    tokenExpiresAt: tokenExpiresAt,
+    isExpired: tokenExpiresAt ? Date.now() >= tokenExpiresAt - 300000 : null
   });
 });
 
