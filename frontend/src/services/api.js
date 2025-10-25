@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-ea4s.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-api-umber-eight.vercel.app';
 
 class ApiService {
   constructor() {
