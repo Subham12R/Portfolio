@@ -6,8 +6,8 @@ const Preloader = ({ onComplete }) => {
 
   // Multilingual "Hello" words
   const helloWords = [
-    "Hello", // English
     "Hola", // Spanish
+    "Hello", // English
     "Bonjour", // French
     "Hallo", // German
     "Ciao", // Italian
@@ -26,7 +26,8 @@ const Preloader = ({ onComplete }) => {
     "Ahoj", // Czech
     "Cześć", // Polish
     "Γεια", // Greek
-    "Namaste", // Hindi
+    "নমস্কার", // Bengali
+    "नमस्ते", // Hindi
     "Salam", // Persian
     "Shalom", // Hebrew
     "Kumusta", // Filipino
