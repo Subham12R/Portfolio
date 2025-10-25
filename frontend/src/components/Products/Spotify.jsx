@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { FaSpotify } from 'react-icons/fa'
 
+// API Base URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-ea4s.onrender.com';
+
 // Personal Spotify "Now Playing" widget - displays what you're currently listening to
 const Spotify = () => {
   const [currentTrack, setCurrentTrack] = useState(null)
@@ -25,7 +28,7 @@ const Spotify = () => {
   // Fetch current track from your Spotify account
   const fetchCurrentTrack = async () => {
     try {
-      const response = await fetch('https://portfolio-fqur.vercel.app/api/spotify/currently-playing', {
+      const response = await fetch(`${API_BASE_URL}/api/spotify/currently-playing`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +61,7 @@ const Spotify = () => {
   // Fetch recently played track as fallback
   const fetchRecentlyPlayed = async () => {
     try {
-      const response = await fetch('https://portfolio-fqur.vercel.app/api/spotify/recently-played', {
+      const response = await fetch(`${API_BASE_URL}/api/spotify/recently-played`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -111,8 +114,8 @@ const Spotify = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 rounded-md p-4'>
-        <div className='flex items-center gap-2 text-gray-500'>
+      <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
+        <div className='flex items-center gap-2 text-gray-500 dark:text-gray-400'>
           <FaSpotify className='text-green-500 animate-pulse' />
           <p className='text-sm'>Loading Spotify...</p>
         </div>
@@ -122,12 +125,12 @@ const Spotify = () => {
 
   if (!isOnline) {
     return (
-      <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 rounded-md p-4'>
+      <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
         <div className='flex items-center gap-2'>
           <FaSpotify className='text-gray-400' size={30}/>
           <div>
-            <p className='text-gray-500 text-sm mb-1'>Offline</p>
-            <p className='text-gray-700 text-sm'>Unable to fetch music data</p>
+            <p className='text-gray-500 dark:text-gray-400 text-sm mb-1'>Offline</p>
+            <p className='text-gray-700 dark:text-gray-300 text-sm'>Unable to fetch music data</p>
           </div>
         </div>
       </div>
@@ -136,13 +139,13 @@ const Spotify = () => {
 
   if (!currentTrack) {
     return (
-      <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 rounded-md p-4'>
+      <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
         <div className='flex items-center gap-2'>
           <FaSpotify className='text-green-500' size={30} />
           <div className='ml-1'>
-            <p className='text-gray-500 text-sm mb-2'>Not Playing</p>
-            <p className='text-gray-400 text-sm'>No music detected</p>
-            <p className='text-gray-400 text-sm'>Start playing on Spotify</p>
+            <p className='text-gray-500 dark:text-gray-400 text-sm mb-2'>Not Playing</p>
+            <p className='text-gray-400 dark:text-gray-500 text-sm'>No music detected</p>
+            <p className='text-gray-400 dark:text-gray-500 text-sm'>Start playing on Spotify</p>
           </div>
         </div>
       </div>
@@ -150,7 +153,7 @@ const Spotify = () => {
   }
 
   return (
-    <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 rounded-md p-4'>
+    <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
       <div className='flex items-center gap-3'>
         <img 
           src={currentTrack.album?.images[2]?.url || currentTrack.album?.images[0]?.url || 'https://picsum.photos/200'} 
@@ -169,8 +172,8 @@ const Spotify = () => {
               {isPlaying ? 'Now Playing' : 'Recently Played'}
             </span>
           </div>
-          <p className='text-gray-800 text-sm font-medium truncate'>{currentTrack.name}</p>
-          <p className='text-gray-500 text-xs truncate'>
+          <p className='text-gray-800 dark:text-gray-200 text-sm font-medium truncate'>{currentTrack.name}</p>
+          <p className='text-gray-500 dark:text-gray-400 text-xs truncate'>
             {currentTrack.artists?.map(a => a.name).join(', ')}
           </p>
         </div>

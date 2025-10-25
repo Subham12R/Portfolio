@@ -7,6 +7,7 @@ import Work from './pages/Work'
 import Gears from './pages/Gears'
 import VSCodeSetup from './pages/VSCodeSetup'
 import AdminPage from './admin/AdminPage'
+import SpotifyCallback from './pages/SpotifyCallback'
 import { PortfolioProvider } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ReactLenis, useLenis } from 'lenis/react'
@@ -31,6 +32,7 @@ function App() {
               <Route path="setup" element={<VSCodeSetup />} />
             </Route>
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/callback" element={<SpotifyCallback />} />
           </Routes>
         </BrowserRouter>
       </PortfolioProvider>

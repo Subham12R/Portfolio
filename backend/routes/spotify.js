@@ -4,12 +4,19 @@ const router = express.Router();
 // Personal Spotify credentials - set these in your .env file
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-const SPOTIFY_REDIRECT_URI = 'https://portfolio-bice-beta-a4ejdfdsaj.vercel.app/callback';
+const SPOTIFY_REDIRECT_URI = 'https://subham12r.netlify.app/callback';
 
 // Your personal Spotify tokens (get these once and store in .env)
 let personalAccessToken = process.env.SPOTIFY_ACCESS_TOKEN;
 let personalRefreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
 let tokenExpiresAt = process.env.SPOTIFY_TOKEN_EXPIRES_AT ? parseInt(process.env.SPOTIFY_TOKEN_EXPIRES_AT) : null;
+
+// Helper function to check if token needs refresh
+function needsRefresh() {
+  if (!tokenExpiresAt) return true;
+  const buffer = 300000; // 5 minutes
+  return Date.now() >= tokenExpiresAt - buffer;
+}
 
 // Refresh your personal access token when needed
 async function refreshPersonalToken() {
@@ -59,7 +66,7 @@ async function getValidAccessToken() {
   }
 
   // Check if token is expired (with 5 minute buffer)
-  if (tokenExpiresAt && Date.now() >= tokenExpiresAt - 300000) {
+  if (needsRefresh()) {
     console.log('Token expired, refreshing...');
     return await refreshPersonalToken();
   }

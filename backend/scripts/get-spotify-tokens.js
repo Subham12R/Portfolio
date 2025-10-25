@@ -37,19 +37,21 @@ async function getSpotifyTokens() {
     'user-read-playback-state'
   ].join(' ');
   
+  const redirectUri = 'https://subham12r.netlify.app/callback';
+  
   const authUrl = `https://accounts.spotify.com/authorize?` +
     `client_id=${clientId}&` +
     `response_type=code&` +
-    `redirect_uri=http://localhost:3000/callback&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
     `scope=${encodeURIComponent(scopes)}&` +
     `show_dialog=true`;
   
   console.log(`\n${authUrl}\n`);
   
   console.log('📋 Step 2: Get Authorization Code');
-  console.log('After authorizing, you\'ll be redirected to a URL like:');
-  console.log('http://localhost:3000/callback?code=YOUR_CODE_HERE');
-  console.log('Copy the code from the URL.\n');
+  console.log('After authorizing, you\'ll be redirected to your website.');
+  console.log('Look at the URL in your browser - it will contain ?code=YOUR_CODE_HERE');
+  console.log('Copy the code parameter from the URL.\n');
   
   const authCode = await askQuestion('Enter the authorization code: ');
   
@@ -65,7 +67,7 @@ async function getSpotifyTokens() {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: authCode,
-        redirect_uri: 'http://localhost:3000/callback'
+        redirect_uri: 'https://subham12r.netlify.app/callback'
       })
     });
 
