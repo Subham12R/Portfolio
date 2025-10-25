@@ -144,7 +144,8 @@ router.get('/status', async (req, res) => {
 // Get status bar data (current coding activity)
 router.get('/status-bar', async (req, res) => {
   try {
-    const response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/today`, {
+    // First try today's data
+    let response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/today`, {
       method: 'GET',
       headers: {
         'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
@@ -152,16 +153,55 @@ router.get('/status-bar', async (req, res) => {
       }
     });
 
-    if (!response.ok) {
-      throw new Error(`WakaTime API error: ${response.status}`);
+    let data = null;
+    let isToday = true;
+
+    if (response.ok) {
+      data = await response.json();
+      // Check if there's actual coding data
+      if (data.data && data.data.text && data.data.text !== '0 secs') {
+        res.json({
+          success: true,
+          data: data,
+          isToday: true
+        });
+        return;
+      }
     }
 
-    const data = await response.json();
-    
-    res.json({
-      success: true,
-      data: data
+    // If no data for today, try yesterday
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/${yesterdayStr}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
     });
+
+    if (response.ok) {
+      data = await response.json();
+      isToday = false;
+    }
+
+    if (data && data.data && data.data.text && data.data.text !== '0 secs') {
+      res.json({
+        success: true,
+        data: data,
+        isToday: isToday
+      });
+    } else {
+      // No data for today or yesterday
+      res.json({
+        success: true,
+        data: null,
+        isToday: false,
+        message: 'No recent coding activity found'
+      });
+    }
 
   } catch (error) {
     console.error('WakaTime status bar API error:', error);

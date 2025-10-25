@@ -93,18 +93,18 @@ const AboutMe = () => {
             <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'>
               {wakatimeLoading ? (
                 'Loading coding stats...'
-              ) : wakatimeData?.success && wakatimeData.data?.data ? (
+              ) : wakatimeData?.success && wakatimeData.data?.data && wakatimeData.data.data.text ? (
                 <span>
-                  <span className='font-semibold'>{wakatimeData.data.data.text}</span> today in {wakatimeData.data.data.editor}
+                  <span className='font-semibold'>{wakatimeData.data.data.text}</span> {wakatimeData.isToday ? 'today' : 'yesterday'} in {wakatimeData.data.data.editor}
                   {wakatimeData.data.data.project && (
                     <span> on <span className='font-semibold'>{wakatimeData.data.data.project}</span></span>
                   )}
                   {wakatimeData.data.data.languages && wakatimeData.data.data.languages.length > 0 && (
-                    <span> using {wakatimeData.data.data.languages.join(', ')}</span>
+                    <span> using {wakatimeData.data.data.languages.map(lang => lang.name || lang).join(', ')}</span>
                   )}
                 </span>
               ) : (
-                'Check out my coding activity on GitHub below'
+                'No recent coding activity - check out my GitHub activity below!'
               )}
             </p>
         </div>
