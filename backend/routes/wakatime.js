@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-const WAKATIME_API_KEY = process.env.WAKATIME_API_KEY || 'waka_c8f43e38-95eb-4ecd-b97a-2143d679dd10';
+const WAKATIME_API_KEY = process.env.WAKATIME_API_KEY;
 const WAKATIME_API_URL = 'https://api.wakatime.com/api/v1';
+
+if (!WAKATIME_API_KEY) {
+  console.warn('WARNING: WAKATIME_API_KEY is not set in environment variables');
+}
 
 // Helper function to format duration
 function formatDuration(totalSeconds) {
