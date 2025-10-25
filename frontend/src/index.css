@@ -34,6 +34,24 @@ h2{
   display: none;
 }
 
+/* GitHub Calendar Styles */
+.github-calendar-container {
+  overflow: auto !important;
+  max-height: 400px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.github-calendar-container svg {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  pointer-events: auto !important;
+}
+
 /* Dark mode styles */
 .dark {
   color-scheme: dark;

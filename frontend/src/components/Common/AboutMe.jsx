@@ -109,10 +109,13 @@ const AboutMe = () => {
             </p>
         </div>
         <div className='mt-2 '>
-            <div className='w-full h-full p-4 border border-gray-200 dark:border-zinc-700 border-dashed rounded-md overflow-hidden'>
+            <div className='w-full h-full p-4 border border-gray-200 dark:border-zinc-700 border-dashed rounded-md github-calendar-container'>
                 <GitHubCalendar 
                   username="subham12r" 
-                  style={{ width: '100%', height: '100%' }}
+                  style={{ 
+                    width: '100%', 
+                    height: '100%'
+                  }}
                   showWeekdayLabels={true}
                   fontSize={12}
                 />
