@@ -309,6 +309,19 @@ class ApiService {
       method: 'DELETE',
     });
   }
+
+  // WakaTime API methods
+  async getWakaTimeStatusBar() {
+    return await this.request('/api/wakatime/status-bar', {
+      requireAuth: false,
+    });
+  }
+
+  async getWakaTimeToday() {
+    return await this.request('/api/wakatime/today', {
+      requireAuth: false,
+    });
+  }
 }
 
 // Create and export a singleton instance

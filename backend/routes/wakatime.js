@@ -141,6 +141,38 @@ router.get('/status', async (req, res) => {
   }
 });
 
+// Get status bar data (current coding activity)
+router.get('/status-bar', async (req, res) => {
+  try {
+    const response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/today`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`WakaTime API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('WakaTime status bar API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch WakaTime status bar data',
+      details: error.message
+    });
+  }
+});
+
 // Health check
 router.get('/health', (req, res) => {
   res.json({

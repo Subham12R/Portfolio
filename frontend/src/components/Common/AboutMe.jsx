@@ -5,8 +5,7 @@ import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri'
 import { SiTypescript, SiJavascript, SiExpress, SiPostgresql } from 'react-icons/si'
 import GitHubCalendar from 'react-github-calendar';
 import { usePortfolio } from '../../contexts/PortfolioContext';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-ea4s.onrender.com';
+import apiService from '../../services/api';
 
 const AboutMe = () => {
   const { data, isLoading, error } = usePortfolio()
@@ -17,13 +16,8 @@ const AboutMe = () => {
   useEffect(() => {
     const fetchWakatime = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/wakatime/today`)
-        if (response.ok) {
-          const data = await response.json()
-          setWakatimeData(data)
-        } else {
-          console.error('WakaTime API returned:', response.status)
-        }
+        const data = await apiService.getWakaTimeStatusBar()
+        setWakatimeData(data)
       } catch (error) {
         console.error('Failed to fetch WakaTime data:', error)
       } finally {
@@ -99,16 +93,18 @@ const AboutMe = () => {
             <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'>
               {wakatimeLoading ? (
                 'Loading coding stats...'
-              ) : wakatimeData?.success ? (
-                wakatimeData.time.isToday ? (
-                  `Currently coding in ${wakatimeData.time.editor || 'your editor'} for ${wakatimeData.time.formatted} today`
-                ) : (
-                  `Last coded in ${wakatimeData.time.editor || 'your editor'} for ${wakatimeData.time.formatted} ${wakatimeData.time.lastCodingDate ? `on ${new Date(wakatimeData.time.lastCodingDate).toLocaleDateString()}` : 'recently'}`
-                )
-              ) : wakatimeData === null ? (
-                'Unable to fetch coding stats'
+              ) : wakatimeData?.success && wakatimeData.data?.data ? (
+                <span>
+                  <span className='font-semibold'>{wakatimeData.data.data.text}</span> today in {wakatimeData.data.data.editor}
+                  {wakatimeData.data.data.project && (
+                    <span> on <span className='font-semibold'>{wakatimeData.data.data.project}</span></span>
+                  )}
+                  {wakatimeData.data.data.languages && wakatimeData.data.data.languages.length > 0 && (
+                    <span> using {wakatimeData.data.data.languages.join(', ')}</span>
+                  )}
+                </span>
               ) : (
-                'No coding data available'
+                'Check out my coding activity on GitHub below'
               )}
             </p>
         </div>
