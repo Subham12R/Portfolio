@@ -103,10 +103,40 @@ const Header = () => {
                     </div>
 
                      <div className='mb-2 flex flex-row justify-center items-center gap-4'>
-                        <a href="#" className='text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-150'><FaEnvelope size={30}/></a>
-                        <a href="#" className='text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-150'><FaLinkedin size={30}/></a>
-                        <a href="#" className='text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-150'><FaGithub size={30}/></a>
-                        <a href="#" className='text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-150'><FaSquareXTwitter size={30}/></a>
+                        <a 
+                            href="mailto:rikk4335@gmail.com" 
+                            className='text-zinc-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-150'
+                            title="Send me an email"
+                        >
+                            <FaEnvelope size={30}/>
+                        </a>
+                        <a 
+                            href="https://www.linkedin.com/in/subham-karmakar-663b1031b/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className='text-zinc-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-150'
+                            title="Connect on LinkedIn"
+                        >
+                            <FaLinkedin size={30}/>
+                        </a>
+                        <a 
+                            href="https://github.com/Subham12R" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className='text-zinc-400 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-150'
+                            title="View my GitHub profile"
+                        >
+                            <FaGithub size={30}/>
+                        </a>
+                        <a 
+                            href="https://twitter.com/Subham12R" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className='text-zinc-400 dark:text-zinc-500 hover:text-blue-400 dark:hover:text-blue-300 transition-all duration-150'
+                            title="Follow me on Twitter"
+                        >
+                            <FaSquareXTwitter size={30}/>
+                        </a>
                     </div>
                 </div>
 

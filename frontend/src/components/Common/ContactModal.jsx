@@ -115,7 +115,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                 </a>
                 
                 <a 
-                  href="" 
+                  href="https://twitter.com/Subham12R" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 text-blue-400 hover:text-blue-600 transition-colors"
