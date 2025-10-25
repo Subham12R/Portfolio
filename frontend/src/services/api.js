@@ -54,7 +54,7 @@ class ApiService {
 
   // Authentication methods
   async login(email, password) {
-    const response = await this.request('/auth/login', {
+    const response = await this.request('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
       requireAuth: false,
@@ -68,7 +68,7 @@ class ApiService {
   }
 
   async register(email, password, name) {
-    const response = await this.request('/auth/register', {
+    const response = await this.request('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email, password, name }),
       requireAuth: false,
@@ -87,11 +87,11 @@ class ApiService {
   }
 
   async getProfile() {
-    return await this.request('/auth/profile');
+    return await this.request('/api/auth/profile');
   }
 
   async verifyToken() {
-    return await this.request('/auth/verify');
+    return await this.request('/api/auth/verify');
   }
 
   // Projects API
