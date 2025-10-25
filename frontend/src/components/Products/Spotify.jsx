@@ -23,48 +23,23 @@ const Spotify = () => {
     }
   }, [])
 
-  // Real Spotify API integration
-  const fetchSpotifyData = async () => {
+  // Simplified Spotify integration - only for active music
+  const checkSpotifyAuth = async () => {
     try {
-      // First, get the auth URL from backend
-      const authResponse = await fetch('https://portfolio-fqur.vercel.app/api/spotify/auth-url')
-      const authData = await authResponse.json()
+      // Check if user is already authenticated
+      const statusResponse = await fetch('https://portfolio-fqur.vercel.app/api/spotify/status')
+      const statusData = await statusResponse.json()
       
-      if (authData.authUrl) {
-        // Check if we have a code in the URL (after Spotify redirect)
-        const urlParams = new URLSearchParams(window.location.search)
-        const code = urlParams.get('code')
-        
-        if (code) {
-          // Handle the callback
-          const callbackResponse = await fetch('https://portfolio-fqur.vercel.app/api/spotify/callback', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
-          })
-          
-          if (callbackResponse.ok) {
-            // Clean up URL
-            window.history.replaceState({}, document.title, window.location.pathname)
-            // Now fetch current track
-            await fetchCurrentTrack()
-          }
-        } else {
-          // No code, check if we're already authenticated
-          const statusResponse = await fetch('https://portfolio-fqur.vercel.app/api/spotify/status')
-          const statusData = await statusResponse.json()
-          
-          if (statusData.authenticated) {
-            await fetchCurrentTrack()
-          } else {
-            // Not authenticated, show connect button
-            setCurrentTrack(null)
-            setIsPlaying(false)
-          }
-        }
+      if (statusData.authenticated) {
+        // User is authenticated, fetch current track
+        await fetchCurrentTrack()
+      } else {
+        // Not authenticated, show connect button
+        setCurrentTrack(null)
+        setIsPlaying(false)
       }
     } catch (error) {
-      console.error('Spotify auth error:', error)
+      console.error('Spotify auth check error:', error)
       setCurrentTrack(null)
       setIsPlaying(false)
     }
@@ -106,13 +81,23 @@ const Spotify = () => {
 
     setIsLoading(true)
     
-    // Use real Spotify API
-    await fetchSpotifyData()
+    // Check Spotify authentication and fetch current track
+    await checkSpotifyAuth()
     setIsLoading(false)
   }
 
   useEffect(() => {
-    fetchNowPlaying()
+    // Check for Spotify OAuth callback
+    const urlParams = new URLSearchParams(window.location.search)
+    const code = urlParams.get('code')
+    
+    if (code) {
+      // Handle OAuth callback
+      handleSpotifyCallback(code)
+    } else {
+      // Normal flow - check auth and fetch
+      fetchNowPlaying()
+    }
     
     // Poll every 10 seconds for live updates
     const interval = setInterval(fetchNowPlaying, 10000)
@@ -126,6 +111,36 @@ const Spotify = () => {
       window.removeEventListener('focus', handleFocus)
     }
   }, [])
+
+  // Handle Spotify OAuth callback
+  const handleSpotifyCallback = async (code) => {
+    try {
+      setIsLoading(true)
+      
+      const response = await fetch('https://portfolio-fqur.vercel.app/api/spotify/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname)
+        // Fetch current track
+        await fetchCurrentTrack()
+      } else {
+        console.error('Spotify callback error:', data.error)
+        alert('Failed to connect to Spotify. Please try again.')
+      }
+    } catch (error) {
+      console.error('Spotify callback error:', error)
+      alert('Failed to connect to Spotify. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -150,10 +165,18 @@ const Spotify = () => {
             <p className='text-gray-400 text-sm mb-2'>Click to connect your Spotify account</p>
             <button 
               onClick={async () => {
-                const response = await fetch('https://portfolio-fqur.vercel.app/api/spotify/auth-url')
-                const data = await response.json()
-                if (data.authUrl) {
-                  window.location.href = data.authUrl
+                try {
+                  const response = await fetch('https://portfolio-fqur.vercel.app/api/spotify/auth-url')
+                  const data = await response.json()
+                  if (data.authUrl) {
+                    // Redirect to Spotify OAuth
+                    window.location.href = data.authUrl
+                  } else {
+                    alert('Failed to get Spotify auth URL')
+                  }
+                } catch (error) {
+                  console.error('Error getting auth URL:', error)
+                  alert('Failed to connect to Spotify. Please try again.')
                 }
               }}
               className='px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors'
