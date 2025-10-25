@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaTimes, FaEnvelope, FaPhone, FaMapMarkerAlt, FaLinkedin, FaGithub, FaTwitter } from 'react-icons/fa';
+import { FaTimes, FaEnvelope, FaPhone, FaMapMarkerAlt, FaLinkedin, FaGithub } from 'react-icons/fa';
+import { FaSquareXTwitter } from 'react-icons/fa6';
 
 const ContactModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -120,7 +121,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 text-blue-400 hover:text-blue-600 transition-colors"
                 >
-                  <FaTwitter className="w-5 h-5" />
+                  <FaSquareXTwitter className="w-5 h-5" />
                   <span>Twitter</span>
                 </a>
               </div>

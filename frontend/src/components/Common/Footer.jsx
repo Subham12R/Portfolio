@@ -1,5 +1,6 @@
 import React from 'react'
-import { FaEnvelope, FaLinkedin, FaGithub, FaSquareXTwitter } from 'react-icons/fa'
+import { FaEnvelope, FaLinkedin, FaGithub } from 'react-icons/fa'
+import { FaSquareXTwitter } from 'react-icons/fa6'
 
 const Footer = () => {
   const year = new Date().getFullYear()
