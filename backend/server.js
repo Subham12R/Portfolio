@@ -12,6 +12,7 @@ const gearRoutes = require('./routes/gears');
 const aboutRoutes = require('./routes/about');
 const uploadRoutes = require('./routes/upload');
 const spotifyRoutes = require('./routes/spotify');
+const wakatimeRoutes = require('./routes/wakatime');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -67,7 +68,8 @@ app.get('/', (req, res) => {
       gears: '/api/gears',
       about: '/api/about',
       upload: '/api/upload',
-      spotify: '/api/spotify'
+      spotify: '/api/spotify',
+      wakatime: '/api/wakatime'
     }
   });
 });
@@ -91,6 +93,7 @@ app.use('/api/gears', gearRoutes);
 app.use('/api/about', aboutRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/spotify', spotifyRoutes);
+app.use('/api/wakatime', wakatimeRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

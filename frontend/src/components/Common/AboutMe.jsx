@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import profileImage from '../../assets/profile.png'
 import { FaReact } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri'
@@ -6,8 +6,37 @@ import { SiTypescript, SiJavascript, SiExpress, SiPostgresql } from 'react-icons
 import GitHubCalendar from 'react-github-calendar';
 import { usePortfolio } from '../../contexts/PortfolioContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-ea4s.onrender.com';
+
 const AboutMe = () => {
   const { data, isLoading, error } = usePortfolio()
+  const [wakatimeData, setWakatimeData] = useState(null)
+  const [wakatimeLoading, setWakatimeLoading] = useState(true)
+
+  // Fetch WakaTime data
+  useEffect(() => {
+    const fetchWakatime = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/wakatime/today`)
+        if (response.ok) {
+          const data = await response.json()
+          setWakatimeData(data)
+        } else {
+          console.error('WakaTime API returned:', response.status)
+        }
+      } catch (error) {
+        console.error('Failed to fetch WakaTime data:', error)
+      } finally {
+        setWakatimeLoading(false)
+      }
+    }
+
+    fetchWakatime()
+    // Refresh every 2 minutes
+    const interval = setInterval(fetchWakatime, 120000)
+    
+    return () => clearInterval(interval)
+  }, [])
   
   // Use backend data instead of hardcoded data
   const aboutMeData = data?.aboutMe || {
@@ -67,10 +96,30 @@ const AboutMe = () => {
         <div className='mt-8'>
             <h1 className='text-2xl font-bold dark:text-white'>Github Activity</h1>
             <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'><span className='font-bold tracking-tighter'>Subham12R's</span> journey over the years. </p>
+            <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'>
+              {wakatimeLoading ? (
+                'Loading coding stats...'
+              ) : wakatimeData?.success ? (
+                wakatimeData.time.isToday ? (
+                  `Currently coding in ${wakatimeData.time.editor || 'your editor'} for ${wakatimeData.time.formatted} today`
+                ) : (
+                  `Last coded in ${wakatimeData.time.editor || 'your editor'} for ${wakatimeData.time.formatted} ${wakatimeData.time.lastCodingDate ? `on ${new Date(wakatimeData.time.lastCodingDate).toLocaleDateString()}` : 'recently'}`
+                )
+              ) : wakatimeData === null ? (
+                'Unable to fetch coding stats'
+              ) : (
+                'No coding data available'
+              )}
+            </p>
         </div>
         <div className='mt-2 '>
             <div className='w-full h-full p-4 border border-gray-200 dark:border-zinc-700 border-dashed rounded-md overflow-hidden'>
-                <GitHubCalendar username="subham12r" style={{ width: '100%', height: '100%' }} />
+                <GitHubCalendar 
+                  username="subham12r" 
+                  style={{ width: '100%', height: '100%' }}
+                  showWeekdayLabels={true}
+                  fontSize={12}
+                />
             </div>
         </div>
     </div>
