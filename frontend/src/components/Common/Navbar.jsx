@@ -124,7 +124,7 @@ const Navbar = () => {
         />
         
         {/* Sidebar */}
-        <div className={`fixed left-0 top-0 h-full w-72 bg-white dark:bg-zinc-950 shadow-2xl z-50 md:hidden transform transition-transform duration-300 ease-out ${
+        <div className={`fixed left-0 top-0 h-full w-64 bg-white dark:bg-zinc-950 shadow-2xl z-50 md:hidden transform transition-transform duration-300 ease-out ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
             {/* Sidebar Header */}
