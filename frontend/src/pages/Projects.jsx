@@ -4,6 +4,7 @@ import { FaGithub, FaGlobe, FaReact, FaAws, FaNode, FaHtml5, FaCss3Alt, FaJs, Fa
 import { RiNextjsFill, RiTailwindCssFill, RiNodejsFill, RiVuejsFill } from 'react-icons/ri'
 import { SiTypescript, SiPostgresql, SiVercel, SiMongodb, SiExpress, SiNestjs, SiGraphql, SiRedis, SiKubernetes, SiTerraform, SiJest, SiWebpack, SiBabel, SiEslint, SiPrettier, SiSocketdotio, SiStripe, SiChartdotjs, SiAccuweather, SiFigma, SiPostman, SiBun } from 'react-icons/si'
 import { usePortfolio } from '../contexts/PortfolioContext'
+import { ProjectMediaPlayer } from '../components/Common/VideoPlayer'
 
 // Dummy project data - COMMENTED OUT - now using backend data
 /* const projectData = [
@@ -366,23 +367,16 @@ const Projects = () => {
               {/* Expanded Content */}
               {isExpanded && (
                 <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-zinc-700">
-                  {/* Project Image */}
-                  {project.image && (
-                    <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
-                      <img
-                        src={project.image}
-                        alt={project.name}
-                        className="w-full h-auto object-cover"
-                        onLoad={() => console.log('Image loaded successfully:', project.image)}
-                        onError={(e) => console.error('Image failed to load:', project.image, e)}
-                      />
-                    </div>
-                  )}
-                  {!project.image && (
-                    <div className="mb-4 p-4 bg-gray-100 dark:bg-zinc-800 rounded-lg text-center text-gray-500 dark:text-zinc-400">
-                      No image available for this project
-                    </div>
-                  )}
+                  {/* Project Media */}
+                  <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
+                    <ProjectMediaPlayer
+                      mediaUrl={project.image}
+                      mediaType={project.mediaType || 'image'}
+                      alt={project.name}
+                      className="w-full h-auto"
+                      projectId={project.id}
+                    />
+                  </div>
 
                   {/* Links */}
                   <div className="flex items-center gap-4 mb-4">

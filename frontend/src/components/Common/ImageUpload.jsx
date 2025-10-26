@@ -149,18 +149,35 @@ const ImageUpload = ({
 
     try {
       const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await apiService.uploadToCloudinary(formData);
+      const isVideo = file.type.startsWith('video/');
       
-      if (response.success) {
-        const cloudinaryUrl = response.data.secure_url;
-        setUrl(cloudinaryUrl);
-        onImageUpload(cloudinaryUrl);
-        setIsValid(true);
-        setError('');
+      // Use correct field name and API method based on file type
+      if (isVideo) {
+        formData.append('video', file);
+        const response = await apiService.uploadVideoToCloudinary(formData);
+        
+        if (response.success) {
+          const cloudinaryUrl = response.data.secure_url;
+          setUrl(cloudinaryUrl);
+          onImageUpload(cloudinaryUrl);
+          setIsValid(true);
+          setError('');
+        } else {
+          throw new Error(response.error || 'Upload failed');
+        }
       } else {
-        throw new Error(response.error || 'Upload failed');
+        formData.append('file', file);
+        const response = await apiService.uploadToCloudinary(formData);
+        
+        if (response.success) {
+          const cloudinaryUrl = response.data.secure_url;
+          setUrl(cloudinaryUrl);
+          onImageUpload(cloudinaryUrl);
+          setIsValid(true);
+          setError('');
+        } else {
+          throw new Error(response.error || 'Upload failed');
+        }
       }
     } catch (error) {
       console.error('Cloudinary upload error:', error);
@@ -186,9 +203,13 @@ const ImageUpload = ({
         return;
       }
 
-      // Validate file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB');
+      // Validate file size (100MB limit for videos, 10MB for images)
+      const isVideo = file.type.startsWith('video/');
+      const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB for videos, 10MB for images
+      
+      if (file.size > maxSize) {
+        const maxSizeMB = isVideo ? '100MB' : '10MB';
+        setError(`File size must be less than ${maxSizeMB}`);
         return;
       }
 
@@ -227,7 +248,7 @@ const ImageUpload = ({
             <li><strong>Google Drive:</strong> Right-click → Share → "Anyone with the link" → Copy link</li>
             <li><strong>Imgur:</strong> Works with imgur.com links</li>
             <li><strong>GitHub:</strong> Direct image URLs from repositories</li>
-            <li><strong>Formats:</strong> JPG, PNG, GIF, WebP, MP4, WebM, etc.</li>
+            <li><strong>Formats:</strong> Images (JPG, PNG, GIF, WebP) up to 10MB, Videos (MP4, WebM, MOV) up to 100MB</li>
           </ul>
           <p className="mt-2 font-semibold">Cloudinary Benefits:</p>
           <ul className="list-disc list-inside space-y-1">
@@ -389,7 +410,8 @@ const ImageUpload = ({
                         <span className="font-medium text-blue-600">Click to upload</span> or drag and drop
                       </div>
                       <div className="text-xs text-gray-500">
-                        PNG, JPG, GIF, WebP, MP4, WebM up to 10MB
+                        Images: PNG, JPG, GIF, WebP up to 10MB<br/>
+                        Videos: MP4, WebM, MOV up to 100MB
                       </div>
                     </>
                   )}

@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { upload, uploadToCloudinary } = require('../config/cloudinary');
+const { upload, imageUpload, videoUpload, uploadToCloudinary, uploadVideoToCloudinary } = require('../config/cloudinary');
 
 const router = express.Router();
 
@@ -64,8 +64,61 @@ router.post('/validate-url', authenticateToken, requireAdmin, (req, res) => {
   }
 });
 
-// Upload file to Cloudinary
-router.post('/cloudinary', authenticateToken, requireAdmin, upload.single('image'), async (req, res) => {
+// Upload video to Cloudinary
+router.post('/cloudinary/video', authenticateToken, requireAdmin, videoUpload.single('video'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        error: 'No video file uploaded',
+        success: false
+      });
+    }
+
+    console.log('Uploading video to Cloudinary:', {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
+
+    // Upload to Cloudinary
+    const result = await uploadVideoToCloudinary(req.file.buffer, 'portfolio-videos');
+    
+    console.log('Cloudinary video upload successful:', {
+      public_id: result.public_id,
+      secure_url: result.secure_url,
+      format: result.format,
+      width: result.width,
+      height: result.height,
+      duration: result.duration
+    });
+
+    res.json({
+      success: true,
+      message: 'Video uploaded successfully',
+      data: {
+        public_id: result.public_id,
+        secure_url: result.secure_url,
+        format: result.format,
+        width: result.width,
+        height: result.height,
+        duration: result.duration,
+        bytes: result.bytes,
+        created_at: result.created_at
+      }
+    });
+
+  } catch (error) {
+    console.error('Cloudinary video upload error:', error);
+    res.status(500).json({ 
+      error: 'Failed to upload video to Cloudinary',
+      success: false,
+      details: error.message
+    });
+  }
+});
+
+// Upload file to Cloudinary (images and videos)
+router.post('/cloudinary', authenticateToken, requireAdmin, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ 
@@ -80,15 +133,24 @@ router.post('/cloudinary', authenticateToken, requireAdmin, upload.single('image
       size: req.file.size
     });
 
-    // Upload to Cloudinary
-    const result = await uploadToCloudinary(req.file.buffer, 'portfolio-images');
+    let result;
+    let folder = 'portfolio-images';
+    
+    // Determine if it's a video or image
+    if (req.file.mimetype.startsWith('video/')) {
+      folder = 'portfolio-videos';
+      result = await uploadVideoToCloudinary(req.file.buffer, folder);
+    } else {
+      result = await uploadToCloudinary(req.file.buffer, folder);
+    }
     
     console.log('Cloudinary upload successful:', {
       public_id: result.public_id,
       secure_url: result.secure_url,
       format: result.format,
       width: result.width,
-      height: result.height
+      height: result.height,
+      duration: result.duration || 'N/A'
     });
 
     res.json({
@@ -100,8 +162,10 @@ router.post('/cloudinary', authenticateToken, requireAdmin, upload.single('image
         format: result.format,
         width: result.width,
         height: result.height,
+        duration: result.duration,
         bytes: result.bytes,
-        created_at: result.created_at
+        created_at: result.created_at,
+        resource_type: result.resource_type || 'image'
       }
     });
 

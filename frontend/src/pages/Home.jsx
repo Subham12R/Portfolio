@@ -10,6 +10,7 @@ import Certificates from '../components/Common/Certificates'
 import { GoGear } from "react-icons/go";
 import { usePortfolio } from '../contexts/PortfolioContext';
 import Header from '../components/Common/Header'
+import { ProjectMediaPlayer } from '../components/Common/VideoPlayer'
 
 import Tooltip from '@mui/material/Tooltip';
 
@@ -388,14 +389,14 @@ const Home = () => {
     {projectData.map((project, idx) => (
       <div key={project.id || idx} className='rounded-xl overflow-hidden border border-gray-200  shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-zinc-950 dark:border-zinc-800'>
         
-        {/* Project Image */}
+        {/* Project Media */}
         <div className='h-48 w-full bg-gray-100 dark:bg-zinc-800'>
-          <img
-            src={project.image || 'https://picsum.photos/200'}
+          <ProjectMediaPlayer
+            mediaUrl={project.image}
+            mediaType={project.mediaType || 'image'}
             alt={project.name}
-            className='w-full h-full object-cover'
-            onLoad={() => console.log('Home page image loaded:', project.image || 'fallback')}
-            onError={(e) => console.error('Home page image failed to load:', project.image, e)}
+            className="w-full h-full"
+            projectId={project.id || idx}
           />
         </div>
 

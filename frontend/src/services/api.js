@@ -297,6 +297,34 @@ class ApiService {
     }
   }
 
+  // Upload video specifically
+  async uploadVideoToCloudinary(formData) {
+    const url = `${this.baseURL}/api/upload/cloudinary/video`;
+    const headers = {};
+    
+    if (this.token) {
+      headers.Authorization = `Bearer ${this.token}`;
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Cloudinary video upload failed:', error);
+      throw error;
+    }
+  }
+
   async validateImageUrl(url) {
     return await this.request('/api/upload/validate-url', {
       method: 'POST',
