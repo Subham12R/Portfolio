@@ -3,6 +3,7 @@ import Navbar from './Navbar';
 import profileImage from '../../assets/profile.png';
 import DecryptedText from './DecryptedText';
 import ContactModal from './ContactModal';
+import { useTheme } from '../../contexts/ThemeContext';
 import {FaReact} from 'react-icons/fa';
 import { FaLinkedin } from "react-icons/fa";
 import { FaGithub } from "react-icons/fa";
@@ -12,8 +13,33 @@ import { RiClipboardFill, RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "
 import { SiExpress } from "react-icons/si";
 import { BiLogoPostgresql, BiPaperPlane } from "react-icons/bi";
 
+import Tooltip from '@mui/material/Tooltip';
+
+import { styled } from '@mui/material/styles';
+import { tooltipClasses } from '@mui/material/Tooltip';
+
+const Tip = styled(({ className, ...props }) => (
+    <Tooltip {...props} arrow classes={{ popper: className }} />
+  ))(({ isDark }) => ({
+    [`& .${tooltipClasses.arrow}`]: {
+      color: isDark ? '#ffffff' : '#000000',
+    },
+    [`& .${tooltipClasses.tooltip}`]: {
+      backgroundColor: isDark 
+        ? '#ffffff' 
+        : '#000000',
+
+      color: isDark ? '#000000' : '#ffffff',
+      fontSize: '0.7rem',
+      fontWeight: '400',
+      padding: '2px 4px',
+    },
+  }));
+
 const Header = () => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Function to download resume
   const downloadResume = async () => {
@@ -87,56 +113,63 @@ const Header = () => {
                     </div>
 
                     <div className='mb-6 w-full flex justify-start items-center gap-4'>
+                    <Tip title="Download Resume" placement="top" arrow isDark={isDark}>
                         <button 
                             onClick={downloadResume}
                             className='inline-flex justify-center items-center gap-2 bg-black dark:bg-white text-white dark:text-black shadow hover:bg-zinc-800 dark:hover:bg-gray-200  transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer'
                         >
                             <RiClipboardFill/> Resume/CV
                         </button>
+                    </Tip>
+                    <Tip title="Contact Me" placement="top" arrow isDark={isDark}>
                         <button 
                             onClick={() => setIsContactModalOpen(true)}
                             className='inline-flex justify-center items-center gap-2 bg-transparent dark:bg-transparent py-2 px-4 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  text-black dark:text-zinc-200 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] dark:hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)]  transition-all ease-in-out duration-300 cursor-pointer'
                         >
                             <BiPaperPlane />Get in Touch
                         </button>
-                        
+                     </Tip>               
                     </div>
 
                      <div className='mb-2 flex flex-row justify-center items-center gap-4'>
-                        <a 
-                            href="mailto:rikk4335@gmail.com" 
-                            className='text-zinc-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-150'
-                            title="Send me an email"
-                        >
-                            <FaEnvelope size={30}/>
-                        </a>
-                        <a 
-                            href="https://www.linkedin.com/in/subham-karmakar-663b1031b/" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className='text-zinc-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-150'
-                            title="Connect on LinkedIn"
-                        >
-                            <FaLinkedin size={30}/>
-                        </a>
-                        <a 
-                            href="https://github.com/Subham12R" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className='text-zinc-400 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-150'
-                            title="View my GitHub profile"
-                        >
-                            <FaGithub size={30}/>
-                        </a>
-                        <a 
-                            href="https://twitter.com/Subham12R" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className='text-zinc-400 dark:text-zinc-500 hover:text-blue-400 dark:hover:text-blue-300 transition-all duration-150'
-                            title="Follow me on Twitter"
-                        >
-                            <FaSquareXTwitter size={30}/>
-                        </a>
+                        <Tip title="Send me an email" placement="top" arrow isDark={isDark}>
+                            <a 
+                                href="mailto:rikk4335@gmail.com" 
+                                className='text-zinc-800 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-150'
+                            >
+                                <FaEnvelope size={20}/>
+                            </a>
+                        </Tip>
+                        <Tip title="Connect on LinkedIn" placement="top" arrow isDark={isDark}>
+                            <a 
+                                href="https://www.linkedin.com/in/subham-karmakar-663b1031b/" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className='text-zinc-800 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-150'
+                            >
+                                <FaLinkedin size={20}/>
+                            </a>
+                        </Tip>
+                        <Tip title="View my GitHub profile" placement="top" arrow isDark={isDark}>
+                            <a 
+                                href="https://github.com/Subham12R" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className='text-zinc-800 dark:text-zinc-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-150'
+                            >
+                                <FaGithub size={20}/>
+                            </a>
+                        </Tip>
+                        <Tip title="Follow me on Twitter" placement="top" arrow isDark={isDark}>
+                            <a 
+                                href="https://twitter.com/Subham12R" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className='text-zinc-800 dark:text-zinc-500 hover:text-blue-400 dark:hover:text-blue-300 transition-all duration-150'
+                            >
+                                <FaSquareXTwitter size={20}/>
+                            </a>
+                        </Tip>
                     </div>
                 </div>
 

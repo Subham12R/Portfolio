@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
 import { FaGithub, FaGlobe, FaReact, FaAws, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill, RiNodejsFill, RiVuejsFill } from 'react-icons/ri'
@@ -150,7 +150,7 @@ const Projects = () => {
         return <RiVuejsFill className="text-green-500" />
       
       // Styling
-      case 'tailwind css':
+      case 'tailwindcss':
       case 'tailwind':
         return <RiTailwindCssFill className="text-sky-500" />
       case 'css':
@@ -390,7 +390,7 @@ const Projects = () => {
                       href={project.github}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white text-sm font-medium"
+                      className="flex items-center gap-2 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white text-sm font-medium cursor-pointer"
                     >
                       <FaGithub className="text-lg" />
                       View Code
@@ -399,7 +399,7 @@ const Projects = () => {
                       href={project.liveUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white text-sm font-medium"
+                      className="flex items-center gap-2 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white text-sm font-medium cursor-pointer"
                     >
                       <FaGlobe className="text-lg" />
                       Live Demo

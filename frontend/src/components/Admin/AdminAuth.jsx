@@ -53,7 +53,7 @@ const AdminAuth = ({ onLogin }) => {
               name="email"
               value={credentials.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black dark:text-white"
               placeholder="Enter email"
               required
             />
@@ -70,7 +70,7 @@ const AdminAuth = ({ onLogin }) => {
                 name="password"
                 value={credentials.password}
                 onChange={handleChange}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black dark:text-white"
                 placeholder="Enter password"
                 required
               />
@@ -99,13 +99,6 @@ const AdminAuth = ({ onLogin }) => {
           </button>
         </form>
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600 text-center">
-            <strong>Demo Credentials:</strong><br />
-            Email: admin@portfolio.com<br />
-            Password: admin123
-          </p>
-        </div>
       </div>
     </div>
   )

@@ -11,6 +11,9 @@
     "vercel-build": "vite build"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.4",
     "@tailwindcss/vite": "^4.1.16",
     "github-scraper": "^7.1.1",
     "lenis": "^1.3.11",

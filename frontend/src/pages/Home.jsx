@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Spotify from '../components/Products/Spotify'
-import { FaArrowLeft, FaArrowRight, FaAws, FaCode, FaGithub, FaGlobe, FaReact, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt } from 'react-icons/fa'
+import { FaArrowLeft, FaArrowRight, FaAws, FaCode, FaGithub, FaGlobe, FaReact, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt, FaLinkedin } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill, RiVuejsFill } from 'react-icons/ri'
 import { SiTypescript, SiPostgresql, SiFigma, SiVercel, SiPostman, SiBun, SiMongodb, SiExpress, SiNestjs, SiGraphql, SiRedis, SiKubernetes, SiTerraform, SiJest, SiWebpack, SiBabel, SiEslint, SiPrettier, SiSocketdotio, SiStripe, SiChartdotjs, SiAccuweather } from 'react-icons/si'
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
@@ -10,6 +10,31 @@ import Certificates from '../components/Common/Certificates'
 import { GoGear } from "react-icons/go";
 import { usePortfolio } from '../contexts/PortfolioContext';
 import Header from '../components/Common/Header'
+
+import Tooltip from '@mui/material/Tooltip';
+
+import { styled } from '@mui/material/styles';
+import { tooltipClasses } from '@mui/material/Tooltip';
+import { useTheme } from '../contexts/ThemeContext';
+import { FaSquareXTwitter } from 'react-icons/fa6'
+
+const Tip = styled(({ className, ...props }) => (
+    <Tooltip {...props} arrow classes={{ popper: className }} />
+  ))(({ isDark }) => ({
+    [`& .${tooltipClasses.arrow}`]: {
+      color: isDark ? '#ffffff' : '#000000',
+    },
+    [`& .${tooltipClasses.tooltip}`]: {
+      backgroundColor: isDark 
+        ? '#ffffff' 
+        : '#000000',
+
+      color: isDark ? '#000000' : '#ffffff',
+      fontSize: '0.7rem',
+      fontWeight: '400',
+      padding: '2px 4px',
+    },
+  }));
 // Dummy data - now using backend data via PortfolioContext
 // const experienceData = [...]
 // const projectData = [...]
@@ -18,6 +43,9 @@ const Home = () => {
   const [expandedExperience, setExpandedExperience] = useState(0);
   const [expandedProjects, setExpandedProjects] = useState({});
   const { data, isLoading, error } = usePortfolio();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
 
   // Function to toggle project description
   const toggleProjectDescription = (projectId) => {
@@ -41,13 +69,13 @@ const Home = () => {
         return <FaReact className="text-blue-500" />
       case 'next.js':
       case 'nextjs':
-        return <RiNextjsFill className="text-black" />
+        return <RiNextjsFill className="text-zinc-900" />
       case 'vue.js':
       case 'vuejs':
         return <RiVuejsFill className="text-green-500" />
       
       // Styling
-      case 'tailwind css':
+      case 'tailwindcss':
       case 'tailwind':
         return <RiTailwindCssFill className="text-sky-500" />
       case 'css':
@@ -186,66 +214,104 @@ const Home = () => {
         <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
       </div>
-      <div className="mb-4">
+      <div className="mb-4 space-y-4">
         {experienceData.map((exp, idx) => {
           const isExpanded = expandedExperience === idx;
+          const isCurrentJob = exp.status === 'Working' || exp.status === 'Current';
           return (
-                              <div key={exp.id || idx} className="bg-white dark:bg-zinc-950 rounded-xl mb-2 border border-gray-200 dark:border-zinc-700">
-              <div className="flex items-center gap-3 mb-2 p-2">
-                {/* Logo */}
-                <div className="w-10 h-10 bg-gray-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-xl font-bold">
-                  {exp.logo ? <img src={exp.logo} alt={exp.company} className="w-10 h-10 object-cover rounded" /> : exp.company[0]}
+            <div key={exp.id || idx} className="bg-white dark:bg-zinc-950">
+              <div className="flex items-start gap-4 py-4">
+                {/* Company Logo */}
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0" 
+                     style={{ backgroundColor: idx === 0 ? '#ffffff' : idx === 1 ? '#ffffff' : idx === 2 ? '#ffffff' : '#374151' }}>
+                  {exp.logo ? (
+                    <img src={exp.logo} alt={exp.company} className="w-8 h-8 object-contain" />
+                  ) : (
+                    <span className="text-black font-bold">{exp.company[0]}</span>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-lg text-black dark:text-white">{exp.company}</span>
-                    <a href="" className='text-gray-500 dark:text-gray-400 text-lg hover:text-black dark:hover:text-white transition'><FaGlobe /></a>
-                    <a href="" className='text-gray-500 dark:text-gray-400 text-lg hover:text-black dark:hover:text-white transition'><FaGithub /></a>
-                    {!isExpanded && (
-                      <button
-                      onClick={() => setExpandedExperience(idx)}
-                      className="text-gray-400 hover:text-black transition "
-                      >
-                        <HiChevronDown className="text-xl" />
-                      </button>
-                    )}
-                    {isExpanded && (
-                      <button
-                      onClick={() => setExpandedExperience(null)}
-                      className="text-gray-400 hover:text-black transition "
-                      >
-                        <HiChevronUp className="text-xl" />
-                      </button>
-                    )}
-                    {isExpanded && <span className="text-xs px-2 py-1 rounded-md bg-green-100 text-green-700 font-medium border border-green-200">{exp.status}</span>}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{exp.role}</div>
-                </div>
-                <div className="text-xs text-gray-400 dark:text-gray-500 text-right">
-                  <div>{exp.start} - {exp.end}</div>
-                  <div>{exp.location}</div>
-                </div>
-              </div>
-              {isExpanded && (
-                <div className="px-2 pb-2">
-                  <div className="mb-2">
-                    <div className="font-semibold text-gray-700 dark:text-gray-300 mb-1 text-md">Technologies &amp; Tools</div>
-                    <div className="flex flex-wrap gap-2">
-                      {exp.tech?.map((tech, i) => (
-                        <span key={i} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer">
-                          {getTechIcon(tech.name || tech)}
-                          <span className="text-xs font-medium text-gray-700 dark:text-zinc-300">{tech.name || tech}</span>
-                        </span>
-                      ))}
+                
+                {/* Main Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="font-semibold text-lg text-black dark:text-white truncate">{exp.company}</h3>
+                        {isCurrentJob && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500 text-white">
+                            Working
+                          </span>
+                        )}
+                        <div className="flex items-center gap-2 ml-auto">
+                          <Tip title="Website" placement="top" arrow isDark={isDark}>
+                            <a href="" className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
+                              <FaGlobe className="w-4 h-4" />
+                            </a>
+                          </Tip>
+                          <Tip title="X (Twitter)" placement="top" arrow isDark={isDark}>
+                            <a href="" className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
+                              <FaSquareXTwitter className="w-4 h-4" />
+                            </a>
+                          </Tip>
+                          <Tip title="LinkedIn" placement="top" arrow isDark={isDark}>
+                            <a href="" className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
+                              <FaLinkedin className="w-4 h-4" />
+                            </a>
+                          </Tip>
+                          <Tip title="GitHub" placement="top" arrow isDark={isDark}>
+                            <a href="" className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
+                              <FaGithub className="w-4 h-4" />
+                            </a>
+                          </Tip>
+                          <button
+                            onClick={() => setExpandedExperience(isExpanded ? null : idx)}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          >
+                            {isExpanded ? <HiChevronUp className="w-4 h-4" /> : <HiChevronDown className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      <h4 className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">{exp.role}</h4>
+                    </div>
+                    
+                    {/* Date and Location */}
+                    <div className="text-right text-sm text-gray-500 dark:text-gray-400 ml-4 shrink-0">
+                      <div className="font-medium">{exp.start} - {exp.end}</div>
+                      <div className="text-xs">{exp.location}</div>
                     </div>
                   </div>
-                  <ul className="list-disc pl-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed space-y-1">
-                    {exp.bullets?.map((b, i) => (
-                      <li key={i}>{b}</li>
-                    ))}
-                  </ul>
+                  
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="mt-4 space-y-4">
+                      {/* Technologies & Tools */}
+                      <div>
+                        <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Technologies & Tools</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {exp.tech?.map((tech, i) => (
+                            <span key={i} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-zinc-500/20 border border-dashed border-gray-200 dark:border-zinc-700  px-3 py-1.5 rounded-md text-xs font-medium text-gray-700 dark:text-zinc-300">
+                              {getTechIcon(tech.name || tech)}
+                              <span>{tech.name || tech}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Responsibilities */}
+                      <div>
+                        <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                          {exp.bullets?.map((bullet, i) => (
+                            <li key={i} className="flex items-start">
+                              <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full mt-2 mr-3 shrink-0"></span>
+                              <span className="leading-relaxed">{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
@@ -286,12 +352,16 @@ const Home = () => {
             <h2 className='font-semibold text-xl text-gray-900 dark:text-white'>{project.name}</h2>
                  {/* Links */}
           <div className='flex items-center gap-3 text-gray-400 dark:text-gray-500 text-lg'>
+            <Tip title="View github repository" placement="top" arrow isDark={isDark}>
             <a href={project.github} target="_blank" rel="noopener noreferrer" className='flex items-center gap-1 hover:text-black dark:hover:text-white transition'>
               <FaGithub />
             </a>
+            </Tip>
+            <Tip title="View project website" placement="top" arrow isDark={isDark}>
             <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className='flex items-center gap-1 hover:text-black dark:hover:text-white transition'>
               <FaGlobe /> 
             </a>
+            </Tip>
           </div>
            
           </div>
@@ -316,17 +386,17 @@ const Home = () => {
           </div>
 
           {/* Tech Stack */}
-          <div className='flex flex-wrap gap-2 mb-3'>
+          <div className='flex flex-wrap gap-2 mb-4'>
             <p className='text-gray-600 dark:text-gray-400 text-sm w-full'>Technologies &amp; Tools</p>
             {project.tech?.map((tech, i) => (
-              <span key={i} className='inline-flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors'>
+              <span key={i} className='flex items-center justify-center flex-col gap-4 text-3xl px-1 '>
                 {getTechIcon(tech.name || tech)}
-                <span className='text-sm font-medium text-gray-700 dark:text-zinc-300'>{tech.name || tech}</span>
+               
               </span>
             ))}
           </div>
 
-             <span className="text-xs px-2 py-1 rounded-md bg-green-100 text-green-700 font-medium border border-green-200">{project.status || 'Completed'}</span>
+             <span className="text-xs px-2 py-1 rounded-md bg-green-500 text-emerald-900 font-medium ">{project.status || 'Completed'}</span>
      
         </div>
       </div>

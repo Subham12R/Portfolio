@@ -62,14 +62,24 @@ router.get('/:id', optionalAuth, validateId, async (req, res) => {
 // Create project (admin only)
 router.post('/', authenticateToken, requireAdmin, validateProject, async (req, res) => {
   try {
+    // Helper function to normalize URLs
+    const normalizeUrl = (url) => {
+      if (!url || url.trim() === '') return null;
+      const trimmedUrl = url.trim();
+      if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+        return trimmedUrl;
+      }
+      return `https://${trimmedUrl}`;
+    };
+
     const projectData = {
       name: req.body.name,
       category: req.body.category,
       date: req.body.date,
       image: req.body.image || null,
       description: req.body.description,
-      github: req.body.github || null,
-      live_url: req.body.liveUrl || null,
+      github: normalizeUrl(req.body.github),
+      live_url: normalizeUrl(req.body.liveUrl),
       tech: req.body.tech || [],
       features: req.body.features || [],
       status: req.body.status || 'Completed'
@@ -105,14 +115,24 @@ router.post('/', authenticateToken, requireAdmin, validateProject, async (req, r
 // Update project (admin only)
 router.put('/:id', authenticateToken, requireAdmin, validateId, validateProject, async (req, res) => {
   try {
+    // Helper function to normalize URLs
+    const normalizeUrl = (url) => {
+      if (!url || url.trim() === '') return null;
+      const trimmedUrl = url.trim();
+      if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+        return trimmedUrl;
+      }
+      return `https://${trimmedUrl}`;
+    };
+
     const projectData = {
       name: req.body.name,
       category: req.body.category,
       date: req.body.date,
       image: req.body.image || null,
       description: req.body.description,
-      github: req.body.github || null,
-      live_url: req.body.liveUrl || null,
+      github: normalizeUrl(req.body.github),
+      live_url: normalizeUrl(req.body.liveUrl),
       tech: req.body.tech || [],
       features: req.body.features || [],
       status: req.body.status || 'Completed'

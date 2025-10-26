@@ -45,6 +45,10 @@ CREATE TABLE IF NOT EXISTS work_experience (
     location VARCHAR(255) NOT NULL,
     tech JSONB DEFAULT '[]'::jsonb,
     bullets JSONB DEFAULT '[]'::jsonb,
+    website VARCHAR(500),
+    twitter VARCHAR(500),
+    linkedin VARCHAR(500),
+    github VARCHAR(500),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

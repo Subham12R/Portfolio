@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { FaSpotify } from 'react-icons/fa'
 
 // API Base URL
@@ -7,7 +7,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-ea4s.onr
 // Personal Spotify "Now Playing" widget - displays what you're currently listening to
 const Spotify = () => {
   const [currentTrack, setCurrentTrack] = useState(null)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
 
@@ -45,47 +44,23 @@ const Spotify = () => {
       if (data.success) {
         if (data.isPlaying && data.track) {
           setCurrentTrack(data.track)
-          setIsPlaying(true)
         } else {
-          // If not playing, try to get recently played
-          await fetchRecentlyPlayed()
+          // If not playing, clear the track
+          setCurrentTrack(null)
         }
+      } else {
+        setCurrentTrack(null)
       }
     } catch (error) {
       console.error('Error fetching current track:', error)
       setCurrentTrack(null)
-      setIsPlaying(false)
     }
   }
 
-  // Fetch recently played track as fallback
-  const fetchRecentlyPlayed = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/spotify/recently-played`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode: 'cors'
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.track) {
-          setCurrentTrack(data.track)
-          setIsPlaying(false) // Recently played, not currently playing
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching recently played:', error)
-    }
-  }
-
-  const fetchNowPlaying = async () => {
+  const fetchNowPlaying = useCallback(async () => {
     // Don't fetch if offline
     if (!isOnline) {
       setCurrentTrack(null)
-      setIsPlaying(false)
       setIsLoading(false)
       return
     }
@@ -93,14 +68,14 @@ const Spotify = () => {
     setIsLoading(true)
     await fetchCurrentTrack()
     setIsLoading(false)
-  }
+  }, [isOnline])
 
   useEffect(() => {
     // Initial fetch
     fetchNowPlaying()
     
-    // Poll every 2 minutes for updates (120000 ms)
-    const interval = setInterval(fetchNowPlaying, 120000)
+    // Poll every 30 seconds for live updates (30000 ms)
+    const interval = setInterval(fetchNowPlaying, 30000)
     
     // Also refresh when user focuses the window
     const handleFocus = () => fetchNowPlaying()
@@ -110,11 +85,11 @@ const Spotify = () => {
       clearInterval(interval)
       window.removeEventListener('focus', handleFocus)
     }
-  }, [])
+  }, [fetchNowPlaying])
 
   if (isLoading) {
     return (
-      <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
+      <div className='w-full h-full bg-transparent  border shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
         <div className='flex items-center gap-2 text-gray-500 dark:text-gray-400'>
           <FaSpotify className='text-green-500 animate-pulse' />
           <p className='text-sm'>Loading Spotify...</p>
@@ -125,7 +100,7 @@ const Spotify = () => {
 
   if (!isOnline) {
     return (
-      <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
+      <div className='w-full h-full bg-transparent  border shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
         <div className='flex items-center gap-2'>
           <FaSpotify className='text-gray-400' size={30}/>
           <div>
@@ -139,13 +114,12 @@ const Spotify = () => {
 
   if (!currentTrack) {
     return (
-      <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
-        <div className='flex items-center gap-2'>
-          <FaSpotify className='text-green-500' size={30} />
-          <div className='ml-1'>
-            <p className='text-gray-500 dark:text-gray-400 text-sm mb-2'>Not Playing</p>
-            <p className='text-gray-400 dark:text-gray-500 text-sm'>No music detected</p>
-            <p className='text-gray-400 dark:text-gray-500 text-sm'>Start playing on Spotify</p>
+      <div className='w-full h-full bg-transparent  border shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
+        <div className='flex items-center gap-3'>
+          <FaSpotify className='text-gray-400' size={30} />
+          <div>
+            <p className='text-gray-500 dark:text-gray-400 text-sm mb-1'>Offline</p>
+            <p className='text-gray-400 dark:text-gray-500 text-sm'>Not currently playing</p>
           </div>
         </div>
       </div>
@@ -163,13 +137,9 @@ const Spotify = () => {
         
         <div className='flex-1 min-w-0'>
           <div className='flex items-center gap-2 mb-1'>
-            {isPlaying ? (
-              <FaSpotify className='text-green-500 animate-pulse' />
-            ) : (
-              <FaSpotify className='text-green-500' />
-            )}
+            <FaSpotify className='text-green-500 animate-pulse' />
             <span className='text-green-500 text-xs font-semibold'>
-              {isPlaying ? 'Now Playing' : 'Recently Played'}
+              Now Playing
             </span>
           </div>
           <p className='text-gray-800 dark:text-gray-200 text-sm font-medium truncate'>{currentTrack.name}</p>

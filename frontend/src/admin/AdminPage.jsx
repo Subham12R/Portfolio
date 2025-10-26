@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { 
   FaPlus, 
   FaEdit, 
@@ -21,6 +21,7 @@ import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
 import { usePortfolio } from '../contexts/PortfolioContext'
 import AdminAuth from '../components/Admin/AdminAuth'
 import ImageUpload from '../components/Common/ImageUpload'
+import TechStackSelector from '../components/Common/TechStackSelector'
 
 
 const AdminPage = () => {
@@ -29,7 +30,6 @@ const AdminPage = () => {
     isLoading,
     error,
     isAuthenticated,
-    updateData, 
     addProject, 
     updateProject, 
     deleteProject,
@@ -54,7 +54,6 @@ const AdminPage = () => {
   const [activeTab, setActiveTab] = useState('projects')
   const [editingItem, setEditingItem] = useState(null)
   const [isAdding, setIsAdding] = useState(false)
-  const [expandedSections, setExpandedSections] = useState({})
 
   const tabs = [
     { id: 'projects', label: 'Projects', icon: FaCode },
@@ -64,12 +63,6 @@ const AdminPage = () => {
     { id: 'about', label: 'About Me', icon: FaUser }
   ]
 
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }))
-  }
 
   const handleAdd = () => {
     setIsAdding(true)
@@ -167,7 +160,11 @@ const AdminPage = () => {
         end: '',
         location: '',
         tech: [],
-        bullets: []
+        bullets: [],
+        website: '',
+        twitter: '',
+        linkedin: '',
+        github: ''
       },
       certificates: {
         name: '',
@@ -205,34 +202,34 @@ const AdminPage = () => {
       {data.projects.map((project) => {
         console.log('Admin project status:', project.status, 'for project:', project.name)
         return (
-          <div key={project.id} className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-lg">{project.name}</h3>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          <div key={project.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start">
+              <div className="flex-1 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-lg text-gray-900 w-full sm:w-auto">{project.name}</h3>
+                  <span className={`px-2 py-1 text-xs font-medium rounded self-start ${
                     project.status === 'Working' 
-                      ? 'bg-yellow-100 text-yellow-800' 
+                      ? 'bg-amber-100 text-amber-800' 
                       : 'bg-green-100 text-green-800'
                   }`}>
                     {project.status}
                   </span>
                 </div>
-                <p className="text-gray-600 text-sm">{project.category} • {project.date}</p>
-                <p className="text-gray-500 text-sm mt-1">{project.description}</p>
+                <p className="text-gray-600 text-sm mb-1">{project.category} • {project.date}</p>
+                <p className="text-gray-500 text-sm">{project.description}</p>
               </div>
-              <div className="flex gap-2 ml-4">
+              <div className="flex gap-1 mt-3 sm:mt-0 sm:ml-4">
                 <button
                   onClick={() => handleEdit(project)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
                 >
-                  <FaEdit />
+                  <FaEdit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(project.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
                 >
-                  <FaTrash />
+                  <FaTrash className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -245,28 +242,28 @@ const AdminPage = () => {
   const renderWorkExperience = () => (
     <div className="space-y-4">
       {data.workExperience.map((exp) => (
-        <div key={exp.id} className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">{exp.company}</h3>
-              <p className="text-gray-600 text-sm">{exp.role}</p>
-              <p className="text-gray-500 text-sm">{exp.start} - {exp.end}</p>
+        <div key={exp.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start">
+              <div className="flex-1 w-full">
+                <h3 className="font-semibold text-lg text-gray-900 w-full sm:w-auto">{exp.company}</h3>
+                <p className="text-gray-600 text-sm">{exp.role}</p>
+                <p className="text-gray-500 text-sm">{exp.start} - {exp.end}</p>
+              </div>
+              <div className="flex gap-1 mt-3 sm:mt-0 sm:ml-4">
+                <button
+                  onClick={() => handleEdit(exp)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
+                >
+                  <FaEdit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(exp.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+                >
+                  <FaTrash className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2 ml-4">
-              <button
-                onClick={() => handleEdit(exp)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-              >
-                <FaEdit />
-              </button>
-              <button
-                onClick={() => handleDelete(exp.id)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded"
-              >
-                <FaTrash />
-              </button>
-            </div>
-          </div>
         </div>
       ))}
     </div>
@@ -275,28 +272,28 @@ const AdminPage = () => {
   const renderCertificates = () => (
     <div className="space-y-4">
       {data.certificates.map((cert) => (
-        <div key={cert.id} className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">{cert.name}</h3>
-              <p className="text-gray-600 text-sm">{cert.issuer}</p>
-              <p className="text-gray-500 text-sm">{cert.issueDate}</p>
+        <div key={cert.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start">
+              <div className="flex-1 w-full">
+                <h3 className="font-semibold text-lg text-gray-900 w-full sm:w-auto">{cert.name}</h3>
+                <p className="text-gray-600 text-sm">{cert.issuer}</p>
+                <p className="text-gray-500 text-sm">{cert.issueDate}</p>
+              </div>
+              <div className="flex gap-1 mt-3 sm:mt-0 sm:ml-4">
+                <button
+                  onClick={() => handleEdit(cert)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
+                >
+                  <FaEdit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(cert.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+                >
+                  <FaTrash className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2 ml-4">
-              <button
-                onClick={() => handleEdit(cert)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-              >
-                <FaEdit />
-              </button>
-              <button
-                onClick={() => handleDelete(cert.id)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded"
-              >
-                <FaTrash />
-              </button>
-            </div>
-          </div>
         </div>
       ))}
     </div>
@@ -306,37 +303,37 @@ const AdminPage = () => {
     <div className="space-y-6">
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Devices</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Devices</h3>
           <button
             onClick={() => {
               setEditingItem({ ...getEmptyItem('gears'), type: 'laptop' })
               setIsAdding(true)
             }}
-            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
           >
-            <FaPlus /> Add Device
+            <FaPlus className="w-4 h-4" /> Add Device
           </button>
         </div>
         <div className="space-y-2">
           {data.gears.devices.map((device) => (
-            <div key={device.id} className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h4 className="font-semibold">{device.name}</h4>
+            <div key={device.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start">
+                <div className="flex-1 w-full">
+                  <h4 className="font-semibold text-gray-900 w-full sm:w-auto">{device.name}</h4>
                   <p className="text-gray-600 text-sm">{device.specs}</p>
                 </div>
-                <div className="flex gap-2 ml-4">
+                <div className="flex gap-1 mt-3 sm:mt-0 sm:ml-4">
                   <button
                     onClick={() => handleEdit(device)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
                   >
-                    <FaEdit />
+                    <FaEdit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(device.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
                   >
-                    <FaTrash />
+                    <FaTrash className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -347,37 +344,37 @@ const AdminPage = () => {
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Extensions</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Extensions</h3>
           <button
             onClick={() => {
               setEditingItem({ ...getEmptyItem('gears'), type: 'extension' })
               setIsAdding(true)
             }}
-            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
           >
-            <FaPlus /> Add Extension
+            <FaPlus className="w-4 h-4" /> Add Extension
           </button>
         </div>
         <div className="space-y-2">
           {data.gears.extensions.map((extension) => (
-            <div key={extension.id} className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h4 className="font-semibold">{extension.name}</h4>
+            <div key={extension.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start">
+                <div className="flex-1 w-full">
+                  <h4 className="font-semibold text-gray-900 w-full sm:w-auto">{extension.name}</h4>
                   <p className="text-gray-600 text-sm">{extension.link}</p>
                 </div>
-                <div className="flex gap-2 ml-4">
+                <div className="flex gap-1 mt-3 sm:mt-0 sm:ml-4">
                   <button
                     onClick={() => handleEdit(extension)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
                   >
-                    <FaEdit />
+                    <FaEdit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(extension.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
                   >
-                    <FaTrash />
+                    <FaTrash className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -391,7 +388,7 @@ const AdminPage = () => {
   const renderAboutMe = () => (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="flex justify-between items-start mb-4">
-        <h3 className="text-lg font-semibold">About Me</h3>
+        <h3 className="text-lg font-semibold text-gray-900">About Me</h3>
         <button
           onClick={() => handleEdit(data.aboutMe)}
           className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -427,14 +424,12 @@ const AdminPage = () => {
   const renderForm = () => {
     if (!editingItem) return null
 
-    const isGear = activeTab === 'gears'
-    const isAbout = activeTab === 'about'
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-full overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">
+            <h2 className="text-xl font-semibold text-gray-900">
               {isAdding ? 'Add' : 'Edit'} {tabs.find(t => t.id === activeTab)?.label}
             </h2>
             <button
@@ -455,7 +450,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.name || ''}
                       onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       required
                     />
                   </div>
@@ -465,7 +460,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.category || ''}
                       onChange={(e) => setEditingItem({...editingItem, category: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       required
                     />
                   </div>
@@ -476,7 +471,7 @@ const AdminPage = () => {
                     <select
                       value={editingItem.status || 'Completed'}
                       onChange={(e) => setEditingItem({...editingItem, status: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     >
                       <option value="Completed">Completed</option>
                       <option value="Working">Working</option>
@@ -488,7 +483,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.date || ''}
                       onChange={(e) => setEditingItem({...editingItem, date: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       placeholder="January 2025"
                       required
                     />
@@ -499,7 +494,7 @@ const AdminPage = () => {
                   <textarea
                     value={editingItem.description || ''}
                     onChange={(e) => setEditingItem({...editingItem, description: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     rows="3"
                     required
                   />
@@ -517,7 +512,7 @@ const AdminPage = () => {
                       type="url"
                       value={editingItem.github || ''}
                       onChange={(e) => setEditingItem({...editingItem, github: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     />
                   </div>
                   <div>
@@ -526,26 +521,22 @@ const AdminPage = () => {
                       type="url"
                       value={editingItem.liveUrl || ''}
                       onChange={(e) => setEditingItem({...editingItem, liveUrl: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Technologies (comma-separated)</label>
-                  <input
-                    type="text"
-                    value={Array.isArray(editingItem.tech) ? editingItem.tech.map(t => typeof t === 'string' ? t : t.name).join(', ') : editingItem.tech || ''}
-                    onChange={(e) => setEditingItem({...editingItem, tech: e.target.value.split(',').map(t => t.trim()).filter(t => t)})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="React, Node.js, MongoDB"
-                  />
-                </div>
+                <TechStackSelector
+                  selectedTech={Array.isArray(editingItem.tech) ? editingItem.tech.map(t => typeof t === 'string' ? t : t.name) : []}
+                  onChange={(tech) => setEditingItem({...editingItem, tech})}
+                  label="Technologies"
+                  placeholder="Select or add technologies"
+                />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Features (one per line)</label>
                   <textarea
                     value={Array.isArray(editingItem.features) ? editingItem.features.join('\n') : editingItem.features || ''}
                     onChange={(e) => setEditingItem({...editingItem, features: e.target.value.split('\n').filter(f => f.trim())})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     rows="4"
                     placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
                   />
@@ -562,7 +553,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.company || ''}
                       onChange={(e) => setEditingItem({...editingItem, company: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       required
                     />
                   </div>
@@ -572,7 +563,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.role || ''}
                       onChange={(e) => setEditingItem({...editingItem, role: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       required
                     />
                   </div>
@@ -584,7 +575,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.start || ''}
                       onChange={(e) => setEditingItem({...editingItem, start: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       placeholder="August 2025"
                     />
                   </div>
@@ -594,7 +585,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.end || ''}
                       onChange={(e) => setEditingItem({...editingItem, end: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       placeholder="Present"
                     />
                   </div>
@@ -603,7 +594,7 @@ const AdminPage = () => {
                     <select
                       value={editingItem.status || 'Working'}
                       onChange={(e) => setEditingItem({...editingItem, status: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     >
                       <option value="Working">Working</option>
                       <option value="Completed">Completed</option>
@@ -616,7 +607,7 @@ const AdminPage = () => {
                     type="text"
                     value={editingItem.location || ''}
                     onChange={(e) => setEditingItem({...editingItem, location: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     placeholder="Remote, United States"
                   />
                 </div>
@@ -626,25 +617,66 @@ const AdminPage = () => {
                   label="Company Logo"
                   className="mb-4"
                 />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Technologies (comma-separated)</label>
-                  <input
-                    type="text"
-                    value={Array.isArray(editingItem.tech) ? editingItem.tech.map(t => typeof t === 'string' ? t : t.name).join(', ') : editingItem.tech || ''}
-                    onChange={(e) => setEditingItem({...editingItem, tech: e.target.value.split(',').map(t => t.trim()).filter(t => t)})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="React, Node.js, MongoDB"
-                  />
-                </div>
+                <TechStackSelector
+                  selectedTech={Array.isArray(editingItem.tech) ? editingItem.tech.map(t => typeof t === 'string' ? t : t.name) : []}
+                  onChange={(tech) => setEditingItem({...editingItem, tech})}
+                  label="Technologies"
+                  placeholder="Select or add technologies"
+                />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Accomplishments (one per line)</label>
                   <textarea
                     value={Array.isArray(editingItem.bullets) ? editingItem.bullets.join('\n') : editingItem.bullets || ''}
                     onChange={(e) => setEditingItem({...editingItem, bullets: e.target.value.split('\n').filter(b => b.trim())})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     rows="4"
                     placeholder="Accomplishment 1&#10;Accomplishment 2&#10;Accomplishment 3"
                   />
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-700">Social Links</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                      <input
+                        type="url"
+                        value={editingItem.website || ''}
+                        onChange={(e) => setEditingItem({...editingItem, website: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
+                        placeholder="https://company.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Twitter/X</label>
+                      <input
+                        type="url"
+                        value={editingItem.twitter || ''}
+                        onChange={(e) => setEditingItem({...editingItem, twitter: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
+                        placeholder="https://twitter.com/company"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                      <input
+                        type="url"
+                        value={editingItem.linkedin || ''}
+                        onChange={(e) => setEditingItem({...editingItem, linkedin: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
+                        placeholder="https://linkedin.com/company/company"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">GitHub</label>
+                      <input
+                        type="url"
+                        value={editingItem.github || ''}
+                        onChange={(e) => setEditingItem({...editingItem, github: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
+                        placeholder="https://github.com/company"
+                      />
+                    </div>
+                  </div>
                 </div>
               </>
             )}
@@ -658,7 +690,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.name || ''}
                       onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       required
                     />
                   </div>
@@ -668,7 +700,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.issuer || ''}
                       onChange={(e) => setEditingItem({...editingItem, issuer: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       required
                     />
                   </div>
@@ -680,7 +712,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.issueDate || ''}
                       onChange={(e) => setEditingItem({...editingItem, issueDate: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       placeholder="January 2025"
                     />
                   </div>
@@ -690,7 +722,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.credentialId || ''}
                       onChange={(e) => setEditingItem({...editingItem, credentialId: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     />
                   </div>
                 </div>
@@ -700,7 +732,7 @@ const AdminPage = () => {
                     type="url"
                     value={editingItem.credentialUrl || ''}
                     onChange={(e) => setEditingItem({...editingItem, credentialUrl: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                   />
                 </div>
                 <div>
@@ -709,7 +741,7 @@ const AdminPage = () => {
                     type="url"
                     value={editingItem.image || ''}
                     onChange={(e) => setEditingItem({...editingItem, image: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     placeholder="https://example.com/certificate-image.png"
                   />
                 </div>
@@ -718,20 +750,16 @@ const AdminPage = () => {
                   <textarea
                     value={editingItem.description || ''}
                     onChange={(e) => setEditingItem({...editingItem, description: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     rows="3"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Skills (comma-separated)</label>
-                  <input
-                    type="text"
-                    value={Array.isArray(editingItem.skills) ? editingItem.skills.join(', ') : editingItem.skills || ''}
-                    onChange={(e) => setEditingItem({...editingItem, skills: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="React, JavaScript, HTML/CSS"
-                  />
-                </div>
+                <TechStackSelector
+                  selectedTech={Array.isArray(editingItem.skills) ? editingItem.skills : []}
+                  onChange={(skills) => setEditingItem({...editingItem, skills})}
+                  label="Skills"
+                  placeholder="Select or add skills"
+                />
               </>
             )}
 
@@ -743,7 +771,7 @@ const AdminPage = () => {
                     type="text"
                     value={editingItem.name || ''}
                     onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     required
                   />
                 </div>
@@ -753,7 +781,7 @@ const AdminPage = () => {
                     type="text"
                     value={editingItem.specs || ''}
                     onChange={(e) => setEditingItem({...editingItem, specs: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     placeholder="Intel Core Ultra 7 32GB 1TB"
                   />
                 </div>
@@ -764,7 +792,7 @@ const AdminPage = () => {
                       type="url"
                       value={editingItem.link || ''}
                       onChange={(e) => setEditingItem({...editingItem, link: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       placeholder="https://chrome.google.com/webstore"
                     />
                   </div>
@@ -781,7 +809,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.name || ''}
                       onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       required
                     />
                   </div>
@@ -791,7 +819,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.title || ''}
                       onChange={(e) => setEditingItem({...editingItem, title: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       required
                     />
                   </div>
@@ -801,7 +829,7 @@ const AdminPage = () => {
                   <textarea
                     value={editingItem.bio || ''}
                     onChange={(e) => setEditingItem({...editingItem, bio: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     rows="3"
                     required
                   />
@@ -813,7 +841,7 @@ const AdminPage = () => {
                       type="email"
                       value={editingItem.email || ''}
                       onChange={(e) => setEditingItem({...editingItem, email: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     />
                   </div>
                   <div>
@@ -822,7 +850,7 @@ const AdminPage = () => {
                       type="text"
                       value={editingItem.location || ''}
                       onChange={(e) => setEditingItem({...editingItem, location: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                     />
                   </div>
                 </div>
@@ -838,7 +866,7 @@ const AdminPage = () => {
                           ...editingItem, 
                           socialLinks: {...editingItem.socialLinks, github: e.target.value}
                         })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       />
                     </div>
                     <div>
@@ -850,7 +878,7 @@ const AdminPage = () => {
                           ...editingItem, 
                           socialLinks: {...editingItem.socialLinks, linkedin: e.target.value}
                         })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       />
                     </div>
                     <div>
@@ -862,7 +890,7 @@ const AdminPage = () => {
                           ...editingItem, 
                           socialLinks: {...editingItem.socialLinks, twitter: e.target.value}
                         })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
                       />
                     </div>
                   </div>
@@ -874,7 +902,7 @@ const AdminPage = () => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
               >
                 Cancel
               </button>
@@ -908,7 +936,7 @@ const AdminPage = () => {
     }
   }
 
-  const handleLogin = (success) => {
+  const handleLogin = () => {
     // Login is handled by the context
   }
 
@@ -936,7 +964,7 @@ const AdminPage = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">Error Loading Data</h2>
+            <h2 className="text-lg font-semibold mb-2 text-gray-900">Error Loading Data</h2>
             <p className="mb-4 text-sm">{error}</p>
             
             <div className="space-y-2">
@@ -976,15 +1004,17 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 shadow-sm px-6 py-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Portfolio Admin</h1>
-            <p className="text-gray-600">Manage your portfolio content</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Portfolio Admin
+            </h1>
+            <p className="text-gray-600 mt-1">Manage your portfolio content</p>
           </div>
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 cursor-pointer">
-              <FaUpload /> Upload Resume
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 px-3 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 cursor-pointer transition-colors duration-200 text-sm font-medium">
+              <FaUpload className="w-4 h-4" /> Upload Resume
               <input
                 type="file"
                 accept=".pdf"
@@ -1019,12 +1049,12 @@ const AdminPage = () => {
             </label>
             <button 
               onClick={exportData}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900"
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
             >
-              <FaDownload /> Export
+              <FaDownload className="w-4 h-4" /> Export
             </button>
-            <label className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 cursor-pointer">
-              <FaUpload /> Import
+            <label className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 cursor-pointer transition-colors duration-200 text-sm font-medium">
+              <FaUpload className="w-4 h-4" /> Import
               <input
                 type="file"
                 accept=".json"
@@ -1044,18 +1074,18 @@ const AdminPage = () => {
                   resetData()
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2 text-red-600 hover:text-red-900"
+              className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
             >
-              <FaUndo /> Reset
+              <FaUndo className="w-4 h-4" /> Reset
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900">
-              <FaEye /> Preview
+            <button className="flex items-center gap-2 px-3 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 text-sm font-medium">
+              <FaEye className="w-4 h-4" /> Preview
             </button>
             <button 
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900"
+              className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"
             >
-              <FaSignOutAlt /> Logout
+              <FaSignOutAlt className="w-4 h-4" /> Logout
             </button>
           </div>
         </div>
@@ -1065,19 +1095,19 @@ const AdminPage = () => {
         {/* Sidebar */}
         <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
           <nav className="p-4">
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {tabs.map((tab) => (
                 <li key={tab.id}>
                   <button
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors duration-200 ${
                       activeTab === tab.id
-                        ? 'bg-blue-100 text-blue-700'
+                        ? 'bg-blue-600 text-white'
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    <tab.icon />
-                    {tab.label}
+                    <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-gray-500'}`} />
+                    <span className="text-sm font-medium">{tab.label}</span>
                   </button>
                 </li>
               ))}
@@ -1092,16 +1122,16 @@ const AdminPage = () => {
               <h2 className="text-xl font-semibold text-gray-900">
                 {tabs.find(t => t.id === activeTab)?.label}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm mt-1">
                 Manage your {tabs.find(t => t.id === activeTab)?.label.toLowerCase()}
               </p>
             </div>
             {activeTab !== 'about' && (
               <button
                 onClick={handleAdd}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
               >
-                <FaPlus /> Add {tabs.find(t => t.id === activeTab)?.label.slice(0, -1)}
+                <FaPlus className="w-4 h-4" /> Add {tabs.find(t => t.id === activeTab)?.label.slice(0, -1)}
               </button>
             )}
           </div>

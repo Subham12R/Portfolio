@@ -27,7 +27,9 @@ const validateProject = [
   }).withMessage('GitHub URL must be valid'),
   body('liveUrl').optional().custom((value) => {
     if (!value || value.trim() === '') return true;
-    return /^https?:\/\/.+/.test(value);
+    // Allow URLs with or without protocol, but if no protocol, assume https
+    const urlPattern = /^(https?:\/\/)?[^\s/$.?#].[^\s]*$/i;
+    return urlPattern.test(value);
   }).withMessage('Live URL must be valid'),
   body('image').optional().custom((value) => {
     if (!value || value.trim() === '') return true;

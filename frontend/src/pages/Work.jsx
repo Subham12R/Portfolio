@@ -1,8 +1,33 @@
-import React, { useEffect } from 'react'
-import { FaAws, FaGithub, FaGlobe, FaReact } from 'react-icons/fa'
+import React, { useState } from 'react'
+import { FaAws, FaGithub, FaGlobe, FaReact, FaLinkedin } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri'
 import { SiTypescript, SiPostgresql, SiFigma, SiVercel, SiPostman, SiBun, SiNodedotjs } from 'react-icons/si'
+import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
+import { FaSquareXTwitter } from 'react-icons/fa6'
 import { usePortfolio } from '../contexts/PortfolioContext'
+import { useTheme } from '../contexts/ThemeContext'
+import Tooltip from '@mui/material/Tooltip';
+import { styled } from '@mui/material/styles';
+import { tooltipClasses } from '@mui/material/Tooltip';
+import { SiMongodb, SiRedis, SiDocker,  } from 'react-icons/si'
+import { FaGitAlt, } from 'react-icons/fa'
+
+const Tip = styled(({ className, ...props }) => (
+  <Tooltip {...props} arrow classes={{ popper: className }} />
+))(({ isDark }) => ({
+  [`& .${tooltipClasses.arrow}`]: {
+    color: isDark ? '#ffffff' : '#000000',
+  },
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: isDark 
+      ? '#ffffff' 
+      : '#000000',
+    color: isDark ? '#000000' : '#ffffff',
+    fontSize: '0.7rem',
+    fontWeight: '400',
+    padding: '2px 4px',
+  },
+}));
 
 // Dummy experience data - COMMENTED OUT - now using backend data
 /* const experienceData = [
@@ -98,9 +123,62 @@ import { usePortfolio } from '../contexts/PortfolioContext'
 
 const Work = () => {
   const { data, isLoading, error } = usePortfolio()
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  const [expandedExperience, setExpandedExperience] = useState(0)
   
   // Use backend data instead of dummy data
   const experienceData = data?.workExperience || []
+
+  // Function to get icon for tech stack
+  const getTechIcon = (techName) => {
+    if (!techName || typeof techName !== 'string') {
+      return <FaReact className="text-gray-500" />
+    }
+    const tech = techName.toLowerCase();
+    switch (tech) {
+      case 'react':
+        return <FaReact className="text-blue-500" />
+      case 'next.js':
+      case 'nextjs':
+        return <RiNextjsFill className="text-zinc-900" />
+      case 'tailwindcss':
+      case 'tailwind':
+        return <RiTailwindCssFill className="text-sky-500" />
+      case 'typescript':
+      case 'ts':
+        return <SiTypescript className="text-blue-600" />
+      case 'postgresql':
+      case 'postgres':
+        return <SiPostgresql className="text-blue-700" />
+      case 'figma':
+        return <SiFigma className="text-pink-500" />
+      case 'vercel':
+        return <SiVercel className="text-black" />
+      case 'aws':
+        return <FaAws className="text-orange-500" />
+      case 'postman':
+        return <SiPostman className="text-orange-500" />
+      case 'bun':
+        return <SiBun className="text-gray-700" />
+      case 'node.js':
+      case 'nodejs':
+      case 'node':
+        return <SiNodedotjs className="text-green-500" />
+      case 'mongodb':
+        return <SiMongodb className="text-green-500" />
+      case 'redis':
+        return <SiRedis className="text-red-500" />
+      case 'docker':
+        return <SiDocker className="text-blue-500" />
+      case 'github':
+        return <FaGithub className="text-gray-500" />
+      case 'git':
+        return <FaGitAlt className="text-gray-500" />
+      default:
+        return <FaReact className="text-gray-500" />
+    }
+  }
 
   // Show loading state
   if (isLoading) {
@@ -135,85 +213,108 @@ const Work = () => {
         </p>
       </div>
 
-      {/* Timeline */}
-      <div className="relative">
-        {/* Timeline Line */}
-        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-zinc-700"></div>
-
-        {/* Timeline Items */}
-        <div className="space-y-8">
-          {experienceData.map((exp, index) => (
-            <div key={index} className="relative pl-16">
-              {/* Timeline Dot */}
-              <div className="absolute left-4 top-2 w-4 h-4 bg-blue-500 rounded-full border-4 border-white shadow-md z-10"></div>
-
-              {/* Content Card */}
-                                   <div className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
-                <div className="flex items-center gap-3 mb-3 p-4">
-                  {/* Logo */}
-                  <div className="w-12 h-12 bg-gray-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center">
-                    {exp.logo ? (
-                      <img src={exp.logo} alt={exp.company} className="w-12 h-12 object-cover rounded-lg" />
-                    ) : (
-                      <span className="text-xl font-bold">{exp.company[0]}</span>
-                    )}
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-lg text-black dark:text-white">{exp.company}</span>
-                      <span className="text-xs px-2 py-1 rounded-md bg-green-100 text-green-700 font-medium border border-green-200">
-                        {exp.status}
-                      </span>
+      {/* Experience List */}
+      <div className="space-y-4">
+        {experienceData.map((exp, idx) => {
+          const isExpanded = expandedExperience === idx;
+          const isCurrentJob = exp.status === 'Working' || exp.status === 'Current';
+          return (
+            <div key={exp.id || idx} className="bg-white dark:bg-zinc-950">
+              <div className="flex items-start gap-4 py-4">
+                {/* Company Logo */}
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0" 
+                     style={{ backgroundColor: idx === 0 ? '#ffffff' : idx === 1 ? '#ffffff' : idx === 2 ? '#ffffff' : '#374151' }}>
+                  {exp.logo ? (
+                    <img src={exp.logo} alt={exp.company} className="w-8 h-8 object-contain" />
+                  ) : (
+                    <span className="text-black font-bold">{exp.company[0]}</span>
+                  )}
+                </div>
+                
+                {/* Main Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="font-semibold text-lg text-black dark:text-white truncate">{exp.company}</h3>
+                        {isCurrentJob && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500 text-white">
+                            Working
+                          </span>
+                        )}
+                        <div className="flex items-center gap-2 ml-auto">
+                          <Tip title="Website" placement="top" arrow isDark={isDark}>
+                            <a href={exp.website || ""} className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
+                              <FaGlobe className="w-4 h-4" />
+                            </a>
+                          </Tip>
+                          <Tip title="X (Twitter)" placement="top" arrow isDark={isDark}>
+                            <a href={exp.twitter || ""} className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
+                              <FaSquareXTwitter className="w-4 h-4" />
+                            </a>
+                          </Tip>
+                          <Tip title="LinkedIn" placement="top" arrow isDark={isDark}>
+                            <a href={exp.linkedin || ""} className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
+                              <FaLinkedin className="w-4 h-4" />
+                            </a>
+                          </Tip>
+                          <Tip title="GitHub" placement="top" arrow isDark={isDark}>
+                            <a href={exp.github || ""} className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
+                              <FaGithub className="w-4 h-4" />
+                            </a>
+                          </Tip>
+                          <button
+                            onClick={() => setExpandedExperience(isExpanded ? null : idx)}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          >
+                            {isExpanded ? <HiChevronUp className="w-4 h-4" /> : <HiChevronDown className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      <h4 className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">{exp.role}</h4>
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-zinc-400">{exp.role}</div>
+                    
+                    {/* Date and Location */}
+                    <div className="text-right text-sm text-gray-500 dark:text-gray-400 ml-4 shrink-0">
+                      <div className="font-medium">{exp.start} - {exp.end}</div>
+                      <div className="text-xs">{exp.location}</div>
+                    </div>
                   </div>
-
-                  <div className="text-xs text-gray-400 dark:text-zinc-500 text-right hidden sm:block">
-                    <div>{exp.start} - {exp.end}</div>
-                  </div>
-                </div>
-
-                {/* Date (mobile) */}
-                <div className="px-4 pb-2 sm:hidden">
-                  <div className="text-xs text-gray-400 dark:text-zinc-500">{exp.start} - {exp.end}</div>
-                  <div className="text-xs text-gray-400 dark:text-zinc-500">{exp.location}</div>
-                </div>
-
-                {/* Details */}
-                <div className="px-4 pb-4">
-                  <div className="text-xs text-gray-400 dark:text-zinc-500 mb-3 hidden sm:block">{exp.location}</div>
                   
-                  {/* Technologies */}
-                  <div className="mb-3">
-                    <div className="font-semibold text-gray-700 dark:text-zinc-300 mb-2 text-sm">Technologies & Tools</div>
-                    <div className="flex flex-wrap gap-2">
-                      {exp.tech.map((tech, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center gap-1 bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded-md border border-dashed dark:border-zinc-700 cursor-pointer text-xs font-medium text-gray-700 dark:text-zinc-300"
-                        >
-                          {tech.icon}
-                          {tech.name}
-                        </span>
-                      ))}
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="mt-4 space-y-4">
+                      {/* Technologies & Tools */}
+                      <div>
+                        <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Technologies & Tools</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {exp.tech?.map((tech, i) => (
+                            <span key={i} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-transparent border border-dashed border-gray-200 dark:border-zinc-700  px-3 py-1.5 rounded-md text-xs font-medium text-gray-700 dark:text-zinc-300">
+                              {getTechIcon(tech.name || tech)}
+                              <span>{tech.name || tech}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Responsibilities */}
+                      <div>
+                        <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                          {exp.bullets?.map((bullet, i) => (
+                            <li key={i} className="flex items-start">
+                              <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full mt-2 mr-3 shrink-0"></span>
+                              <span className="leading-relaxed">{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Accomplishments */}
-                  <div>
-                    <div className="font-semibold text-gray-700 dark:text-zinc-300 mb-2 text-sm">Key Accomplishments</div>
-                    <ul className="list-disc pl-5 text-gray-600 dark:text-zinc-400 text-sm leading-relaxed space-y-1">
-                      {exp.bullets.map((bullet, i) => (
-                        <li key={i}>{bullet}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </section>
   )

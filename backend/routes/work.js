@@ -72,7 +72,11 @@ router.post('/', authenticateToken, requireAdmin, validateWorkExperience, async 
       end_date: req.body.end || req.body.end_date || null,
       location: req.body.location,
       tech: req.body.tech || [],
-      bullets: req.body.bullets || []
+      bullets: req.body.bullets || [],
+      website: req.body.website || null,
+      twitter: req.body.twitter || null,
+      linkedin: req.body.linkedin || null,
+      github: req.body.github || null
     };
 
     const { data: experience, error } = await supabase
@@ -116,7 +120,11 @@ router.put('/:id', authenticateToken, requireAdmin, validateId, validateWorkExpe
       end_date: req.body.end || req.body.end_date || null,
       location: req.body.location,
       tech: req.body.tech || [],
-      bullets: req.body.bullets || []
+      bullets: req.body.bullets || [],
+      website: req.body.website || null,
+      twitter: req.body.twitter || null,
+      linkedin: req.body.linkedin || null,
+      github: req.body.github || null
     };
 
     const { data: experience, error } = await supabase
