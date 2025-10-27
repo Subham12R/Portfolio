@@ -6,10 +6,10 @@ Welcome! I’m **Subham**, a second-year B.Tech Computer Science student at Adam
 ---
 
 ## 🔧 Tech Stack  
-- **Frontend:** React, Next.js, Tailwind CSS 4, SCSS (with Montserrat & Manrope fonts)  
-- **Backend:** Node.js (for server/API logic), MongoDB (for data persistence)  
-- **Authentication:** NextAuth.js (for secure login flows)  
-- **Deployment:** Netlify (for hosting the static frontend)  
+- **Frontend:** React, Vite, Tailwind CSS 4,  (with Montserrat & Manrope fonts)  
+- **Backend:** Node.js (for server/API logic), Supabase (for data persistence)  
+- **Authentication:** OAuth (for secure login flows)  
+- **Deployment:** Netlify (for hosting the static frontend) and Render (for backend) 
 - **Others:** Git & GitHub (version control and codebase), Responsive design (mobile-first)
 
 ---
