@@ -8,6 +8,7 @@ const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/projects', label: 'Projects' },
   { to: '/certificates', label: 'Certificates' },
+  { to: '/contact', label: 'Contact' },
   { to: '/work', label: 'Work' },
   { to: '/gears', label: 'Gears' },
   { to: '/setup', label: 'Setup' },
@@ -71,6 +72,16 @@ const Navbar = () => {
                         }
                     >
                         Certificates
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink 
+                        to="/contact" 
+                        className={({ isActive }) => 
+                            `px-1 py-3 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
+                        }
+                    >
+                        Contact
                     </NavLink>
                 </li>
                 <li>

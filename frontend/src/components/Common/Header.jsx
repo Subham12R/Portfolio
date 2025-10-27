@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import profileImage from '../../assets/profile.png';
 import DecryptedText from './DecryptedText';
-import ContactModal from './ContactModal';
 import { useTheme } from '../../contexts/ThemeContext';
 import {FaReact} from 'react-icons/fa';
 import { FaLinkedin } from "react-icons/fa";
@@ -37,7 +37,7 @@ const Tip = styled(({ className, ...props }) => (
   }));
 
 const Header = () => {
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -123,7 +123,7 @@ const Header = () => {
                     </Tip>
                     <Tip title="Contact Me" placement="top" arrow isDark={isDark}>
                         <button 
-                            onClick={() => setIsContactModalOpen(true)}
+                            onClick={() => navigate('/contact')}
                             className='inline-flex justify-center items-center gap-2 bg-transparent dark:bg-transparent py-2 px-4 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  text-black dark:text-zinc-200 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] dark:hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)]  transition-all ease-in-out duration-300 cursor-pointer'
                         >
                             <BiPaperPlane />Get in Touch
@@ -175,11 +175,6 @@ const Header = () => {
 
         </div>
 
-        {/* Contact Modal */}
-        <ContactModal 
-          isOpen={isContactModalOpen} 
-          onClose={() => setIsContactModalOpen(false)} 
-        />
     </header>
   )
 }

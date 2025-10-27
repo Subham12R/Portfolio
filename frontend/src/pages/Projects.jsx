@@ -151,6 +151,7 @@ const Projects = () => {
         return <RiVuejsFill className="text-green-500" />
       
       // Styling
+      case 'tailwind css':
       case 'tailwindcss':
       case 'tailwind':
         return <RiTailwindCssFill className="text-sky-500" />
@@ -413,15 +414,21 @@ const Projects = () => {
                       Technologies & Tools
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {project.tech.map((tech, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
-                        >
-                          {getTechIcon(tech)}
-                          <span className="text-sm font-medium text-gray-700 dark:text-zinc-300">{tech}</span>
-                        </span>
-                      ))}
+                      {project.tech.map((tech, i) => {
+                        // Handle both string and object formats
+                        const techName = typeof tech === 'string' ? tech : tech.name;
+                        const techIcon = typeof tech === 'object' && tech.icon ? tech.icon : getTechIcon(techName);
+                        
+                        return (
+                          <span
+                            key={i}
+                            className="inline-flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                          >
+                            {techIcon}
+                            <span className="text-sm font-medium text-gray-700 dark:text-zinc-300">{techName}</span>
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
 

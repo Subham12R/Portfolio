@@ -1,8 +1,8 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { useState, useEffect } from 'react'
 import Home from './pages/Home'
 import Projects from './pages/Projects'
 import Certificates from './pages/Certificates'
+import Contact from './pages/Contact'
 import UserLayout from './components/Layout/UserLayout'
 import Work from './pages/Work'
 import Gears from './pages/Gears'
@@ -11,26 +11,13 @@ import AdminPage from './admin/AdminPage'
 import SpotifyCallback from './pages/SpotifyCallback'
 import { PortfolioProvider } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
-import { ReactLenis, useLenis } from 'lenis/react'
-import Preloader from './components/Common/Preloader'
+import { ReactLenis } from 'lenis/react'
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true)
-  const lenis = useLenis((lenis) => {
-    // called every scroll
-    // console.log(lenis) // Removed to reduce console spam
-  })
-
-  const handlePreloaderComplete = () => {
-    setIsLoading(false)
-  }
 
   return (
     <ThemeProvider>
       <PortfolioProvider>
-        {isLoading ? (
-          <Preloader onComplete={handlePreloaderComplete} />
-        ) : (
           <BrowserRouter>
             <ReactLenis root />
             <Routes>
@@ -38,6 +25,7 @@ function App() {
                 <Route index element={<Home />} />
                 <Route path="projects" element={<Projects />} />
                 <Route path="certificates" element={<Certificates />} />
+                <Route path="contact" element={<Contact />} />
                 <Route path="work" element={<Work />} />
                 <Route path="gears" element={<Gears />} />
                 <Route path="setup" element={<VSCodeSetup />} />
@@ -46,7 +34,6 @@ function App() {
               <Route path="/callback" element={<SpotifyCallback />} />
             </Routes>
           </BrowserRouter>
-        )}
       </PortfolioProvider>
     </ThemeProvider>
   )
