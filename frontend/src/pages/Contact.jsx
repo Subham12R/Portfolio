@@ -5,6 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import Tooltip from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
+import { toast } from 'sonner';
 
 const Tip = styled(({ className, ...props }) => (
   <Tooltip {...props} arrow classes={{ popper: className }} />
@@ -32,7 +33,6 @@ const Contact = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -49,18 +49,25 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      // Simulate form submission (replace with actual API call)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const formData = new FormData(e.target);
+      formData.append("access_key", "1f32a7c1-b945-4d32-859f-a68184967e86");
+
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
       
-      setSubmitStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
-      
-      // Reset success message after 5 seconds
-      setTimeout(() => {
-        setSubmitStatus(null);
-      }, 5000);
-    } catch {
-      setSubmitStatus('error');
+      if (data.success) {
+        toast.success("Message sent successfully! I'll get back to you soon.");
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        toast.error("Failed to send message. Please try again.");
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -218,19 +225,6 @@ const Contact = () => {
               placeholder="Tell me about your project or just say hello!"
             />
           </div>
-
-          {/* Submit Status */}
-          {submitStatus === 'success' && (
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-3 py-2 rounded-md text-sm">
-              ✅ Message sent successfully! I'll get back to you soon.
-            </div>
-          )}
-
-          {submitStatus === 'error' && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-3 py-2 rounded-md text-sm">
-              ❌ Failed to send message. Please try again.
-            </div>
-          )}
 
           {/* Submit Button */}
           <button

@@ -12,6 +12,7 @@ import SpotifyCallback from './pages/SpotifyCallback'
 import { PortfolioProvider } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ReactLenis } from 'lenis/react'
+import { Toaster } from 'sonner'
 
 function App() {
 
@@ -33,6 +34,7 @@ function App() {
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/callback" element={<SpotifyCallback />} />
             </Routes>
+            <Toaster richColors position="top-center" />
           </BrowserRouter>
       </PortfolioProvider>
     </ThemeProvider>
