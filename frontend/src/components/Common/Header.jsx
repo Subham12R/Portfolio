@@ -69,7 +69,7 @@ const Header = () => {
 
 
         {/* Profile Content */}
-        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
+        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-4 mb-2'>
                     <div className='w-full flex justify-between items-start mb-10 mt-6'>
                                     <div className="relative">
                                         <img src={profileImage} alt="profile image" className='w-24 h-24 rounded-full object-cover shadow-md ' />

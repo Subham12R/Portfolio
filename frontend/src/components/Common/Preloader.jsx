@@ -1,56 +1,36 @@
 import React, { useState, useEffect } from 'react'
+import profileImg from '../../assets/profile.png'
 
 const Preloader = ({ onComplete }) => {
-  const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
 
-  // Multilingual "Hello" words
-  const helloWords = [
-    "Hola", // Spanish
-    "Hello", // English
-    "Bonjour", // French
-    "Hallo", // German
-    "Ciao", // Italian
-    "你好", // Chinese
-    "مرحبا", // Arabic
-    "নমস্কার", // Bengali
-    "नमस्ते", // Hindi
-    "Salam", // Persian
-    "Shalom", // Hebrew
-    "Kamusta", // Indonesian
-  ]
-
   useEffect(() => {
-    const wordInterval = setInterval(() => {
-      setCurrentWordIndex((prev) => (prev + 1) % helloWords.length)
-    }, 300)
-
-    // Auto-complete after 4 seconds
+    // Auto-complete after 2 seconds
     const timer = setTimeout(() => {
-      clearInterval(wordInterval)
       setIsVisible(false)
       setTimeout(() => {
         onComplete()
       }, 500)
-    }, 4000)
+    }, 2000)
 
     return () => {
-      clearInterval(wordInterval)
       clearTimeout(timer)
     }
-  }, [onComplete, helloWords.length])
+  }, [onComplete])
 
   if (!isVisible) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
-      <div className="text-center">
-        <h1 
-          key={currentWordIndex}
-          className="text-6xl font-bold text-gray-900 animate-word-change"
-        >
-          {helloWords[currentWordIndex]}
-        </h1>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-zinc-950 transition-colors duration-300">
+      <div className="relative">
+        {/* Ring loader */}
+        <div className="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-zinc-700 border-t-blue-500 dark:border-t-blue-400 animate-spin"></div>
+        {/* Profile image */}
+        <img 
+          src={profileImg} 
+          alt="Profile" 
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full object-cover"
+        />
       </div>
     </div>
   )

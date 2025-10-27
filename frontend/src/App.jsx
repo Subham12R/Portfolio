@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { useState } from 'react'
 import Home from './pages/Home'
 import Projects from './pages/Projects'
 import Certificates from './pages/Certificates'
@@ -9,16 +10,25 @@ import Gears from './pages/Gears'
 import VSCodeSetup from './pages/VSCodeSetup'
 import AdminPage from './admin/AdminPage'
 import SpotifyCallback from './pages/SpotifyCallback'
+import Preloader from './components/Common/Preloader'
 import { PortfolioProvider } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ReactLenis } from 'lenis/react'
 import { Toaster } from 'sonner'
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true)
+
+  const handlePreloaderComplete = () => {
+    setIsLoading(false)
+  }
 
   return (
     <ThemeProvider>
       <PortfolioProvider>
+        {isLoading ? (
+          <Preloader onComplete={handlePreloaderComplete} />
+        ) : (
           <BrowserRouter>
             <ReactLenis root />
             <Routes>
@@ -36,6 +46,7 @@ function App() {
             </Routes>
             <Toaster richColors position="top-center" />
           </BrowserRouter>
+        )}
       </PortfolioProvider>
     </ThemeProvider>
   )

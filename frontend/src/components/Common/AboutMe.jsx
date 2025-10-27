@@ -5,10 +5,12 @@ import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri'
 import { SiTypescript, SiJavascript, SiExpress, SiPostgresql } from 'react-icons/si'
 import GitHubCalendar from 'react-github-calendar';
 import { usePortfolio } from '../../contexts/PortfolioContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
 
 const AboutMe = () => {
   const { data, isLoading, error } = usePortfolio()
+  const { theme } = useTheme()
   const [wakatimeData, setWakatimeData] = useState(null)
   const [wakatimeLoading, setWakatimeLoading] = useState(true)
 
@@ -108,8 +110,8 @@ const AboutMe = () => {
               )}
             </p>
         </div>
-        <div className='mt-2 '>
-            <div className='w-full h-full p-4 border border-gray-200 dark:border-zinc-700 border-dashed rounded-md github-calendar-container'>
+        <div className='mt-2'>
+            <div className='w-full h-full border border-gray-200 dark:border-zinc-700 border-dashed rounded-md github-calendar-container'>
                 <GitHubCalendar 
                   username="subham12r" 
                   style={{ 
@@ -118,6 +120,13 @@ const AboutMe = () => {
                   }}
                   showWeekdayLabels={true}
                   fontSize={12}
+                  blockSize={12}
+                  blockMargin={3}
+                  colorScheme={theme}
+                  theme={{
+                    light: ['#f1f5f9', '#dcfce7', '#86efac', '#22c55e', '#15803d'],
+                    dark: ['#1e293b', '#1e3a8a', '#2563eb', '#3b82f6', '#60a5fa']
+                  }}
                 />
             </div>
         </div>
