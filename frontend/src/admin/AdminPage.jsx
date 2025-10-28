@@ -11,18 +11,17 @@ import {
   FaCertificate,
   FaDesktop,
   FaUser,
-  FaCog,
   FaSignOutAlt,
   FaDownload,
   FaUpload,
   FaUndo
 } from 'react-icons/fa'
-import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
 import { usePortfolio } from '../contexts/PortfolioContext'
 import AdminAuth from '../components/Admin/AdminAuth'
 import ImageUpload from '../components/Common/ImageUpload'
 import TechStackSelector from '../components/Common/TechStackSelector'
-
+import {toast} from 'sonner'
+import { Link } from 'react-router-dom'
 
 const AdminPage = () => {
   const { 
@@ -1013,40 +1012,6 @@ const AdminPage = () => {
             <p className="text-gray-600 mt-1">Manage your portfolio content</p>
           </div>
           <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 px-3 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 cursor-pointer transition-colors duration-200 text-sm font-medium">
-              <FaUpload className="w-4 h-4" /> Upload Resume
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => {
-                  if (e.target.files[0]) {
-                    // Handle resume upload
-                    const formData = new FormData();
-                    formData.append('resume', e.target.files[0]);
-                    
-                    fetch('https://portfolio-fqur.vercel.app/api/upload/resume', {
-                      method: 'POST',
-                      body: formData,
-                      headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
-                      }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                      if (data.success) {
-                        alert('Resume uploaded successfully!');
-                      } else {
-                        alert('Failed to upload resume: ' + data.error);
-                      }
-                    })
-                    .catch(error => {
-                      alert('Error uploading resume: ' + error.message);
-                    });
-                  }
-                }}
-                className="hidden"
-              />
-            </label>
             <button 
               onClick={exportData}
               className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
@@ -1061,8 +1026,8 @@ const AdminPage = () => {
                 onChange={(e) => {
                   if (e.target.files[0]) {
                     importData(e.target.files[0])
-                      .then(() => alert('Data imported successfully!'))
-                      .catch(() => alert('Error importing data!'))
+                      .then(() => toast.success('Data imported successfully!'))
+                      .catch(() => toast.error('Error importing data!'))
                   }
                 }}
                 className="hidden"
@@ -1078,9 +1043,9 @@ const AdminPage = () => {
             >
               <FaUndo className="w-4 h-4" /> Reset
             </button>
-            <button className="flex items-center gap-2 px-3 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 text-sm font-medium">
+            <a href="https://subham12r.netlify.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 text-sm font-medium">
               <FaEye className="w-4 h-4" /> Preview
-            </button>
+            </a>
             <button 
               onClick={handleLogout}
               className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors duration-200 text-sm font-medium"

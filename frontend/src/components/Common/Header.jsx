@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import profileImage from '../../assets/profile.png';
+import ResumePdf from '../../assets/Resume.pdf';
 import DecryptedText from './DecryptedText';
 import { useTheme } from '../../contexts/ThemeContext';
 import {FaReact} from 'react-icons/fa';
@@ -41,23 +42,16 @@ const Header = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Function to download resume
-  const downloadResume = async () => {
+  // Function to download resume from assets
+  const downloadResume = () => {
     try {
-      const response = await fetch('https://portfolio-fqur.vercel.app/api/upload/resume');
-      const data = await response.json();
-      
-      if (data.success) {
-        // Create a temporary link to download the file
-        const link = document.createElement('a');
-        link.href = data.download_url;
-        link.download = data.filename || 'resume.pdf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        alert('Resume not found. Please upload a resume first.');
-      }
+      // Create a temporary link to download the file
+      const link = document.createElement('a');
+      link.href = ResumePdf;
+      link.download = 'Resume.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Error downloading resume:', error);
       alert('Failed to download resume. Please try again.');

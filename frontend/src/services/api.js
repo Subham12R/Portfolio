@@ -338,6 +338,41 @@ class ApiService {
     });
   }
 
+  // Resume upload method
+  async uploadResume(formData) {
+    const url = `${this.baseURL}/api/upload/resume`;
+    const headers = {};
+    
+    if (this.token) {
+      headers.Authorization = `Bearer ${this.token}`;
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Resume upload failed:', error);
+      throw error;
+    }
+  }
+
+  // Get resume download URL
+  async getResume() {
+    return await this.request('/api/upload/resume', {
+      requireAuth: false,
+    });
+  }
+
   // WakaTime API methods
   async getWakaTimeStatusBar() {
     return await this.request('/api/wakatime/status-bar', {
