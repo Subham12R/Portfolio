@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { FaAws, FaGithub, FaGlobe, FaReact, FaLinkedin } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri'
-import { SiTypescript, SiPostgresql, SiFigma, SiVercel, SiPostman, SiBun, SiNodedotjs } from 'react-icons/si'
+import { SiTypescript, SiPostgresql, SiFigma, SiVercel, SiPostman, SiBun, SiNodedotjs, SiExpress } from 'react-icons/si'
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
 import { FaSquareXTwitter } from 'react-icons/fa6'
 import { usePortfolio } from '../contexts/PortfolioContext'
