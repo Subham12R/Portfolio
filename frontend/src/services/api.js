@@ -64,12 +64,22 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        const error = new Error(errorData.error || errorData.details || `HTTP ${response.status}: ${response.statusText}`);
+        error.status = response.status;
+        error.response = errorData;
+        throw error;
       }
 
       return await response.json();
     } catch (error) {
       console.error(`API request failed for ${endpoint}:`, error);
+      // Preserve status code if available
+      if (error.status) {
+        const enhancedError = new Error(error.message || `HTTP ${error.status}: Request failed`);
+        enhancedError.status = error.status;
+        enhancedError.response = error.response;
+        throw enhancedError;
+      }
       throw error;
     }
   }

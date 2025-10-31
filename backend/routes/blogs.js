@@ -5,6 +5,15 @@ const { validateId } = require('../middleware/validation');
 
 const router = express.Router();
 
+// Health check for blogs route
+router.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    route: '/api/blogs',
+    message: 'Blogs route is working'
+  });
+});
+
 // Get all blogs (public) - ordered by order_index, then created_at
 router.get('/', optionalAuth, async (req, res) => {
   try {
@@ -16,7 +25,19 @@ router.get('/', optionalAuth, async (req, res) => {
 
     if (error) {
       console.error('Blogs fetch error:', error);
-      return res.status(500).json({ error: 'Failed to fetch blogs' });
+      
+      // Check if it's a table doesn't exist error
+      if (error.code === '42P01' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+        return res.status(500).json({ 
+          error: 'Blogs table does not exist',
+          details: 'Please run the migration SQL file: backend/database/add-blogs-table.sql in your Supabase SQL editor'
+        });
+      }
+      
+      return res.status(500).json({ 
+        error: 'Failed to fetch blogs',
+        details: error.message || 'Database error'
+      });
     }
 
     res.json({ blogs: blogs || [] });

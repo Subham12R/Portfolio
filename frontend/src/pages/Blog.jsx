@@ -81,9 +81,24 @@ const Blog = () => {
           setBlogs([])
         }
       } catch (err) {
-        const errorMessage = err.message || 'Failed to fetch blogs'
+        let errorMessage = err.message || 'Failed to fetch blogs'
+        
+        // Check for specific error cases
+        if (err.message?.includes('404') || err.message?.includes('not found')) {
+          errorMessage = 'Blogs endpoint not found. Please verify the backend is deployed and the /api/blogs route exists.'
+        } else if (err.message?.includes('table') || err.message?.includes('does not exist')) {
+          errorMessage = 'Blogs table does not exist in database. Please run the migration SQL in Supabase.'
+        } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+          errorMessage = 'Cannot connect to backend server. Please check if the API is running.'
+        }
+        
         setError(errorMessage)
         console.error('Error fetching blogs:', err)
+        console.error('Full error details:', {
+          message: err.message,
+          response: err.response,
+          status: err.status
+        })
         setBlogs([])
       } finally {
         setLoading(false)
