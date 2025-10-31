@@ -7,7 +7,7 @@ import Contact from './pages/Contact'
 import UserLayout from './components/Layout/UserLayout'
 import Work from './pages/Work'
 import Gears from './pages/Gears'
-import VSCodeSetup from './pages/VSCodeSetup'
+import CursorSetup from './pages/CursorSetup'
 import AdminPage from './admin/AdminPage'
 import SpotifyCallback from './pages/SpotifyCallback'
 import Preloader from './components/Common/Preloader'
@@ -40,7 +40,7 @@ function App() {
                 <Route path="contact" element={<Contact />} />
                 <Route path="work" element={<Work />} />
                 <Route path="gears" element={<Gears />} />
-                <Route path="setup" element={<VSCodeSetup />} />
+                <Route path="setup" element={<CursorSetup />} />
               </Route>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/callback" element={<SpotifyCallback />} />

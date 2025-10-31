@@ -19,6 +19,7 @@ import { tooltipClasses } from '@mui/material/Tooltip';
 import { useTheme } from '../contexts/ThemeContext';
 import { FaSquareXTwitter } from 'react-icons/fa6'
 import Assistant from '../components/Common/Assistant'
+import cursorIcon from '../assets/cursor.webp'
 
 const Tip = styled(({ className, ...props }) => (
     <Tooltip {...props} arrow classes={{ popper: className }} />
@@ -519,11 +520,11 @@ const Home = () => {
         <div className='flex justify-between items-start mt-6 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
           <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-4 rounded-md'>
             <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded'>
-              <FaCode size={30} className='text-gray-900 dark:text-zinc-200'/>
+              <img src={cursorIcon} alt="Cursor" className="w-8 h-8" />
             </div>
             <div className='ml-2'>
-              <h1 className='text-lg font-semibold tracking-tighter dark:text-white'>IDE Setup</h1>
-              <p className='text-sm tracking-tighter dark:text-zinc-400'>This VSCODE / Cursor setup helps me complete my workflow swiftly.</p>
+              <h1 className='text-lg font-semibold tracking-tighter dark:text-white'>Cursor Setup</h1>
+              <p className='text-sm tracking-tighter dark:text-zinc-400'>Complete Cursor setup with my extensions, fonts, and preferences.</p>
             </div>
             <div className='ml-auto p-4'>
               <FaArrowRight className='text-sm text-gray-400 dark:text-zinc-500 hover:translate-x-2 transition duration-200 ease-in-out'/>
