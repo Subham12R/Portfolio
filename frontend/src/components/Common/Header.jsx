@@ -71,15 +71,27 @@ const CustomWakaTip = styled(({ className, ...props }) => (
     },
   }));
 
+// Helper to check if editor is Cursor
+const isCursorEditor = (editorName) => {
+  if (!editorName) return false;
+  const editor = editorName.toLowerCase();
+  return editor.includes('cursor');
+};
+
+// Helper to check if editor is VS Code
+const isVSCodeEditor = (editorName) => {
+  if (!editorName) return false;
+  const editor = editorName.toLowerCase();
+  return editor.includes('vscode') || editor.includes('visual studio code') || editor.includes('code');
+};
+
 // Get editor icon component
 const getEditorIcon = (editorName) => {
   if (!editorName) return null;
   
-  const editor = editorName.toLowerCase();
-  
-  if (editor.includes('cursor')) {
+  if (isCursorEditor(editorName)) {
     return <img src={cursorIcon} alt="Cursor" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />;
-  } else if (editor.includes('vscode') || editor.includes('visual studio code') || editor.includes('code')) {
+  } else if (isVSCodeEditor(editorName)) {
     return <DiVisualstudio size={18} className="inline-block mr-1.5 text-blue-500" />;
   }
   
@@ -231,9 +243,14 @@ const Header = () => {
   useEffect(() => {
     let pollIntervalId = null;
     let pollCount = 0;
+    let rateLimitedUntil = null;
     const MAX_POLLS_WHEN_INACTIVE = 10;
 
     const fetchWakatime = async () => {
+      // Check if we're rate limited - skip request if backoff is active
+      if (rateLimitedUntil && new Date() < rateLimitedUntil) {
+        return; // Skip this poll, wait for backoff to expire
+      }
       try {
         const today = new Date().toISOString().split('T')[0];
         
@@ -241,19 +258,42 @@ const Header = () => {
         // Use catch to prevent one failure from breaking everything
         const [statusResponse, statusData, allTimeData, heartbeatsResponse, durationsResponse] = await Promise.all([
           apiService.getWakaTimeStatus().catch((err) => {
-            console.warn('Failed to fetch status:', err);
+            // Handle rate limiting
+            if (err.status === 429 || err.response?.statusCode === 429) {
+              const retryAfter = err.response?.retryAfter || new Date(Date.now() + 5 * 60 * 1000);
+              rateLimitedUntil = new Date(retryAfter);
+              console.warn('WakaTime rate limited. Backing off until:', rateLimitedUntil);
+            } else {
+              console.warn('Failed to fetch status:', err);
+            }
             return { success: false, data: null };
           }),
           apiService.getWakaTimeStatusBar().catch((err) => {
-            console.warn('Failed to fetch status bar:', err);
+            // Handle rate limiting
+            if (err.status === 429 || err.response?.statusCode === 429) {
+              const retryAfter = err.response?.retryAfter || new Date(Date.now() + 5 * 60 * 1000);
+              rateLimitedUntil = new Date(retryAfter);
+            }
             return { success: false, data: null };
           }),
           apiService.getWakaTimeAllTimeSinceToday().catch((err) => {
             console.warn('Failed to fetch all time:', err);
             return { success: false, data: null };
           }),
-          apiService.getWakaTimeHeartbeats(today).catch(() => ({ success: false, data: null })),
-          apiService.getWakaTimeDurations(today).catch(() => ({ success: false, data: null }))
+          apiService.getWakaTimeHeartbeats(today).catch((err) => {
+            if (err.status === 429 || err.response?.statusCode === 429) {
+              const retryAfter = err.response?.retryAfter || new Date(Date.now() + 5 * 60 * 1000);
+              rateLimitedUntil = new Date(retryAfter);
+            }
+            return { success: false, data: null };
+          }),
+          apiService.getWakaTimeDurations(today).catch((err) => {
+            if (err.status === 429 || err.response?.statusCode === 429) {
+              const retryAfter = err.response?.retryAfter || new Date(Date.now() + 5 * 60 * 1000);
+              rateLimitedUntil = new Date(retryAfter);
+            }
+            return { success: false, data: null };
+          })
         ]);
         
         if (statusData.success) {
@@ -278,16 +318,21 @@ const Header = () => {
           
           const hasActiveEntity = statusInfo?.data?.entity && statusInfo.data.editor;
           
-          // Check if offline using heartbeat data (more accurate)
-          let isOffline = false;
+          // Check if offline using heartbeat data
+          // Default to online, only mark offline if no heartbeat within 5 minutes
+          const OFFLINE_THRESHOLD_MINUTES = 5; // Mark offline if no update in 5 minutes
+          let isOffline = false; // Default to online
+          
           if (lastHeartbeat) {
             const heartbeatTime = new Date(lastHeartbeat);
             const now = new Date();
             const diffMinutes = (now - heartbeatTime) / (1000 * 60);
-            // Offline if no heartbeat in last 2 minutes
-            isOffline = diffMinutes > 2 || (!hasActiveEntity && diffMinutes > 1);
+            // Only mark offline if heartbeat is older than 5 minutes
+            isOffline = diffMinutes > OFFLINE_THRESHOLD_MINUTES;
           } else {
-            isOffline = true;
+            // If no heartbeat at all, check if we should stay offline or default to online
+            // Default to online on first load, only go offline if we've been checking and confirmed no heartbeat
+            isOffline = false; // Default to online, will update when heartbeat confirmed missing
           }
           
           const isCodingNow = !isOffline && (statusData.isCurrentlyCoding === true || hasActiveEntity);
@@ -371,16 +416,16 @@ const Header = () => {
                 lastSessionStartAllTimeRef.current = previousAllTimeSeconds;
               }
               
-              // Mark as online when allTime increases
-              if (isOffline) {
-                isOffline = false;
-                // Start online timer when activity detected
-                if (!onlineStartTimeRef.current) {
-                  const now = new Date();
-                  setOnlineSessionTime(0);
-                  setOnlineStartTime(now);
-                  onlineStartTimeRef.current = now;
-                }
+              // Mark as online when allTime increases (new activity detected)
+              // Force online status when new activity is detected
+              isOffline = false;
+              
+              // Start online timer when activity detected
+              if (!onlineStartTimeRef.current) {
+                const now = new Date();
+                setOnlineSessionTime(0);
+                setOnlineStartTime(now);
+                onlineStartTimeRef.current = now;
               }
               // Track last active editor
               if (currentEditor) {
@@ -424,24 +469,29 @@ const Header = () => {
             noUpdateCount: noUpdateCountRef.current
           });
 
-          // Dynamic polling based on activity state
-          if (isCodingNow && hasActiveEntity) {
+          // Dynamic polling based on activity state and rate limiting
+          clearInterval(pollIntervalId);
+          
+          // If rate limited, use longer polling interval
+          if (rateLimitedUntil && new Date() < rateLimitedUntil) {
+            const backoffMs = Math.max(5 * 60 * 1000, rateLimitedUntil - new Date()); // At least 5 minutes
+            pollIntervalId = setInterval(fetchWakatime, backoffMs);
+          } else if (isCodingNow && hasActiveEntity) {
             // Actively coding - poll every 10 seconds to check if still active
             pollCount = 0;
-            clearInterval(pollIntervalId);
             pollIntervalId = setInterval(fetchWakatime, 10000);
           } else if (!isOffline && pollCount < MAX_POLLS_WHEN_INACTIVE) {
             pollCount++;
-            clearInterval(pollIntervalId);
             pollIntervalId = setInterval(fetchWakatime, 20000);
           } else if (isOffline) {
             // Offline - stop timer and show recent activity, poll less frequently
-            clearInterval(pollIntervalId);
             pollIntervalId = setInterval(fetchWakatime, 60000);
           } else {
-            clearInterval(pollIntervalId);
             pollIntervalId = setInterval(fetchWakatime, 120000);
           }
+          
+          // Clear rate limit flag after successful request
+          rateLimitedUntil = null;
         } else {
           // Still set all time data even if no current status
           if (allTimeData.success && allTimeData.data) {
@@ -496,8 +546,8 @@ const Header = () => {
 
   // Format custom tooltip content for WakaTime activity
   const getActivityTooltipContent = () => {
-    // Check if offline and should show recent activity
-    const isOffline = wakatimeData?.isOffline === true || (!isActive && !wakatimeData?.currentStatus?.entity);
+    // Check if offline - default to online unless explicitly marked offline (no heartbeat in 5+ minutes)
+    const isOffline = wakatimeData?.isOffline === true;
     
     // If currently coding, show real-time current session info with live updates
     if (isActive && !isOffline && (wakatimeData?.currentStatus || wakatimeData?.statusInfo)) {
@@ -528,9 +578,7 @@ const Header = () => {
           {editor && (
             <div className="flex items-center gap-2 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
               {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />}
-              <span style={{ opacity: 0.8 }}>:</span>
               <span className="font-semibold">{timeToday}</span>
-              <span className="text-xs opacity-75 text-green-600 dark:text-green-400">(live)</span>
             </div>
           )}
           {current?.project && (
@@ -605,14 +653,9 @@ const Header = () => {
       
       if (allTimeData.text) {
         // Determine if online based on allTime increase or heartbeat
+        // Default to online unless explicitly marked offline (no heartbeat in 5+ minutes)
         const isOnlineFromAllTime = wakatimeData?.allTimeIncreased === true;
-        const isOnlineFromHeartbeat = wakatimeData?.isOffline === false || 
-                        (wakatimeData?.lastHeartbeat && (() => {
-                          const heartbeatTime = new Date(wakatimeData.lastHeartbeat);
-                          const now = new Date();
-                          const diffMinutes = (now - heartbeatTime) / (1000 * 60);
-                          return diffMinutes <= 2;
-                        })());
+        const isOnlineFromHeartbeat = wakatimeData?.isOffline !== true; // Default online unless explicitly offline
         const isOnline = isOnlineFromAllTime || isOnlineFromHeartbeat;
         
         // Get the last used editor
@@ -622,7 +665,7 @@ const Header = () => {
                      wakatimeData.data?.data?.editor || 
                      wakatimeData.statusInfo?.data?.editor ||
                      null;
-        const editorIcon = getEditorIcon(editor);
+        // const editorIcon = getEditorIcon(editor);
         
         // Show timer if online (instead of allTime)
         const timerDisplay = isOnline && onlineSessionTime > 0 ? formatTime(onlineSessionTime) : null;
@@ -675,10 +718,11 @@ const Header = () => {
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              {/* Show IDE icon only (no editor name) */}
-              {editorIcon || (
+              {/* Show IDE icon using getEditorIcon function */}
+              {getEditorIcon(editor) || (
                 <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />
               )}
+              <span style={{ opacity: 0.8 }}>{isCursorEditor(editor) ? 'Vibed in VSCODE for ' : 'Vibed in Cursor for '}</span>
               {/* Show timer instead of allTime when online */}
               {isOnline && timerDisplay ? (
                 <span className="font-bold text-green-600 dark:text-green-400">{timerDisplay}</span>

@@ -10,15 +10,27 @@ import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
 import cursorIcon from '../../assets/cursor.webp';
 
+// Helper to check if editor is Cursor
+const isCursorEditor = (editorName) => {
+  if (!editorName) return false;
+  const editor = editorName.toLowerCase();
+  return editor.includes('cursor');
+};
+
+// Helper to check if editor is VS Code
+const isVSCodeEditor = (editorName) => {
+  if (!editorName) return false;
+  const editor = editorName.toLowerCase();
+  return editor.includes('vscode') || editor.includes('visual studio code') || editor.includes('code');
+};
+
 // Get editor icon component
 const getEditorIcon = (editorName) => {
   if (!editorName) return null;
   
-  const editor = editorName.toLowerCase();
-  
-  if (editor.includes('cursor')) {
+  if (isCursorEditor(editorName)) {
     return <img src={cursorIcon} alt="Cursor" className="inline-block mr-1.5" style={{ width: '16px', height: '16px' }} />;
-  } else if (editor.includes('vscode') || editor.includes('visual studio code') || editor.includes('code')) {
+  } else if (isVSCodeEditor(editorName)) {
     return <DiVisualstudio size={16} className="inline-block mr-1.5 text-blue-500" />;
   }
   
@@ -82,8 +94,16 @@ const AboutMe = () => {
   useEffect(() => {
     let onlineTimerIntervalId = null
     
-    // Check if online (not offline)
-    const isOnline = wakatimeData && !wakatimeData.isOffline
+    // Check if online using the same logic as render
+    // Default to online unless explicitly marked offline (no heartbeat in 5+ minutes)
+    const isOnline = wakatimeData?.isOffline === false || 
+                    (wakatimeData?.lastHeartbeat && (() => {
+                      const heartbeatTime = new Date(wakatimeData.lastHeartbeat);
+                      const now = new Date();
+                      const diffMinutes = (now - heartbeatTime) / (1000 * 60);
+                      return diffMinutes <= 5; // Online if heartbeat within last 5 minutes (matching offline threshold)
+                    })()) ||
+                    (wakatimeData && wakatimeData.isOffline === undefined); // Default online if isOffline not set
     
     if (isOnline && onlineStartTime) {
       // Start/continue online timer that increments every second
@@ -162,14 +182,17 @@ const AboutMe = () => {
           const hasActiveEntity = statusInfo?.data?.entity && statusInfo.data.editor
           
           // Check if offline using heartbeat data (more accurate)
+          // Default to online unless no heartbeat in 5+ minutes (matching Header logic)
+          const OFFLINE_THRESHOLD_MINUTES = 5
           let isOffline = false
           if (lastHeartbeat) {
             const heartbeatTime = new Date(lastHeartbeat)
             const now = new Date()
             const diffMinutes = (now - heartbeatTime) / (1000 * 60)
-            // Offline if no heartbeat in last 2 minutes
-            isOffline = diffMinutes > 2 || (!hasActiveEntity && diffMinutes > 1)
+            // Offline if no heartbeat in last 5 minutes
+            isOffline = diffMinutes > OFFLINE_THRESHOLD_MINUTES
           } else {
+            // No heartbeat at all - mark as offline
             isOffline = true
           }
           
@@ -421,24 +444,41 @@ const AboutMe = () => {
                     const editorIcon = getEditorIcon(editor);
                     
                     // Determine if online based on last heartbeat or recent activity
+                    // Default to online unless explicitly marked offline (no heartbeat in 5+ minutes)
                     const isOnline = wakatimeData?.isOffline === false || 
                                     (wakatimeData?.lastHeartbeat && (() => {
                                       const heartbeatTime = new Date(wakatimeData.lastHeartbeat);
                                       const now = new Date();
                                       const diffMinutes = (now - heartbeatTime) / (1000 * 60);
-                                      return diffMinutes <= 2; // Online if heartbeat within last 2 minutes
-                                    })());
+                                      return diffMinutes <= 5; // Online if heartbeat within last 5 minutes (matching offline threshold)
+                                    })()) ||
+                                    (wakatimeData && wakatimeData.isOffline === undefined); // Default online if isOffline not set
                     
                     // Show timer if online
                     const timerDisplay = isOnline && onlineSessionTime > 0 ? formatTime(onlineSessionTime) : null;
                     
                     return (
                       <>
-                        {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block " style={{ width: '16px', height: '16px' }} />}
-                        <span className='font-semibold'>{editor || 'Cursor'}</span>
-                        <span className='font-bold'>{wakatimeData.allTime.data.text}</span>
-                        <span className='text-xs text-gray-500 dark:text-gray-400'>{timerDisplay ? `(${timerDisplay})` : ''}</span>
-                        <span className='text-xs text-gray-500 dark:text-gray-400'>{isOnline ? 'Online' : 'Offline'}</span>
+                        {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '16px', height: '16px' }} />}
+                        <span className='opacity-75'>{isCursorEditor(editor) ? 'Vibed in VSCODE for ' : 'Vibed in Cursor for '}</span>
+                        {isOnline && timerDisplay ? (
+                          <span className='font-semibold text-green-600 dark:text-green-400'>{timerDisplay}</span>
+                        ) : (
+                          <span className='font-semibold'>{wakatimeData.allTime.data.text}</span>
+                        )}
+                        <span className='opacity-75 inline-flex items-center gap-1 ml-1'>
+                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
+                          <span className={isOnline ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}>
+                            {isOnline ? 'Online' : 'Offline'}
+                          </span>
+                          {isOnline && timerDisplay && (
+                            <>
+                              <span>•</span>
+                              <span className='font-semibold text-green-600 dark:text-green-400'>{timerDisplay}</span>
+                              <span className='text-xs text-green-600 dark:text-green-400'>(live)</span>
+                            </>
+                          )}
+                        </span>
                       </>
                     );
                   })()}

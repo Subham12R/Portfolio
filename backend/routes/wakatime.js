@@ -8,6 +8,47 @@ if (!WAKATIME_API_KEY) {
   console.warn('WARNING: WAKATIME_API_KEY is not set in environment variables');
 }
 
+// Rate limiting state to track 429 errors and implement backoff
+const rateLimitState = {
+  last429Time: null,
+  consecutive429Count: 0,
+  backoffUntil: null
+};
+
+// Helper to check if we should back off due to rate limiting
+const shouldBackOff = () => {
+  if (rateLimitState.backoffUntil && new Date() < rateLimitState.backoffUntil) {
+    return true;
+  }
+  return false;
+};
+
+// Helper to handle 429 errors and set backoff
+const handleRateLimit = () => {
+  const now = new Date();
+  rateLimitState.last429Time = now;
+  rateLimitState.consecutive429Count += 1;
+  
+  // Exponential backoff: 1min, 2min, 4min, 8min (max 10min)
+  const backoffMinutes = Math.min(Math.pow(2, rateLimitState.consecutive429Count - 1), 10);
+  rateLimitState.backoffUntil = new Date(now.getTime() + backoffMinutes * 60 * 1000);
+  
+  // Reset counter after 30 minutes of no 429 errors
+  setTimeout(() => {
+    if (rateLimitState.consecutive429Count > 0) {
+      rateLimitState.consecutive429Count = Math.max(0, rateLimitState.consecutive429Count - 1);
+    }
+  }, 30 * 60 * 1000);
+};
+
+// Reset backoff on successful request
+const resetRateLimit = () => {
+  if (rateLimitState.consecutive429Count > 0) {
+    rateLimitState.consecutive429Count = 0;
+  }
+  rateLimitState.backoffUntil = null;
+};
+
 // Helper function to format duration
 function formatDuration(totalSeconds) {
   const hours = Math.floor(totalSeconds / 3600);
@@ -78,9 +119,12 @@ router.get('/today', async (req, res) => {
               break;
             }
           }
-        }
       }
     }
+    }
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
     
     const { hours, minutes } = formatDuration(todayTotalSeconds);
     const isToday = lastCodingDate === null;
@@ -99,8 +143,10 @@ router.get('/today', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('WakaTime API error:', error);
-    res.status(500).json({
+    if (!error.message?.includes('429')) {
+      console.error('WakaTime API error:', error);
+    }
+    res.json({
       success: false,
       error: 'Failed to fetch WakaTime data',
       details: error.message
@@ -117,6 +163,18 @@ router.get('/status', async (req, res) => {
         success: false,
         error: 'WakaTime API key not configured',
         details: 'WAKATIME_API_KEY environment variable is not set'
+      });
+    }
+
+    // Check if we should back off due to rate limiting
+    if (shouldBackOff()) {
+      const backoffMinutes = Math.ceil((rateLimitState.backoffUntil - new Date()) / (1000 * 60));
+      return res.json({
+        success: false,
+        error: 'WakaTime API rate limited',
+        details: `Rate limit backoff active. Please wait ${backoffMinutes} minute(s) before retrying.`,
+        statusCode: 429,
+        retryAfter: rateLimitState.backoffUntil
       });
     }
 
@@ -138,7 +196,26 @@ router.get('/status', async (req, res) => {
         // If we can't read the error, just use status
       }
       
-      console.error(`WakaTime API error (${response.status}):`, errorText);
+      // Handle rate limiting (429) - implement backoff
+      if (response.status === 429) {
+        handleRateLimit();
+        // Don't log 429 errors repeatedly - they're expected when hitting rate limits
+        if (rateLimitState.consecutive429Count <= 3) {
+          console.warn(`WakaTime API rate limited (429). Implementing ${Math.min(Math.pow(2, rateLimitState.consecutive429Count - 1), 10)} minute backoff.`);
+        }
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429,
+          retryAfter: rateLimitState.backoffUntil
+        });
+      }
+      
+      // Don't log 404 errors as critical - they're expected when certain endpoints aren't available
+      if (response.status !== 404 && response.status !== 429) {
+        console.error(`WakaTime API error (${response.status}):`, errorText);
+      }
       
       // Return 200 with error info instead of 500 to prevent breaking frontend
       return res.json({
@@ -150,6 +227,9 @@ router.get('/status', async (req, res) => {
     }
 
     const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
     
     res.json({
       success: true,
@@ -170,6 +250,18 @@ router.get('/status', async (req, res) => {
 // Get status bar data (current coding activity)
 router.get('/status-bar', async (req, res) => {
   try {
+    // Check if we should back off due to rate limiting
+    if (shouldBackOff()) {
+      const backoffMinutes = Math.ceil((rateLimitState.backoffUntil - new Date()) / (1000 * 60));
+      return res.json({
+        success: false,
+        error: 'WakaTime API rate limited',
+        details: `Rate limit backoff active. Please wait ${backoffMinutes} minute(s) before retrying.`,
+        statusCode: 429,
+        retryAfter: rateLimitState.backoffUntil
+      });
+    }
+
     // First check current status to see if actively coding right now
     let currentStatusResponse = await fetch(`${WAKATIME_API_URL}/users/current/status`, {
       method: 'GET',
@@ -182,6 +274,7 @@ router.get('/status-bar', async (req, res) => {
     let isCurrentlyCoding = false;
     let currentStatusData = null;
 
+    // Don't treat 404 as error for status endpoint - it just means no current activity
     if (currentStatusResponse.ok) {
       currentStatusData = await currentStatusResponse.json();
       // Check if currently coding (entity exists and is recent)
@@ -195,6 +288,9 @@ router.get('/status-bar', async (req, res) => {
           isCurrentlyCoding = diffMinutes < 2;
         }
       }
+    } else if (currentStatusResponse.status === 404) {
+      // 404 is expected when no current status exists - silently continue
+      // Don't log as error
     }
 
     // Get status bar for today
@@ -222,6 +318,8 @@ router.get('/status-bar', async (req, res) => {
         });
         return;
       }
+    } else if (response.status === 404) {
+      // 404 is expected when no data for today - try yesterday
     }
 
     // If no data for today, try yesterday
@@ -240,6 +338,8 @@ router.get('/status-bar', async (req, res) => {
     if (response.ok) {
       data = await response.json();
       isToday = false;
+    } else if (response.status === 404) {
+      // 404 is expected when no data for yesterday either - continue with null data
     }
 
     if (data && data.data && data.data.text && data.data.text !== '0 secs') {
@@ -275,6 +375,18 @@ router.get('/status-bar', async (req, res) => {
 // Get all time since today (total coding time and last activity)
 router.get('/all-time-since-today', async (req, res) => {
   try {
+    // Check if we should back off due to rate limiting
+    if (shouldBackOff()) {
+      const backoffMinutes = Math.ceil((rateLimitState.backoffUntil - new Date()) / (1000 * 60));
+      return res.json({
+        success: false,
+        error: 'WakaTime API rate limited',
+        details: `Rate limit backoff active. Please wait ${backoffMinutes} minute(s) before retrying.`,
+        statusCode: 429,
+        retryAfter: rateLimitState.backoffUntil
+      });
+    }
+
     const response = await fetch(`${WAKATIME_API_URL}/users/current/all_time_since_today`, {
       method: 'GET',
       headers: {
@@ -284,10 +396,23 @@ router.get('/all-time-since-today', async (req, res) => {
     });
 
     if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
       throw new Error(`WakaTime API error: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
     
     res.json({
       success: true,
@@ -295,8 +420,10 @@ router.get('/all-time-since-today', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('WakaTime all time API error:', error);
-    res.status(500).json({
+    if (!error.message?.includes('429')) {
+      console.error('WakaTime all time API error:', error);
+    }
+    res.json({
       success: false,
       error: 'Failed to fetch WakaTime all time data',
       details: error.message
@@ -319,10 +446,33 @@ router.get('/durations', async (req, res) => {
     });
 
     if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
+      
+      // 404 errors are expected for some endpoints when no data exists
+      if (response.status === 404) {
+        resetRateLimit(); // Successful response even if empty
+        return res.json({
+          success: true,
+          data: { data: [] },
+          message: 'No durations data available'
+        });
+      }
       throw new Error(`WakaTime API error: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
     
     res.json({
       success: true,
@@ -330,8 +480,11 @@ router.get('/durations', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('WakaTime durations API error:', error);
-    res.status(500).json({
+    // Don't log 404 errors as critical - they're expected when no data exists
+    if (!error.message?.includes('404') && !error.message?.includes('429')) {
+      console.error('WakaTime durations API error:', error);
+    }
+    res.json({
       success: false,
       error: 'Failed to fetch WakaTime durations',
       details: error.message
@@ -354,10 +507,33 @@ router.get('/heartbeats', async (req, res) => {
     });
 
     if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
+      
+      // 404 errors are expected for some endpoints when no data exists
+      if (response.status === 404) {
+        resetRateLimit(); // Successful response even if empty
+        return res.json({
+          success: true,
+          data: { data: [] },
+          message: 'No heartbeats data available'
+        });
+      }
       throw new Error(`WakaTime API error: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
     
     res.json({
       success: true,
@@ -365,8 +541,11 @@ router.get('/heartbeats', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('WakaTime heartbeats API error:', error);
-    res.status(500).json({
+    // Don't log 404 or 429 errors as critical - they're expected
+    if (!error.message?.includes('404') && !error.message?.includes('429')) {
+      console.error('WakaTime heartbeats API error:', error);
+    }
+    res.json({
       success: false,
       error: 'Failed to fetch WakaTime heartbeats',
       details: error.message
@@ -389,10 +568,23 @@ router.get('/stats/:range?', async (req, res) => {
     });
 
     if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
       throw new Error(`WakaTime API error: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
     
     res.json({
       success: true,
@@ -400,8 +592,10 @@ router.get('/stats/:range?', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('WakaTime stats API error:', error);
-    res.status(500).json({
+    if (!error.message?.includes('429')) {
+      console.error('WakaTime stats API error:', error);
+    }
+    res.json({
       success: false,
       error: 'Failed to fetch WakaTime stats',
       details: error.message
@@ -421,10 +615,23 @@ router.get('/editors', async (req, res) => {
     });
 
     if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
       throw new Error(`WakaTime API error: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
     
     res.json({
       success: true,
@@ -432,8 +639,10 @@ router.get('/editors', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('WakaTime editors API error:', error);
-    res.status(500).json({
+    if (!error.message?.includes('429')) {
+      console.error('WakaTime editors API error:', error);
+    }
+    res.json({
       success: false,
       error: 'Failed to fetch WakaTime editors',
       details: error.message
