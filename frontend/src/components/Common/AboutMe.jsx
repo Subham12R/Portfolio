@@ -34,7 +34,10 @@ const AboutMe = () => {
   const [isActive, setIsActive] = useState(false)
   const [currentSessionTime, setCurrentSessionTime] = useState(0)
   const [sessionStartTime, setSessionStartTime] = useState(null)
+  const [onlineSessionTime, setOnlineSessionTime] = useState(0)
+  const [onlineStartTime, setOnlineStartTime] = useState(null)
   const sessionStartTimeRef = useRef(null)
+  const onlineStartTimeRef = useRef(null)
 
   // Helper function to format time
   const formatTime = (seconds) => {
@@ -74,6 +77,38 @@ const AboutMe = () => {
       if (timerIntervalId) clearInterval(timerIntervalId)
     }
   }, [sessionStartTime, isActive])
+
+  // Online session timer that runs when online (not just when actively coding)
+  useEffect(() => {
+    let onlineTimerIntervalId = null
+    
+    // Check if online (not offline)
+    const isOnline = wakatimeData && !wakatimeData.isOffline
+    
+    if (isOnline && onlineStartTime) {
+      // Start/continue online timer that increments every second
+      onlineTimerIntervalId = setInterval(() => {
+        setOnlineSessionTime(prev => {
+          // Recalculate from start time to keep it accurate
+          if (onlineStartTime) {
+            const now = new Date()
+            const start = new Date(onlineStartTime)
+            return Math.floor((now - start) / 1000)
+          }
+          return prev + 1
+        })
+      }, 1000)
+    } else {
+      // Reset online timer when offline
+      setOnlineSessionTime(0)
+      setOnlineStartTime(null)
+      onlineStartTimeRef.current = null
+    }
+    
+    return () => {
+      if (onlineTimerIntervalId) clearInterval(onlineTimerIntervalId)
+    }
+  }, [onlineStartTime, wakatimeData])
 
   // Fetch WakaTime data with dynamic polling
   useEffect(() => {
@@ -163,12 +198,31 @@ const AboutMe = () => {
             }
           }
           
-          // Stop timer if offline
+          // Start/continue online timer when online (not just when coding)
+          if (!isOffline && lastHeartbeat) {
+            if (!onlineStartTimeRef.current) {
+              // New online session detected - initialize timer from heartbeat
+              const heartbeatTime = new Date(lastHeartbeat)
+              const now = new Date()
+              const initialSeconds = Math.floor((now - heartbeatTime) / 1000)
+              setOnlineSessionTime(Math.max(0, initialSeconds))
+              setOnlineStartTime(heartbeatTime)
+              onlineStartTimeRef.current = heartbeatTime
+            }
+            // Online timer will continue running via the separate useEffect
+          }
+          
+          // Stop all timers if offline
           if (isOffline) {
             if (sessionStartTimeRef.current) {
               setSessionStartTime(null)
               sessionStartTimeRef.current = null
               setCurrentSessionTime(0)
+            }
+            if (onlineStartTimeRef.current) {
+              setOnlineStartTime(null)
+              onlineStartTimeRef.current = null
+              setOnlineSessionTime(0)
             }
           }
           
@@ -220,6 +274,9 @@ const AboutMe = () => {
           setSessionStartTime(null)
           sessionStartTimeRef.current = null
           setCurrentSessionTime(0)
+          setOnlineStartTime(null)
+          onlineStartTimeRef.current = null
+          setOnlineSessionTime(0)
           
           pollCount++
           clearInterval(pollIntervalId)
@@ -237,6 +294,9 @@ const AboutMe = () => {
         setSessionStartTime(null)
         sessionStartTimeRef.current = null
         setCurrentSessionTime(0)
+        setOnlineStartTime(null)
+        onlineStartTimeRef.current = null
+        setOnlineSessionTime(0)
         clearInterval(pollIntervalId)
         pollIntervalId = setInterval(fetchWakatime, 60000)
         setWakatimeLoading(false)
@@ -369,18 +429,16 @@ const AboutMe = () => {
                                       return diffMinutes <= 2; // Online if heartbeat within last 2 minutes
                                     })());
                     
+                    // Show timer if online
+                    const timerDisplay = isOnline && onlineSessionTime > 0 ? formatTime(onlineSessionTime) : null;
+                    
                     return (
                       <>
-                        {editorIcon || <DiVisualstudio size={16} className="inline-block mr-1.5 text-blue-500" />}
-                        <span className='font-semibold'>{editor || 'VS Code'}</span>
-                        <span>:</span>
-                        <span className='font-semibold'>{wakatimeData.allTime.data.text}</span>
-                        <span className='opacity-75 inline-flex items-center gap-1 ml-1'>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                          <span className={isOnline ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}>
-                            {isOnline ? 'Online' : 'Offline'}
-                          </span>
-                        </span>
+                        {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block " style={{ width: '16px', height: '16px' }} />}
+                        <span className='font-semibold'>{editor || 'Cursor'}</span>
+                        <span className='font-bold'>{wakatimeData.allTime.data.text}</span>
+                        <span className='text-xs text-gray-500 dark:text-gray-400'>{timerDisplay ? `(${timerDisplay})` : ''}</span>
+                        <span className='text-xs text-gray-500 dark:text-gray-400'>{isOnline ? 'Online' : 'Offline'}</span>
                       </>
                     );
                   })()}
