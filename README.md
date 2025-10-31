@@ -9,7 +9,7 @@ Welcome! I’m **Subham**, a second-year B.Tech Computer Science student at Adam
 - **Frontend:** React, Vite, Tailwind CSS 4,  (with Montserrat & Manrope fonts)  
 - **Backend:** Node.js (for server/API logic), Supabase (for data persistence)  
 - **Authentication:** OAuth (for secure login flows)  
-- **AI Assistant:** Google Gemini AI for intelligent chat functionality
+- **Chat Widget:** Elfsight chat widget for customer support
 - **Deployment:** Netlify (for hosting the static frontend) and Render (for backend) 
 - **Others:** Git & GitHub (version control and codebase), Responsive design (mobile-first)
 
@@ -21,7 +21,7 @@ Welcome! I’m **Subham**, a second-year B.Tech Computer Science student at Adam
 - Blog or Insights section (optional) – sharing my learnings, tutorials, and web dev experiences  
 - Contact section – ways to connect (email, LinkedIn, GitHub)  
 - Account / Auth page – demonstrating login/signup, profile photo, username/password change (planned or implemented)  
-- AI Assistant – Interactive chatbot powered by Google Gemini AI to help visitors learn about the portfolio
+- Chat Widget – Interactive chat widget from Elfsight for visitor communication
 - Clean UI with custom SCSS using company-branding colours and typography (Montserrat & Manrope)
 
 ---
@@ -33,7 +33,6 @@ Welcome! I’m **Subham**, a second-year B.Tech Computer Science student at Adam
 - npm or yarn
 - Supabase account
 - Cloudinary account (for file uploads)
-- Google Gemini API key (for AI Assistant)
 
 ### Getting Started
 
@@ -60,7 +59,6 @@ Welcome! I’m **Subham**, a second-year B.Tech Computer Science student at Adam
    CLOUDINARY_API_KEY=your_cloudinary_key
    CLOUDINARY_API_SECRET=your_cloudinary_secret
    JWT_SECRET=your_jwt_secret
-   GEMINI_API_KEY=your_gemini_api_key
    ```
    
    Run the backend:
@@ -83,13 +81,6 @@ Welcome! I’m **Subham**, a second-year B.Tech Computer Science student at Adam
    ```bash
    npm run dev
    ```
-
-### Getting a Gemini API Key
-
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy the API key and add it to your backend `.env` file as `GEMINI_API_KEY`
 
 For detailed setup instructions, see [Backend README](backend/README.md) and [Frontend README](frontend/README.md).
 

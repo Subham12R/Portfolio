@@ -13,11 +13,12 @@ import { FaEnvelope, FaBookOpen } from "react-icons/fa";
 import { RiClipboardFill, RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "react-icons/ri";
 import { SiExpress } from "react-icons/si";
 import { BiLogoPostgresql, BiPaperPlane } from "react-icons/bi";
-import { Text } from '@radix-ui/themes';
 import Tooltip from '@mui/material/Tooltip';
-
+import { Text } from '@radix-ui/themes';
 import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
+import TechBadge from './TechBadge';
+
 
 const Tip = styled(({ className, ...props }) => (
     <Tooltip {...props} arrow classes={{ popper: className }} />
@@ -75,8 +76,8 @@ const Header = () => {
                  <div className='w-full inline-flex flex-col justify-center items-start space-y-2'>
                     <div className='mb-2'>
                         
-                    <h1 className='text-3xl font-bold mb-2 dark:text-zinc-400 text-zinc-600'>Hi, I'm <span className='text-zinc-800 dark:text-zinc-200  tracking-wider '>Subham Karmakar.{" "} </span></h1>
-                    <DecryptedText
+                    <h1 className='text-3xl font-bold mb-2 dark:text-zinc-200 text-zinc-900 tracking-tight'>Hi, I'm Subham - <Text as='span' className='text-blue-500 font-bold'>A Full Stack Web Developer.</Text></h1>
+                    {/* <DecryptedText
                         text="A Full Stack Web Developer."
                         speed={100}
                         animateOn='view'
@@ -86,23 +87,23 @@ const Header = () => {
                         parentClassName="all-letters text-xl  md:text-3xl font-bold text-blue-200 tracking-tighter"
                         encryptedClassName="encrypted"
                     />
-                    </div>
+                    */}
+                    </div> 
 
-                    <div className=' mb-6 w-full leading-normal '>
-                    <p className='gap-2 inline-flex flex-wrap justify-start items-center text-md text-zinc-600 dark:text-zinc-400 font-medium '>I build interactive and responsive web apps using {" "}  
-                     <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5  rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><FaReact className='text-blue-500'/>React</button>
-                    <span>, {" "}</span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><RiNextjsFill  className='text-black dark:text-white'/>NextJS</button>
-                    <span>, {" "}</span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><RiTailwindCssFill  className='text-blue-800'/>TailwindCSS</button>
-                    <span>, {" "}</span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><RiNodejsFill  className='text-emerald-500'/>NodeJs</button>
-                    <span>, {" "}</span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><SiExpress className='text-red-800'/>Express</button>
-                    <span>, and </span>
-                    <button className='inline-flex justify-center gap-2 items-center bg-gray-100 dark:bg-zinc-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  px-2 py-0.5 rounded-md border-dashed border dark:border-zinc-700  text-black dark:text-zinc-200 font-semibold cursor-pointer'><BiLogoPostgresql  className='text-blue-800'/>PostgreSQL</button>
-                     <span>. </span>
-                    With a focus on UI design and user experience. Currently keeping a close eye on the latest technologies and trends in web development.
+                    <div className=' mt-2 w-full '>
+                    <p className='gap-1 inline-flex flex-wrap justify-start items-center text-md text-zinc-600 dark:text-zinc-400 font-medium '>I build interactive and responsive web apps using {" "}  
+                     <TechBadge icon={FaReact} iconClassName='text-blue-500'>React</TechBadge>
+                    <span>,</span>
+                    <TechBadge icon={RiNextjsFill} iconClassName='text-black dark:text-white'>NextJS</TechBadge>
+                    <span>,</span>
+                    <TechBadge icon={RiTailwindCssFill} iconClassName='text-blue-800'>TailwindCSS</TechBadge>
+                    <span>,</span>
+                    <TechBadge icon={RiNodejsFill} iconClassName='text-emerald-500'>NodeJs</TechBadge>
+                    <span>,</span>
+                    <span> and </span>
+                    <TechBadge icon={BiLogoPostgresql} iconClassName='text-blue-800'>PostgreSQL</TechBadge>
+                     <span>. Focusing on <Text as='span' className='dark:text-white text-black'> <strong>UI/UX Design</strong></Text> and learning <Text as='span' className='dark:text-white text-black'> <strong>Three JS</strong></Text>. Currently keeping a close eye on the latest technologies and trends in web development.</span>
+                    
                     </p>
                     <div className='text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-2'>
                         <FaBookOpen className='text-zinc-600 dark:text-zinc-400' />
@@ -116,7 +117,7 @@ const Header = () => {
                     <Tip title="Download Resume" placement="top" arrow isDark={isDark}>
                         <button 
                             onClick={downloadResume}
-                            className='inline-flex justify-center items-center gap-2 bg-black dark:bg-white text-white dark:text-black shadow hover:bg-zinc-800 dark:hover:bg-gray-200  transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer'
+                            className='inline-flex justify-center items-center gap-2 bg-black/10 dark:bg-white/10 border border-black/20 dark:border-white/30 backdrop-blur-sm text-zinc-900 dark:text-white shadow hover:bg-zinc-100 dark:hover:bg-white/40 transition-all ease-in-out duration-300 py-1 px-2 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
                         >
                             <RiClipboardFill/> Resume/CV
                         </button>
@@ -124,7 +125,7 @@ const Header = () => {
                     <Tip title="Contact Me" placement="top" arrow isDark={isDark}>
                         <button 
                             onClick={() => navigate('/contact')}
-                            className='inline-flex justify-center items-center gap-2 bg-transparent dark:bg-transparent py-2 px-4 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]  text-black dark:text-zinc-200 hover:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] dark:hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)]  transition-all ease-in-out duration-300 cursor-pointer'
+                            className='inline-flex justify-center items-center gap-2 bg-black/10 dark:bg-white/80 border border-black/20 dark:border-white/30 backdrop-blur-sm text-zinc-900 dark:text-black shadow hover:bg-zinc-100 dark:hover:bg-white transition-all ease-in-out duration-300 py-1 px-2 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
                         >
                             <BiPaperPlane />Get in Touch
                         </button>

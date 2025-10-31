@@ -36,28 +36,22 @@ export const useThemeToggle = ({
   }, []);
 
   const toggleTheme = useCallback(() => {
-    console.log('Toggle clicked! Current theme:', theme);
-    
     const animation = createAnimation(variant, start, blur, gifUrl);
     updateStyles(animation.css, animation.name);
 
     if (typeof window === "undefined") return;
 
     const newTheme = theme === "light" ? "dark" : "light";
-    console.log('Switching to theme:', newTheme);
 
     const switchTheme = () => {
-      console.log('Switching theme to:', newTheme);
       setTheme(newTheme);
     };
 
     if (!document.startViewTransition) {
-      console.log('No view transition support, switching directly');
       switchTheme();
       return;
     }
 
-    console.log('Using view transition');
     document.startViewTransition(switchTheme);
   }, [theme, setTheme, variant, start, blur, gifUrl, updateStyles]);
 
@@ -259,7 +253,7 @@ export const createAnimation = (
       name: `${variant}-${start}${blur ? "-blur" : ""}`,
       css: `
        ::view-transition-group(root) {
-        animation-duration: 0.7s;
+        animation-duration: 0.8s;
         animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
       }
             

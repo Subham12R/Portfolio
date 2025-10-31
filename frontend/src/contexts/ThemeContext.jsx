@@ -16,14 +16,10 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   const updateTheme = (newTheme) => {
-    console.log('updateTheme called with:', newTheme);
-    console.log('Current theme state:', theme);
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(newTheme);
-    console.log('Applied classes to HTML:', document.documentElement.classList.toString());
-    console.log('localStorage theme:', localStorage.getItem('theme'));
   };
 
   return (

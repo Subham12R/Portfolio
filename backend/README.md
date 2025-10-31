@@ -13,7 +13,6 @@ Backend API server for the Portfolio Admin System.
 - File upload to Cloudinary
 - Spotify integration
 - WakaTime integration
-- **AI Assistant with Gemini AI**
 
 ## Installation
 
@@ -41,17 +40,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 # JWT Secret
 JWT_SECRET=your_jwt_secret_key
-
-# Gemini AI (Required for Assistant)
-GEMINI_API_KEY=your_gemini_api_key
 ```
-
-### Getting a Gemini API Key
-
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy the API key and add it to your `.env` file as `GEMINI_API_KEY`
 
 ## Running the Server
 
@@ -119,9 +108,6 @@ npm start
 - `GET /api/wakatime/status-bar` - Get coding status
 - `GET /api/wakatime/today` - Get today's coding stats
 
-### Assistant (AI Chat)
-- `POST /api/assistant/chat` - Chat with AI assistant
-
 ## Security
 
 - Helmet.js for security headers
@@ -143,7 +129,6 @@ All environment variables must be set for the application to work properly.
 - `CLOUDINARY_API_KEY`: Cloudinary API key
 - `CLOUDINARY_API_SECRET`: Cloudinary API secret
 - `JWT_SECRET`: JWT secret for token signing
-- `GEMINI_API_KEY`: Google Gemini API key (required for AI assistant)
 
 ## Tech Stack
 
@@ -152,7 +137,6 @@ All environment variables must be set for the application to work properly.
 - Supabase (PostgreSQL)
 - Cloudinary
 - JWT
-- Google Generative AI (Gemini)
 - Helmet
 - Express Rate Limit
 - Express Validator

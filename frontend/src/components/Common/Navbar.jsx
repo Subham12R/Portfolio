@@ -119,7 +119,7 @@ const Navbar = () => {
 
         <div>
             <div>
-                <ThemeToggleButton className="shadow-lg" />
+                <ThemeToggleButton className="shadow-lg" blur={true} />
             </div>
         </div>
       </nav>
