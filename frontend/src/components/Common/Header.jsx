@@ -97,12 +97,59 @@ const Header = () => {
   const [sessionStartTime, setSessionStartTime] = useState(null); // When current session started
   const [onlineSessionTime, setOnlineSessionTime] = useState(0); // Time since going online
   const [onlineStartTime, setOnlineStartTime] = useState(null); // When online session started
-  const [spotifyTrack, setSpotifyTrack] = useState(null); // Current Spotify track
-  const [spotifyListeningTime, setSpotifyListeningTime] = useState(0); // Time since Spotify started playing
-  const [spotifyStartTime, setSpotifyStartTime] = useState(null); // When Spotify session started
+  // Spotify track state removed - no longer displayed in tooltip
+  // const [spotifyTrack, setSpotifyTrack] = useState(null);
   const sessionStartTimeRef = useRef(null); // Ref to track session start without causing re-renders
   const onlineStartTimeRef = useRef(null); // Ref to track online session start
-  const spotifyStartTimeRef = useRef(null); // Ref to track Spotify session start
+  const noUpdateCountRef = useRef(0); // Count consecutive polls with no allTime change
+  const lastActiveEditorRef = useRef(null); // Track last editor used
+  const lastActiveTimeRef = useRef(null); // Track when last activity occurred
+  const lastSessionStartAllTimeRef = useRef(null); // Track allTime when last session started
+  const lastSessionEndAllTimeRef = useRef(null); // Track allTime when last session ended
+  
+  // Initialize previousAllTime from localStorage to persist across refreshes
+  const getPreviousAllTime = () => {
+    try {
+      return localStorage.getItem('wakatime_previous_alltime') || null;
+    } catch {
+      return null;
+    }
+  };
+  
+  const setPreviousAllTime = (value) => {
+    try {
+      if (value) {
+        localStorage.setItem('wakatime_previous_alltime', value);
+      } else {
+        localStorage.removeItem('wakatime_previous_alltime');
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
+
+  // Helper function to parse allTime text to seconds (e.g., "1h 23m" -> 4980)
+  const parseTimeToSeconds = (timeText) => {
+    if (!timeText) return 0;
+    
+    let totalSeconds = 0;
+    const parts = timeText.trim().split(/\s+/);
+    
+    for (const part of parts) {
+      if (part.includes('h')) {
+        const hours = parseInt(part.replace('h', ''));
+        if (!isNaN(hours)) totalSeconds += hours * 3600;
+      } else if (part.includes('m')) {
+        const minutes = parseInt(part.replace('m', ''));
+        if (!isNaN(minutes)) totalSeconds += minutes * 60;
+      } else if (part.includes('s') || part.includes('sec')) {
+        const seconds = parseInt(part.replace(/s|sec/, ''));
+        if (!isNaN(seconds)) totalSeconds += seconds;
+      }
+    }
+    
+    return totalSeconds;
+  };
 
   // Helper function to format time
   const formatTime = (seconds) => {
@@ -178,90 +225,7 @@ const Header = () => {
     };
   }, [onlineStartTime, wakatimeData]);
 
-  // Spotify listening timer - runs when Spotify is active but no coding data
-  useEffect(() => {
-    let spotifyTimerIntervalId = null;
-    
-    // Only run timer if Spotify is playing and no active coding session
-    const isSpotifyActive = spotifyTrack !== null;
-    const hasNoCodingActivity = !isActive && (!wakatimeData || !wakatimeData.currentStatus?.entity);
-    
-    if (isSpotifyActive && hasNoCodingActivity && spotifyStartTime) {
-      // Start/continue Spotify timer that increments every second
-      spotifyTimerIntervalId = setInterval(() => {
-        setSpotifyListeningTime(prev => {
-          // Recalculate from start time to keep it accurate
-          if (spotifyStartTime) {
-            const now = new Date();
-            const start = new Date(spotifyStartTime);
-            return Math.floor((now - start) / 1000);
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    } else {
-      // Reset Spotify timer when not playing or when coding starts
-      setSpotifyListeningTime(0);
-      setSpotifyStartTime(null);
-      spotifyStartTimeRef.current = null;
-    }
-    
-    return () => {
-      if (spotifyTimerIntervalId) clearInterval(spotifyTimerIntervalId);
-    };
-  }, [spotifyStartTime, spotifyTrack, isActive, wakatimeData]);
-
-  // Fetch Spotify currently playing track
-  useEffect(() => {
-    const fetchSpotifyTrack = async () => {
-      try {
-        const response = await fetch(`${apiService.baseURL}/api/spotify/currently-playing`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          mode: 'cors'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.isPlaying && data.track) {
-            setSpotifyTrack(data.track);
-            // Start timer if not already started
-            if (!spotifyStartTimeRef.current) {
-              const now = new Date();
-              setSpotifyListeningTime(0);
-              setSpotifyStartTime(now);
-              spotifyStartTimeRef.current = now;
-            }
-          } else {
-            setSpotifyTrack(null);
-            // Reset timer when Spotify stops
-            if (spotifyStartTimeRef.current) {
-              setSpotifyStartTime(null);
-              spotifyStartTimeRef.current = null;
-              setSpotifyListeningTime(0);
-            }
-          }
-        } else {
-          setSpotifyTrack(null);
-        }
-      } catch (error) {
-        console.error('Error fetching Spotify track:', error);
-        setSpotifyTrack(null);
-      }
-    };
-
-    // Initial fetch
-    fetchSpotifyTrack();
-    
-    // Poll every 30 seconds for Spotify updates
-    const spotifyInterval = setInterval(fetchSpotifyTrack, 30000);
-    
-    return () => {
-      clearInterval(spotifyInterval);
-    };
-  }, []);
+  // Spotify fetching removed - no longer displayed in tooltip
 
   // Fetch WakaTime data for activity status with dynamic polling
   useEffect(() => {
@@ -351,12 +315,6 @@ const Header = () => {
               sessionStartTimeRef.current = heartbeatTime;
             }
             // Timer will continue running via the separate useEffect
-            // Stop Spotify timer when coding starts
-            if (spotifyStartTimeRef.current) {
-              setSpotifyStartTime(null);
-              spotifyStartTimeRef.current = null;
-              setSpotifyListeningTime(0);
-            }
           }
           
           // Start/continue online timer when online (not just when coding)
@@ -389,6 +347,66 @@ const Header = () => {
           
           setIsActive(isCodingNow);
           
+          // Track allTime changes to detect sudden increases (online activity)
+          let allTimeIncreased = false;
+          let currentAllTimeSeconds = 0;
+          
+          if (allTimeData.success && allTimeData.data?.text) {
+            currentAllTimeSeconds = parseTimeToSeconds(allTimeData.data.text);
+            const previousAllTimeText = getPreviousAllTime();
+            const previousAllTimeSeconds = previousAllTimeText 
+              ? parseTimeToSeconds(previousAllTimeText) 
+              : 0;
+            
+            // Detect sudden increase (at least 3 minutes difference indicates new activity)
+            // This threshold prevents false positives from normal time accumulation between refreshes
+            const ACTIVITY_THRESHOLD_SECONDS = 180; // 3 minutes
+            
+            if (currentAllTimeSeconds > previousAllTimeSeconds + ACTIVITY_THRESHOLD_SECONDS) {
+              allTimeIncreased = true;
+              noUpdateCountRef.current = 0;
+              
+              // Track session start if this is a new session
+              if (!lastSessionStartAllTimeRef.current || lastSessionStartAllTimeRef.current === lastSessionEndAllTimeRef.current) {
+                lastSessionStartAllTimeRef.current = previousAllTimeSeconds;
+              }
+              
+              // Mark as online when allTime increases
+              if (isOffline) {
+                isOffline = false;
+                // Start online timer when activity detected
+                if (!onlineStartTimeRef.current) {
+                  const now = new Date();
+                  setOnlineSessionTime(0);
+                  setOnlineStartTime(now);
+                  onlineStartTimeRef.current = now;
+                }
+              }
+              // Track last active editor
+              if (currentEditor) {
+                lastActiveEditorRef.current = currentEditor;
+              }
+              lastActiveTimeRef.current = new Date();
+              // Update session end time as activity continues
+              lastSessionEndAllTimeRef.current = currentAllTimeSeconds;
+            } else if (currentAllTimeSeconds === previousAllTimeSeconds) {
+              // No change in allTime - increment no-update count
+              noUpdateCountRef.current += 1;
+              
+              // If we had a session running and now it stopped, finalize it
+              if (lastSessionStartAllTimeRef.current !== null && lastSessionEndAllTimeRef.current !== null && 
+                  lastSessionEndAllTimeRef.current > lastSessionStartAllTimeRef.current) {
+                // Session has ended, keep the end time
+              }
+            } else {
+              // Small change (less than threshold), reset counter but don't mark as increased
+              noUpdateCountRef.current = 0;
+            }
+            
+            // Update previous allTime in localStorage for next comparison (persists across refreshes)
+            setPreviousAllTime(allTimeData.data.text);
+          }
+          
           // Combine all data including real-time status from multiple endpoints
           setWakatimeData({
             ...statusData,
@@ -401,7 +419,9 @@ const Header = () => {
             heartbeats: heartbeatsData,
             durations: durationsData,
             accurateTimeToday: accurateTimeToday,
-            allTime: allTimeData.success ? allTimeData.data : null
+            allTime: allTimeData.success ? allTimeData.data : null,
+            allTimeIncreased: allTimeIncreased,
+            noUpdateCount: noUpdateCountRef.current
           });
 
           // Dynamic polling based on activity state
@@ -507,8 +527,7 @@ const Header = () => {
           </div>
           {editor && (
             <div className="flex items-center gap-2 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
-              {editorIcon}
-              <span className="font-medium">{editor}</span>
+              {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />}
               <span style={{ opacity: 0.8 }}>:</span>
               <span className="font-semibold">{timeToday}</span>
               <span className="text-xs opacity-75 text-green-600 dark:text-green-400">(live)</span>
@@ -553,8 +572,7 @@ const Header = () => {
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              {editorIcon}
-              <span className="font-medium">{editor || 'Editor'}</span>
+              {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />}
               <span style={{ opacity: 0.8 }}>:</span>
               <span className="font-semibold">{timeText}</span>
             </div>
@@ -586,42 +604,87 @@ const Header = () => {
       const allTimeData = wakatimeData.allTime.data;
       
       if (allTimeData.text) {
-        // Determine if online based on last heartbeat or recent activity
-        const isOnline = wakatimeData?.isOffline === false || 
+        // Determine if online based on allTime increase or heartbeat
+        const isOnlineFromAllTime = wakatimeData?.allTimeIncreased === true;
+        const isOnlineFromHeartbeat = wakatimeData?.isOffline === false || 
                         (wakatimeData?.lastHeartbeat && (() => {
                           const heartbeatTime = new Date(wakatimeData.lastHeartbeat);
                           const now = new Date();
                           const diffMinutes = (now - heartbeatTime) / (1000 * 60);
-                          return diffMinutes <= 2; // Online if heartbeat within last 2 minutes
+                          return diffMinutes <= 2;
                         })());
+        const isOnline = isOnlineFromAllTime || isOnlineFromHeartbeat;
         
-        // Get the last used editor from current editor or latest heartbeat
-        const editor = wakatimeData.currentEditor || 
+        // Get the last used editor
+        const editor = lastActiveEditorRef.current ||
+                     wakatimeData.currentEditor || 
                      wakatimeData.latestHeartbeat?.editor || 
                      wakatimeData.data?.data?.editor || 
                      wakatimeData.statusInfo?.data?.editor ||
                      null;
         const editorIcon = getEditorIcon(editor);
         
-        // Show timer if online
+        // Show timer if online (instead of allTime)
         const timerDisplay = isOnline && onlineSessionTime > 0 ? formatTime(onlineSessionTime) : null;
+        
+        // If offline for several polls, calculate last active time
+        const noUpdateCount = wakatimeData?.noUpdateCount || 0;
+        const HEALTH_CHECK_THRESHOLD = 3; // Show last active after 3 polls with no updates
+        
+        let lastActiveDisplay = null;
+        if (!isOnline && noUpdateCount >= HEALTH_CHECK_THRESHOLD && lastActiveTimeRef.current) {
+          const lastActive = new Date(lastActiveTimeRef.current);
+          const now = new Date();
+          const diffMs = now - lastActive;
+          const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+          const diffDays = Math.floor(diffHours / 24);
+          
+          // Calculate last session duration from tracked session data
+          let sessionDurationDisplay = null;
+          if (lastSessionStartAllTimeRef.current !== null && lastSessionEndAllTimeRef.current !== null) {
+            const sessionDurationSeconds = lastSessionEndAllTimeRef.current - lastSessionStartAllTimeRef.current;
+            if (sessionDurationSeconds > 0) {
+              sessionDurationDisplay = formatTime(sessionDurationSeconds);
+            }
+          }
+          
+          if (diffDays === 1) {
+            // Yesterday
+            lastActiveDisplay = sessionDurationDisplay && editor
+              ? `Last active yesterday in ${editor} for ${sessionDurationDisplay}` 
+              : sessionDurationDisplay
+              ? `Last active yesterday for ${sessionDurationDisplay}`
+              : 'Last active yesterday';
+          } else if (diffDays === 0 && diffHours < 24) {
+            // Today but hours ago
+            lastActiveDisplay = sessionDurationDisplay && editor
+              ? `Last active ${diffHours}h ago in ${editor} for ${sessionDurationDisplay}` 
+              : sessionDurationDisplay
+              ? `Last active ${diffHours}h ago for ${sessionDurationDisplay}`
+              : `Last active ${diffHours}h ago`;
+          } else {
+            // Multiple days ago
+            lastActiveDisplay = sessionDurationDisplay && editor
+              ? `Last active ${diffDays} days ago in ${editor} for ${sessionDurationDisplay}` 
+              : sessionDurationDisplay
+              ? `Last active ${diffDays} days ago for ${sessionDurationDisplay}`
+              : `Last active ${diffDays} days ago`;
+          }
+        }
         
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              {editorIcon && (
-                <>
-                  {editorIcon}
-                  <span className="font-medium">{editor}</span>
-                </>
+              {/* Show IDE icon only (no editor name) */}
+              {editorIcon || (
+                <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />
               )}
-              {!editorIcon && (
-                <>
-                  <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />
-                  <span className="font-medium">Cursor</span>
-                </>
+              {/* Show timer instead of allTime when online */}
+              {isOnline && timerDisplay ? (
+                <span className="font-bold text-green-600 dark:text-green-400">{timerDisplay}</span>
+              ) : (
+                <span className="font-bold">{allTimeData.text}</span>
               )}
-              <span className="font-bold">{allTimeData.text}</span>
             </div>
             <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
               <div className="flex items-center gap-2">
@@ -629,7 +692,7 @@ const Header = () => {
                 <span className={`font-medium ${isOnline ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
                   {isOnline ? 'Online' : 'Offline'}
                 </span>
-                {timerDisplay && (
+                {isOnline && timerDisplay && (
                   <>
                     <span className="opacity-75">•</span>
                     <span className="font-semibold text-green-600 dark:text-green-400">{timerDisplay}</span>
@@ -637,13 +700,10 @@ const Header = () => {
                   </>
                 )}
               </div>
-              {/* Spotify listening timer - only show when Spotify is active and no coding activity */}
-              {spotifyTrack && !isActive && (!wakatimeData || !wakatimeData.currentStatus?.entity) && spotifyListeningTime > 0 && (
+              {/* Show last active info when offline for several polls */}
+              {lastActiveDisplay && (
                 <div className="text-xs opacity-75 mt-2 pt-2 border-t" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}}>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-gray-500 dark:text-gray-400 font-medium">Listening to Spotify for</span>
-                    <span className="font-semibold text-green-600 dark:text-green-400">{formatTime(spotifyListeningTime)}</span>
-                  </div>
+                  <span className="text-gray-500 dark:text-gray-400">{lastActiveDisplay}</span>
                 </div>
               )}
             </div>
@@ -662,12 +722,9 @@ const Header = () => {
 
     return (
       <div className="space-y-2">
-        {editorIcon && (
-          <div className="flex items-center gap-2">
-            {editorIcon}
-            <span className="font-medium">{editor}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />}
+        </div>
         <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
