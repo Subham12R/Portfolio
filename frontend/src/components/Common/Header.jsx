@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import profileImage from '../../assets/profile.png';
@@ -93,25 +93,186 @@ const Header = () => {
   const isDark = theme === 'dark';
   const [wakatimeData, setWakatimeData] = useState(null);
   const [isActive, setIsActive] = useState(false);
+  const [currentSessionTime, setCurrentSessionTime] = useState(0); // Time in seconds
+  const [sessionStartTime, setSessionStartTime] = useState(null); // When current session started
+  const sessionStartTimeRef = useRef(null); // Ref to track session start without causing re-renders
 
-  // Fetch WakaTime data for activity status
+  // Helper function to format time
+  const formatTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  };
+
+  // Local timer that runs independently when session is active
   useEffect(() => {
+    let timerIntervalId = null;
+    
+    if (sessionStartTime && isActive) {
+      // Start/continue timer that increments every second
+      timerIntervalId = setInterval(() => {
+        setCurrentSessionTime(prev => {
+          // Recalculate from start time to keep it accurate
+          if (sessionStartTime) {
+            const now = new Date();
+            const start = new Date(sessionStartTime);
+            return Math.floor((now - start) / 1000);
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } else {
+      // Reset timer when not active
+      setCurrentSessionTime(0);
+    }
+    
+    return () => {
+      if (timerIntervalId) clearInterval(timerIntervalId);
+    };
+  }, [sessionStartTime, isActive]);
+
+  // Fetch WakaTime data for activity status with dynamic polling
+  useEffect(() => {
+    let pollIntervalId = null;
+    let pollCount = 0;
+    const MAX_POLLS_WHEN_INACTIVE = 10;
+
     const fetchWakatime = async () => {
       try {
-        const statusData = await apiService.getWakaTimeStatusBar();
-        // Fetch all time since today to get total time
-        const allTimeData = await apiService.getWakaTimeAllTimeSinceToday();
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Fetch multiple endpoints in parallel for better data
+        // Use catch to prevent one failure from breaking everything
+        const [statusResponse, statusData, allTimeData, heartbeatsResponse, durationsResponse] = await Promise.all([
+          apiService.getWakaTimeStatus().catch((err) => {
+            console.warn('Failed to fetch status:', err);
+            return { success: false, data: null };
+          }),
+          apiService.getWakaTimeStatusBar().catch((err) => {
+            console.warn('Failed to fetch status bar:', err);
+            return { success: false, data: null };
+          }),
+          apiService.getWakaTimeAllTimeSinceToday().catch((err) => {
+            console.warn('Failed to fetch all time:', err);
+            return { success: false, data: null };
+          }),
+          apiService.getWakaTimeHeartbeats(today).catch(() => ({ success: false, data: null })),
+          apiService.getWakaTimeDurations(today).catch(() => ({ success: false, data: null }))
+        ]);
         
         if (statusData.success) {
-          // Check if actively coding (from backend detection)
-          const isCodingNow = statusData.isCurrentlyCoding === true;
+          const statusInfo = statusResponse.success ? statusResponse.data : null;
+          const heartbeatsData = heartbeatsResponse.success ? heartbeatsResponse.data : null;
+          const durationsData = durationsResponse.success ? durationsResponse.data : null;
+          
+          // Get the most recent heartbeat from heartbeats endpoint (more accurate)
+          let lastHeartbeat = statusInfo?.data?.last_heartbeat_at;
+          let latestHeartbeat = null;
+          
+          if (heartbeatsData?.data && Array.isArray(heartbeatsData.data) && heartbeatsData.data.length > 0) {
+            // Sort by time descending and get the most recent
+            const sortedHeartbeats = [...heartbeatsData.data].sort((a, b) => {
+              const timeA = new Date(a.time || a.created_at || 0);
+              const timeB = new Date(b.time || b.created_at || 0);
+              return timeB - timeA;
+            });
+            latestHeartbeat = sortedHeartbeats[0];
+            lastHeartbeat = latestHeartbeat.time || latestHeartbeat.created_at || lastHeartbeat;
+          }
+          
+          const hasActiveEntity = statusInfo?.data?.entity && statusInfo.data.editor;
+          
+          // Check if offline using heartbeat data (more accurate)
+          let isOffline = false;
+          if (lastHeartbeat) {
+            const heartbeatTime = new Date(lastHeartbeat);
+            const now = new Date();
+            const diffMinutes = (now - heartbeatTime) / (1000 * 60);
+            // Offline if no heartbeat in last 2 minutes
+            isOffline = diffMinutes > 2 || (!hasActiveEntity && diffMinutes > 1);
+          } else {
+            isOffline = true;
+          }
+          
+          const isCodingNow = !isOffline && (statusData.isCurrentlyCoding === true || hasActiveEntity);
+          
+          // Get current editor from status or latest heartbeat
+          const currentEditor = latestHeartbeat?.editor || statusInfo?.data?.editor || statusData.data?.data?.editor || null;
+          
+          // Calculate accurate time from durations if available
+          let accurateTimeToday = 0;
+          if (durationsData?.data && Array.isArray(durationsData.data)) {
+            accurateTimeToday = durationsData.data.reduce((total, duration) => {
+              return total + (duration.duration || 0);
+            }, 0);
+          }
+          
+          // If we detect active heartbeat (recent activity), start/continue timer
+          if (isCodingNow && (hasActiveEntity || latestHeartbeat) && lastHeartbeat) {
+            if (!sessionStartTimeRef.current) {
+              // New active session detected - initialize timer from heartbeat
+              const heartbeatTime = new Date(lastHeartbeat);
+              const now = new Date();
+              const initialSeconds = Math.floor((now - heartbeatTime) / 1000);
+              setCurrentSessionTime(Math.max(0, initialSeconds));
+              setSessionStartTime(heartbeatTime);
+              sessionStartTimeRef.current = heartbeatTime;
+            }
+            // Timer will continue running via the separate useEffect
+          }
+          
+          // If offline detected, stop the timer and reset
+          if (isOffline) {
+            if (sessionStartTimeRef.current) {
+              setSessionStartTime(null);
+              sessionStartTimeRef.current = null;
+              setCurrentSessionTime(0);
+            }
+          }
+          
           setIsActive(isCodingNow);
           
-          // Combine status data with all time data
+          // Combine all data including real-time status from multiple endpoints
           setWakatimeData({
             ...statusData,
+            statusInfo: statusInfo,
+            currentStatus: statusInfo?.data || null,
+            currentEditor: currentEditor,
+            isOffline: isOffline,
+            lastHeartbeat: lastHeartbeat,
+            latestHeartbeat: latestHeartbeat,
+            heartbeats: heartbeatsData,
+            durations: durationsData,
+            accurateTimeToday: accurateTimeToday,
             allTime: allTimeData.success ? allTimeData.data : null
           });
+
+          // Dynamic polling based on activity state
+          if (isCodingNow && hasActiveEntity) {
+            // Actively coding - poll every 10 seconds to check if still active
+            pollCount = 0;
+            clearInterval(pollIntervalId);
+            pollIntervalId = setInterval(fetchWakatime, 10000);
+          } else if (!isOffline && pollCount < MAX_POLLS_WHEN_INACTIVE) {
+            pollCount++;
+            clearInterval(pollIntervalId);
+            pollIntervalId = setInterval(fetchWakatime, 20000);
+          } else if (isOffline) {
+            // Offline - stop timer and show recent activity, poll less frequently
+            clearInterval(pollIntervalId);
+            pollIntervalId = setInterval(fetchWakatime, 60000);
+          } else {
+            clearInterval(pollIntervalId);
+            pollIntervalId = setInterval(fetchWakatime, 120000);
+          }
         } else {
           // Still set all time data even if no current status
           if (allTimeData.success && allTimeData.data) {
@@ -124,28 +285,64 @@ const Header = () => {
             });
           }
           setIsActive(false);
+          
+          // Stop timer if session was running
+          setSessionStartTime(null);
+          sessionStartTimeRef.current = null;
+          setCurrentSessionTime(0);
+          
+          pollCount++;
+          clearInterval(pollIntervalId);
+          if (pollCount < MAX_POLLS_WHEN_INACTIVE) {
+            pollIntervalId = setInterval(fetchWakatime, 60000);
+          } else {
+            pollIntervalId = setInterval(fetchWakatime, 300000);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch WakaTime data:', error);
         setIsActive(false);
+        // Stop timer on error
+        setSessionStartTime(null);
+        sessionStartTimeRef.current = null;
+        setCurrentSessionTime(0);
+        clearInterval(pollIntervalId);
+        pollIntervalId = setInterval(fetchWakatime, 60000);
       }
     };
 
+    // Initial fetch
     fetchWakatime();
-    // Refresh more frequently for real-time updates - every 30 seconds
-    const interval = setInterval(fetchWakatime, 30000);
     
-    return () => clearInterval(interval);
+    return () => {
+      if (pollIntervalId) clearInterval(pollIntervalId);
+    };
   }, []);
 
   // Format custom tooltip content for WakaTime activity
   const getActivityTooltipContent = () => {
-    // If currently coding, show current session info
-    if (isActive && wakatimeData?.currentStatus?.entity) {
-      const current = wakatimeData.currentStatus;
-      const editor = current.editor || wakatimeData.data?.data?.editor;
+    // Check if offline and should show recent activity
+    const isOffline = wakatimeData?.isOffline === true || (!isActive && !wakatimeData?.currentStatus?.entity);
+    
+    // If currently coding, show real-time current session info with live updates
+    if (isActive && !isOffline && (wakatimeData?.currentStatus || wakatimeData?.statusInfo)) {
+      const current = wakatimeData.currentStatus || wakatimeData.statusInfo?.data;
+      const editor = wakatimeData.currentEditor || current?.editor || wakatimeData.data?.data?.editor;
       const editorIcon = getEditorIcon(editor);
-      const timeToday = wakatimeData.data?.data?.text || '0 secs';
+      
+      // Use running timer if session is active, otherwise use accurate duration or API time
+      let timeToday = '0 secs';
+      if (sessionStartTime && currentSessionTime > 0) {
+        timeToday = formatTime(currentSessionTime);
+      } else if (wakatimeData.accurateTimeToday && wakatimeData.accurateTimeToday > 0) {
+        // Use accurate time from durations endpoint
+        timeToday = formatTime(wakatimeData.accurateTimeToday);
+      } else {
+        timeToday = wakatimeData.data?.data?.text || '0 secs';
+      }
+      
+      // Check if entity exists (means actively coding)
+      const isActuallyCoding = current && current.entity;
       
       return (
         <div className="space-y-2">
@@ -159,26 +356,34 @@ const Header = () => {
               <span className="font-medium">{editor}</span>
               <span style={{ opacity: 0.8 }}>:</span>
               <span className="font-semibold">{timeToday}</span>
+              <span className="text-xs opacity-75 text-green-600 dark:text-green-400">(live)</span>
             </div>
           )}
-          {current.project && (
+          {current?.project && (
             <div className="text-sm opacity-90">
               Project: <span className="font-medium">{current.project}</span>
             </div>
           )}
-          {current.language && (
+          {current?.language && (
             <div className="text-sm opacity-90">
               Language: <span className="font-medium">{current.language}</span>
             </div>
           )}
-          {current.entity && (
+          {current?.entity && (
             <div className="text-sm opacity-90">
               File: <span className="font-medium">{current.entity}</span>
+            </div>
+          )}
+          {isActuallyCoding && (
+            <div className="text-xs opacity-75 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
+              🔄 Updates every 10s
             </div>
           )}
         </div>
       );
     }
+    
+    // If offline, will show recent activity from all_time_since_today below
 
     // If there's current activity data (but not actively coding right now)
     if (wakatimeData && wakatimeData.success && wakatimeData.data?.data) {
@@ -227,12 +432,18 @@ const Header = () => {
       
       if (allTimeData.text) {
         let lastActivityText = 'recent';
+        let isRecentActivity = false;
+        let isOnline = false;
+        
         if (allTimeData.range) {
           const rangeText = allTimeData.range.text || allTimeData.range.start || '';
           if (rangeText.includes('today') || rangeText.includes('Today')) {
             lastActivityText = 'today';
+            isRecentActivity = true;
+            isOnline = true;
           } else if (rangeText.includes('yesterday') || rangeText.includes('Yesterday')) {
             lastActivityText = 'yesterday';
+            isRecentActivity = true;
           } else {
             try {
               const rangeDate = new Date(rangeText);
@@ -240,20 +451,41 @@ const Header = () => {
                 const now = new Date();
                 const diffTime = Math.abs(now - rangeDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays === 1) {
+                const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+                
+                if (diffDays === 0 && diffHours < 24) {
+                  // Activity within last 24 hours
+                  if (diffHours < 6) {
+                    lastActivityText = `${diffHours}h ago`;
+                    isOnline = true;
+                  } else {
+                    lastActivityText = 'today';
+                    isOnline = true;
+                  }
+                  isRecentActivity = true;
+                } else if (diffDays === 1) {
                   lastActivityText = 'yesterday';
-                } else if (diffDays <= 7) {
-                  lastActivityText = `${diffDays} days ago`;
+                  isRecentActivity = true;
+                } else if (diffDays <= 6) {
+                  lastActivityText = 'recent';
+                  isRecentActivity = true;
                 } else {
-                  lastActivityText = rangeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                  lastActivityText = `${diffDays} days ago`;
+                  isRecentActivity = false;
                 }
               } else {
-                lastActivityText = rangeText;
+                // If we can't parse date but have range text, assume recent if it's not clear
+                lastActivityText = 'recent';
+                isRecentActivity = true;
               }
             } catch {
-              lastActivityText = rangeText;
+              lastActivityText = 'recent';
+              isRecentActivity = true;
             }
           }
+        } else {
+          // No range data, assume recent
+          isRecentActivity = true;
         }
         
         // Try to get editor from last activity if available
@@ -263,13 +495,26 @@ const Header = () => {
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
+              {isOnline && (
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              )}
               {editorIcon || <DiVisualstudio size={18} className="inline-block mr-1.5" />}
               <span className="font-medium">{editor || 'Last Activity'}</span>
               <span style={{ opacity: 0.8 }}>:</span>
               <span className="font-semibold">{allTimeData.text}</span>
             </div>
             <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
-              Last activity: <span className="font-medium">{lastActivityText}</span>
+              {isOnline ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span className="font-medium text-green-600 dark:text-green-400">Online</span>
+                  <span className="opacity-75">• Last activity: {lastActivityText}</span>
+                </span>
+              ) : (
+                <span>
+                  Last activity: <span className="font-medium">{isRecentActivity ? 'recent' : lastActivityText}</span>
+                </span>
+              )}
             </div>
           </div>
         );
@@ -278,7 +523,8 @@ const Header = () => {
 
     return (
       <div className="space-y-2">
-        <div className="text-sm opacity-90">No coding activity detected</div>
+        <div className="text-sm opacity-90">Offline</div>
+        <div className="text-sm opacity-90">Last activity: {wakatimeData?.allTime?.data?.text}</div> 
       </div>
     );
   };
@@ -316,10 +562,29 @@ const Header = () => {
                                           isDark={isDark}
                                         >
                                           <span 
-                                            className={`absolute bottom-1 right-3 inline-block w-2 h-2 rounded-full ring-2 ring-offset-2 dark:ring-offset-zinc-950 z-10 transition-all duration-300 ${
+                                            className={`absolute bottom-1 right-3 inline-block w-2 h-2 rounded-full ring-2 ring-offset-2 dark:ring-offset-zinc-600 z-10 transition-all duration-300 ${
                                               isActive 
                                                 ? 'bg-green-500 ring-green-200 dark:ring-green-700 animate-pulse' 
-                                                : 'bg-gray-400 ring-gray-300 dark:ring-gray-600'
+                                                : (wakatimeData?.allTime?.data && (() => {
+                                                    // Check if activity is recent (within 6 days)
+                                                    const rangeText = wakatimeData.allTime.data.range?.text || wakatimeData.allTime.data.range?.start || '';
+                                                    if (rangeText.includes('today') || rangeText.includes('Today')) {
+                                                      return 'bg-green-500 ring-green-200 dark:ring-green-700';
+                                                    }
+                                                    try {
+                                                      const rangeDate = new Date(rangeText);
+                                                      if (!isNaN(rangeDate.getTime())) {
+                                                        const now = new Date();
+                                                        const diffDays = Math.ceil(Math.abs(now - rangeDate) / (1000 * 60 * 60 * 24));
+                                                        if (diffDays <= 6) {
+                                                          return 'bg-green-400 ring-green-200 dark:ring-green-600';
+                                                        }
+                                                      }
+                                                    } catch {
+                                                      // Invalid date, use default gray
+                                                    }
+                                                    return 'bg-gray-400 ring-gray-300 dark:ring-gray-600';
+                                                  })())
                                             }`}
                                           ></span>
                                         </CustomWakaTip>

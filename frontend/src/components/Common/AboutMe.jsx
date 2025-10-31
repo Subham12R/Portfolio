@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import profileImage from '../../assets/profile.png'
 import { FaReact } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri'
@@ -31,30 +31,223 @@ const AboutMe = () => {
   const { theme } = useTheme()
   const [wakatimeData, setWakatimeData] = useState(null)
   const [wakatimeLoading, setWakatimeLoading] = useState(true)
+  const [isActive, setIsActive] = useState(false)
+  const [currentSessionTime, setCurrentSessionTime] = useState(0)
+  const [sessionStartTime, setSessionStartTime] = useState(null)
+  const sessionStartTimeRef = useRef(null)
 
-  // Fetch WakaTime data
+  // Helper function to format time
+  const formatTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`
+    } else {
+      return `${secs}s`
+    }
+  }
+
+  // Local timer that runs independently when session is active
   useEffect(() => {
+    let timerIntervalId = null
+    
+    if (sessionStartTime && isActive) {
+      timerIntervalId = setInterval(() => {
+        setCurrentSessionTime(prev => {
+          if (sessionStartTime) {
+            const now = new Date()
+            const start = new Date(sessionStartTime)
+            return Math.floor((now - start) / 1000)
+          }
+          return prev + 1
+        })
+      }, 1000)
+    } else {
+      setCurrentSessionTime(0)
+    }
+    
+    return () => {
+      if (timerIntervalId) clearInterval(timerIntervalId)
+    }
+  }, [sessionStartTime, isActive])
+
+  // Fetch WakaTime data with dynamic polling
+  useEffect(() => {
+    let pollIntervalId = null
+    let pollCount = 0
+    const MAX_POLLS_WHEN_INACTIVE = 10
+
     const fetchWakatime = async () => {
       try {
-        const statusData = await apiService.getWakaTimeStatusBar()
-        const allTimeData = await apiService.getWakaTimeAllTimeSinceToday()
+        const today = new Date().toISOString().split('T')[0]
         
-        setWakatimeData({
-          ...statusData,
-          allTime: allTimeData.success ? allTimeData.data : null
-        })
+        // Fetch multiple endpoints in parallel for better data
+        // Use catch to prevent one failure from breaking everything
+        const [statusResponse, statusData, allTimeData, heartbeatsResponse, durationsResponse] = await Promise.all([
+          apiService.getWakaTimeStatus().catch((err) => {
+            console.warn('Failed to fetch status:', err)
+            return { success: false, data: null }
+          }),
+          apiService.getWakaTimeStatusBar().catch((err) => {
+            console.warn('Failed to fetch status bar:', err)
+            return { success: false, data: null }
+          }),
+          apiService.getWakaTimeAllTimeSinceToday().catch((err) => {
+            console.warn('Failed to fetch all time:', err)
+            return { success: false, data: null }
+          }),
+          apiService.getWakaTimeHeartbeats(today).catch(() => ({ success: false, data: null })),
+          apiService.getWakaTimeDurations(today).catch(() => ({ success: false, data: null }))
+        ])
+        
+        if (statusData.success) {
+          const statusInfo = statusResponse.success ? statusResponse.data : null
+          const heartbeatsData = heartbeatsResponse.success ? heartbeatsResponse.data : null
+          const durationsData = durationsResponse.success ? durationsResponse.data : null
+          
+          // Get the most recent heartbeat from heartbeats endpoint (more accurate)
+          let lastHeartbeat = statusInfo?.data?.last_heartbeat_at
+          let latestHeartbeat = null
+          
+          if (heartbeatsData?.data && Array.isArray(heartbeatsData.data) && heartbeatsData.data.length > 0) {
+            // Sort by time descending and get the most recent
+            const sortedHeartbeats = [...heartbeatsData.data].sort((a, b) => {
+              const timeA = new Date(a.time || a.created_at || 0)
+              const timeB = new Date(b.time || b.created_at || 0)
+              return timeB - timeA
+            })
+            latestHeartbeat = sortedHeartbeats[0]
+            lastHeartbeat = latestHeartbeat.time || latestHeartbeat.created_at || lastHeartbeat
+          }
+          
+          const hasActiveEntity = statusInfo?.data?.entity && statusInfo.data.editor
+          
+          // Check if offline using heartbeat data (more accurate)
+          let isOffline = false
+          if (lastHeartbeat) {
+            const heartbeatTime = new Date(lastHeartbeat)
+            const now = new Date()
+            const diffMinutes = (now - heartbeatTime) / (1000 * 60)
+            // Offline if no heartbeat in last 2 minutes
+            isOffline = diffMinutes > 2 || (!hasActiveEntity && diffMinutes > 1)
+          } else {
+            isOffline = true
+          }
+          
+          const isCodingNow = !isOffline && (statusData.isCurrentlyCoding === true || hasActiveEntity)
+          
+          // Get current editor from status or latest heartbeat
+          const currentEditor = latestHeartbeat?.editor || statusInfo?.data?.editor || statusData.data?.data?.editor || null
+          
+          // Calculate accurate time from durations if available
+          let accurateTimeToday = 0
+          if (durationsData?.data && Array.isArray(durationsData.data)) {
+            accurateTimeToday = durationsData.data.reduce((total, duration) => {
+              return total + (duration.duration || 0)
+            }, 0)
+          }
+          
+          // Start timer if active heartbeat detected
+          if (isCodingNow && (hasActiveEntity || latestHeartbeat) && lastHeartbeat) {
+            if (!sessionStartTimeRef.current) {
+              const heartbeatTime = new Date(lastHeartbeat)
+              const now = new Date()
+              const initialSeconds = Math.floor((now - heartbeatTime) / 1000)
+              setCurrentSessionTime(Math.max(0, initialSeconds))
+              setSessionStartTime(heartbeatTime)
+              sessionStartTimeRef.current = heartbeatTime
+            }
+          }
+          
+          // Stop timer if offline
+          if (isOffline) {
+            if (sessionStartTimeRef.current) {
+              setSessionStartTime(null)
+              sessionStartTimeRef.current = null
+              setCurrentSessionTime(0)
+            }
+          }
+          
+          setIsActive(isCodingNow)
+          
+          setWakatimeData({
+            ...statusData,
+            statusInfo: statusInfo,
+            currentStatus: statusInfo?.data || null,
+            currentEditor: currentEditor,
+            isOffline: isOffline,
+            lastHeartbeat: lastHeartbeat,
+            latestHeartbeat: latestHeartbeat,
+            heartbeats: heartbeatsData,
+            durations: durationsData,
+            accurateTimeToday: accurateTimeToday,
+            allTime: allTimeData.success ? allTimeData.data : null
+          })
+
+          // Dynamic polling
+          if (isCodingNow && hasActiveEntity) {
+            pollCount = 0
+            clearInterval(pollIntervalId)
+            pollIntervalId = setInterval(fetchWakatime, 10000)
+          } else if (!isOffline && pollCount < MAX_POLLS_WHEN_INACTIVE) {
+            pollCount++
+            clearInterval(pollIntervalId)
+            pollIntervalId = setInterval(fetchWakatime, 20000)
+          } else if (isOffline) {
+            clearInterval(pollIntervalId)
+            pollIntervalId = setInterval(fetchWakatime, 60000)
+          } else {
+            clearInterval(pollIntervalId)
+            pollIntervalId = setInterval(fetchWakatime, 120000)
+          }
+          
+          setWakatimeLoading(false)
+        } else {
+          if (allTimeData.success && allTimeData.data) {
+            setWakatimeData({
+              success: true,
+              data: null,
+              isToday: false,
+              isCurrentlyCoding: false,
+              allTime: allTimeData.data
+            })
+          }
+          setIsActive(false)
+          setSessionStartTime(null)
+          sessionStartTimeRef.current = null
+          setCurrentSessionTime(0)
+          
+          pollCount++
+          clearInterval(pollIntervalId)
+          if (pollCount < MAX_POLLS_WHEN_INACTIVE) {
+            pollIntervalId = setInterval(fetchWakatime, 60000)
+          } else {
+            pollIntervalId = setInterval(fetchWakatime, 300000)
+          }
+          
+          setWakatimeLoading(false)
+        }
       } catch (error) {
         console.error('Failed to fetch WakaTime data:', error)
-      } finally {
+        setIsActive(false)
+        setSessionStartTime(null)
+        sessionStartTimeRef.current = null
+        setCurrentSessionTime(0)
+        clearInterval(pollIntervalId)
+        pollIntervalId = setInterval(fetchWakatime, 60000)
         setWakatimeLoading(false)
       }
     }
 
     fetchWakatime()
-    // Refresh every 30 seconds for real-time updates
-    const interval = setInterval(fetchWakatime, 30000)
     
-    return () => clearInterval(interval)
+    return () => {
+      if (pollIntervalId) clearInterval(pollIntervalId)
+    }
   }, [])
   
   // Use backend data instead of hardcoded data
@@ -118,16 +311,23 @@ const AboutMe = () => {
             <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'>
               {wakatimeLoading ? (
                 'Loading coding stats...'
-              ) : wakatimeData?.isCurrentlyCoding && wakatimeData.currentStatus ? (
-                <span className='inline-flex items-center gap-1'>
+              ) : isActive && !wakatimeData?.isOffline && (wakatimeData?.currentStatus || wakatimeData?.statusInfo) ? (
+                <span className='inline-flex items-center gap-1 flex-wrap'>
                   <span className='w-2 h-2 rounded-full bg-green-500 animate-pulse mr-1'></span>
-                  {getEditorIcon(wakatimeData.currentStatus.editor || wakatimeData.data?.data?.editor)}
+                  {getEditorIcon(wakatimeData.currentEditor || wakatimeData.currentStatus?.editor || wakatimeData.data?.data?.editor)}
                   <span className='font-semibold text-green-600 dark:text-green-400'>Currently coding</span>
                   <span>:</span>
-                  {wakatimeData.data?.data?.text && (
-                    <span className='font-semibold'>{wakatimeData.data.data.text}</span>
-                  )}
-                  {wakatimeData.currentStatus.project && (
+                  {(() => {
+                    if (sessionStartTime && currentSessionTime > 0) {
+                      return <span className='font-semibold'>{formatTime(currentSessionTime)} <span className='text-xs text-green-600 dark:text-green-400 opacity-75'>(live)</span></span>
+                    } else if (wakatimeData.accurateTimeToday && wakatimeData.accurateTimeToday > 0) {
+                      return <span className='font-semibold'>{formatTime(wakatimeData.accurateTimeToday)}</span>
+                    } else if (wakatimeData.data?.data?.text) {
+                      return <span className='font-semibold'>{wakatimeData.data.data.text}</span>
+                    }
+                    return null
+                  })()}
+                  {wakatimeData.currentStatus?.project && (
                     <span className='opacity-75'> on {wakatimeData.currentStatus.project}</span>
                   )}
                 </span>
@@ -150,14 +350,76 @@ const AboutMe = () => {
                   )}
                 </span>
               ) : wakatimeData?.allTime?.data?.text ? (
-                <span className='inline-flex items-center gap-1'>
+                <span className='inline-flex items-center gap-1 flex-wrap'>
                   {getEditorIcon(wakatimeData.data?.data?.editor) || <DiVisualstudio size={16} className="inline-block mr-1.5" />}
                   <span className='font-semibold'>Last Activity</span>
                   <span>:</span>
                   <span className='font-semibold'>{wakatimeData.allTime.data.text}</span>
-                  {wakatimeData.allTime.data.range && (
-                    <span className='opacity-75'> ({wakatimeData.allTime.data.range.text || 'recent'})</span>
-                  )}
+                  {(() => {
+                    const allTimeData = wakatimeData.allTime.data
+                    let lastActivityText = 'recent'
+                    let isRecentActivity = false
+                    let isOnline = false
+                    
+                    if (allTimeData.range) {
+                      const rangeText = allTimeData.range.text || allTimeData.range.start || ''
+                      if (rangeText.includes('today') || rangeText.includes('Today')) {
+                        lastActivityText = 'today'
+                        isRecentActivity = true
+                        isOnline = true
+                      } else if (rangeText.includes('yesterday') || rangeText.includes('Yesterday')) {
+                        lastActivityText = 'yesterday'
+                        isRecentActivity = true
+                      } else {
+                        try {
+                          const rangeDate = new Date(rangeText)
+                          if (!isNaN(rangeDate.getTime())) {
+                            const now = new Date()
+                            const diffTime = Math.abs(now - rangeDate)
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                            const diffHours = Math.floor(diffTime / (1000 * 60 * 60))
+                            
+                            if (diffDays === 0 && diffHours < 24) {
+                              if (diffHours < 6) {
+                                lastActivityText = `${diffHours}h ago`
+                                isOnline = true
+                              } else {
+                                lastActivityText = 'today'
+                                isOnline = true
+                              }
+                              isRecentActivity = true
+                            } else if (diffDays === 1) {
+                              lastActivityText = 'yesterday'
+                              isRecentActivity = true
+                            } else if (diffDays <= 6) {
+                              lastActivityText = 'recent'
+                              isRecentActivity = true
+                            } else {
+                              lastActivityText = `${diffDays} days ago`
+                              isRecentActivity = false
+                            }
+                          }
+                        } catch {
+                          lastActivityText = 'recent'
+                          isRecentActivity = true
+                        }
+                      }
+                    }
+                    
+                    return (
+                      <span className='opacity-75'>
+                        {isOnline ? (
+                          <span className='inline-flex items-center gap-1'>
+                            <span className='w-1.5 h-1.5 rounded-full bg-green-500 mr-1'></span>
+                            <span className='text-green-600 dark:text-green-400'>Online</span>
+                            <span> • {lastActivityText}</span>
+                          </span>
+                        ) : (
+                          <span> ({isRecentActivity ? 'recent' : lastActivityText})</span>
+                        )}
+                      </span>
+                    )
+                  })()}
                 </span>
               ) : (
                 'No recent coding activity - check out my GitHub activity below!'

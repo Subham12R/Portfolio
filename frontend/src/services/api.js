@@ -402,6 +402,12 @@ class ApiService {
     });
   }
 
+  async getWakaTimeStatus() {
+    return await this.request('/api/wakatime/status', {
+      requireAuth: false,
+    });
+  }
+
   async getWakaTimeToday() {
     return await this.request('/api/wakatime/today', {
       requireAuth: false,
@@ -410,6 +416,39 @@ class ApiService {
 
   async getWakaTimeAllTimeSinceToday() {
     return await this.request('/api/wakatime/all-time-since-today', {
+      requireAuth: false,
+    });
+  }
+
+  async getWakaTimeDurations(date = null) {
+    const query = date ? `?date=${date}` : '';
+    return await this.request(`/api/wakatime/durations${query}`, {
+      requireAuth: false,
+    });
+  }
+
+  async getWakaTimeHeartbeats(date = null) {
+    const query = date ? `?date=${date}` : '';
+    return await this.request(`/api/wakatime/heartbeats${query}`, {
+      requireAuth: false,
+    });
+  }
+
+  async getWakaTimeStats(range = null) {
+    const path = range ? `/api/wakatime/stats/${range}` : '/api/wakatime/stats';
+    return await this.request(path, {
+      requireAuth: false,
+    });
+  }
+
+  async getWakaTimeEditors() {
+    return await this.request('/api/wakatime/editors', {
+      requireAuth: false,
+    });
+  }
+
+  async getWakaTimeStatusBarToday() {
+    return await this.request('/api/wakatime/status-bar-today', {
       requireAuth: false,
     });
   }

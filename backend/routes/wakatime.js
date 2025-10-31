@@ -111,6 +111,15 @@ router.get('/today', async (req, res) => {
 // Get current status (what you're coding now)
 router.get('/status', async (req, res) => {
   try {
+    // Check if API key is configured
+    if (!WAKATIME_API_KEY) {
+      return res.json({
+        success: false,
+        error: 'WakaTime API key not configured',
+        details: 'WAKATIME_API_KEY environment variable is not set'
+      });
+    }
+
     // WakaTime uses Basic auth but differently - the API key is the username, password is empty
     const response = await fetch(`${WAKATIME_API_URL}/users/current/status`, {
       method: 'GET',
@@ -120,8 +129,24 @@ router.get('/status', async (req, res) => {
       }
     });
 
+    // Handle different error status codes - return 200 with error info instead of 500
     if (!response.ok) {
-      throw new Error(`WakaTime API error: ${response.status}`);
+      let errorText = 'Unknown error';
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        // If we can't read the error, just use status
+      }
+      
+      console.error(`WakaTime API error (${response.status}):`, errorText);
+      
+      // Return 200 with error info instead of 500 to prevent breaking frontend
+      return res.json({
+        success: false,
+        error: `WakaTime API error: ${response.status}`,
+        details: errorText,
+        statusCode: response.status
+      });
     }
 
     const data = await response.json();
@@ -132,8 +157,9 @@ router.get('/status', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('WakaTime API error:', error);
-    res.status(500).json({
+    console.error('WakaTime status API error:', error);
+    // Return 200 with error info instead of 500 to prevent breaking frontend
+    res.json({
       success: false,
       error: 'Failed to fetch WakaTime status',
       details: error.message
@@ -273,6 +299,175 @@ router.get('/all-time-since-today', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch WakaTime all time data',
+      details: error.message
+    });
+  }
+});
+
+// Get durations for current user (with optional date parameter)
+router.get('/durations', async (req, res) => {
+  try {
+    const { date } = req.query;
+    const dateParam = date ? `?date=${date}` : '';
+    
+    const response = await fetch(`${WAKATIME_API_URL}/users/current/durations${dateParam}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`WakaTime API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('WakaTime durations API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch WakaTime durations',
+      details: error.message
+    });
+  }
+});
+
+// Get heartbeats for current user (for real-time tracking)
+router.get('/heartbeats', async (req, res) => {
+  try {
+    const { date } = req.query;
+    const dateParam = date ? `?date=${date}` : '';
+    
+    const response = await fetch(`${WAKATIME_API_URL}/users/current/heartbeats${dateParam}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`WakaTime API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('WakaTime heartbeats API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch WakaTime heartbeats',
+      details: error.message
+    });
+  }
+});
+
+// Get stats for current user (with optional range parameter)
+router.get('/stats/:range?', async (req, res) => {
+  try {
+    const { range } = req.params;
+    const rangeParam = range ? `/${range}` : '';
+    
+    const response = await fetch(`${WAKATIME_API_URL}/users/current/stats${rangeParam}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`WakaTime API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('WakaTime stats API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch WakaTime stats',
+      details: error.message
+    });
+  }
+});
+
+// Get editors information
+router.get('/editors', async (req, res) => {
+  try {
+    const response = await fetch(`${WAKATIME_API_URL}/editors`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`WakaTime API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('WakaTime editors API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch WakaTime editors',
+      details: error.message
+    });
+  }
+});
+
+// Get status bar for today (enhanced version)
+router.get('/status-bar-today', async (req, res) => {
+  try {
+    const response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/today`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`WakaTime API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('WakaTime status bar today API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch WakaTime status bar today',
       details: error.message
     });
   }
