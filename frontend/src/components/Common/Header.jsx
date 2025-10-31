@@ -9,11 +9,11 @@ import {FaReact} from 'react-icons/fa';
 import { FaLinkedin } from "react-icons/fa";
 import { FaGithub } from "react-icons/fa";
 import { FaSquareXTwitter } from "react-icons/fa6";
-import { FaEnvelope } from "react-icons/fa";
+import { FaEnvelope, FaBookOpen } from "react-icons/fa";
 import { RiClipboardFill, RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "react-icons/ri";
 import { SiExpress } from "react-icons/si";
 import { BiLogoPostgresql, BiPaperPlane } from "react-icons/bi";
-
+import { Text } from '@radix-ui/themes';
 import Tooltip from '@mui/material/Tooltip';
 
 import { styled } from '@mui/material/styles';
@@ -75,7 +75,7 @@ const Header = () => {
                  <div className='w-full inline-flex flex-col justify-center items-start space-y-2'>
                     <div className='mb-2'>
                         
-                    <h1 className='text-3xl font-bold mb-2 dark:text-white'>Hi, I'm <span className='text-zinc-800 dark:text-zinc-200 font-bold '>Subham Karmakar.{" "} </span></h1>
+                    <h1 className='text-3xl font-bold mb-2 dark:text-zinc-400 text-zinc-600'>Hi, I'm <span className='text-zinc-800 dark:text-zinc-200  tracking-wider '>Subham Karmakar.{" "} </span></h1>
                     <DecryptedText
                         text="A Full Stack Web Developer."
                         speed={100}
@@ -104,7 +104,13 @@ const Header = () => {
                      <span>. </span>
                     With a focus on UI design and user experience. Currently keeping a close eye on the latest technologies and trends in web development.
                     </p>
+                    <div className='text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-2'>
+                        <FaBookOpen className='text-zinc-600 dark:text-zinc-400' />
+                        <Text>B.Tech CSE Student at <em>Adamas University</em>, Kolkata, India.</Text>
                     </div>
+                    </div>
+
+
 
                     <div className='mb-6 w-full flex justify-start items-center gap-4'>
                     <Tip title="Download Resume" placement="top" arrow isDark={isDark}>

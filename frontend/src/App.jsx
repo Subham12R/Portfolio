@@ -16,6 +16,7 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { ReactLenis } from 'lenis/react'
 import { Toaster } from 'sonner'
 
+
 function App() {
   const [isLoading, setIsLoading] = useState(true)
 
@@ -43,8 +44,8 @@ function App() {
               </Route>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/callback" element={<SpotifyCallback />} />
-            </Routes>
-            <Toaster richColors position="top-center" />
+              </Routes>
+              <Toaster richColors position="top-center" />
           </BrowserRouter>
         )}
       </PortfolioProvider>

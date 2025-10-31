@@ -18,6 +18,7 @@ import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
 import { useTheme } from '../contexts/ThemeContext';
 import { FaSquareXTwitter } from 'react-icons/fa6'
+import Assistant from '../components/Common/Assistant'
 
 const Tip = styled(({ className, ...props }) => (
     <Tooltip {...props} arrow classes={{ popper: className }} />
@@ -261,7 +262,7 @@ const Home = () => {
     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
       <Header />
       <Spotify />
-
+  
 
       {/* Work */}
       <div className='mt-8 mb-8'>
@@ -548,7 +549,7 @@ const Home = () => {
           </div>
         </div>
       )}
-
+    <Assistant />
 
     </div>
   )
