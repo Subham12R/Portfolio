@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { FaSpotify } from 'react-icons/fa'
 
-// API Base URL - Use apiService for consistency
-import apiService from '../../services/api';
+// API Base URL - Use production URL by default
+// For local development, set VITE_API_URL in .env file
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  // Default to production URL
+  return 'https://portfolio-ea4s.onrender.com';
+};
 
-// Get API base URL from apiService
-const API_BASE_URL = apiService.baseURL || 'https://portfolio-ea4s.onrender.com';
+const API_BASE_URL = getApiBaseUrl();
 
 // Personal Spotify "Now Playing" widget - displays what you're currently listening to
 const Spotify = () => {
