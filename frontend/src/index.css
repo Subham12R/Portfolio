@@ -272,3 +272,63 @@ span{
 .light {
   color-scheme: light;
 }
+
+/* Twitter Embed Styles - Remove white corners/borders */
+.blog-embed-container {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Remove all borders and white backgrounds from Twitter embeds */
+.blog-embed-container blockquote.twitter-tweet {
+  border: none !important;
+  border-radius: 12px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.blog-embed-container iframe[src*="twitter"],
+.blog-embed-container iframe[src*="x.com"] {
+  border: none !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Remove any white borders from Twitter widget container */
+.blog-embed-container > div {
+  border: none !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  overflow: hidden !important;
+}
+
+/* Target Twitter's embedded tweet wrapper */
+.blog-embed-container .twitter-tweet-rendered,
+.blog-embed-container .twitter-tweet {
+  border: none !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+}
+
+/* Ensure no white background on Twitter embeds for both themes */
+.blog-embed-container blockquote.twitter-tweet,
+.blog-embed-container iframe[src*="twitter"],
+.blog-embed-container iframe[src*="x.com"],
+.blog-embed-container .twitter-tweet-rendered {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Clip overflow to hide any white corners that might appear */
+.blog-embed-container {
+  clip-path: inset(0 round 12px);
+}

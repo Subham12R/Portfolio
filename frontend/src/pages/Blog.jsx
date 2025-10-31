@@ -288,13 +288,17 @@ const Blog = () => {
                 
                 {/* Actual embed - rendered but hidden until loaded */}
                 <div 
-                  className={`rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all duration-200 ${
+                  className={`rounded-xl overflow-hidden transition-all duration-200 ${
                     isLoaded ? 'block' : 'hidden'
                   }`}
                 >
                   <div 
                     className='blog-embed-container'
                     data-blog-id={blog.id}
+                    style={{
+                      borderRadius: '12px',
+                      overflow: 'hidden'
+                    }}
                     dangerouslySetInnerHTML={{ __html: processedCode }}
                   />
                 </div>
