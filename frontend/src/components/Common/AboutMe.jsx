@@ -3,10 +3,28 @@ import profileImage from '../../assets/profile.png'
 import { FaReact } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri'
 import { SiTypescript, SiJavascript, SiExpress, SiPostgresql } from 'react-icons/si'
+import { DiVisualstudio } from "react-icons/di";
 import GitHubCalendar from 'react-github-calendar';
 import { usePortfolio } from '../../contexts/PortfolioContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
+import cursorIcon from '../../assets/cursor.webp';
+
+// Get editor icon component
+const getEditorIcon = (editorName) => {
+  if (!editorName) return null;
+  
+  const editor = editorName.toLowerCase();
+  
+  if (editor.includes('cursor')) {
+    return <img src={cursorIcon} alt="Cursor" className="inline-block mr-1.5" style={{ width: '16px', height: '16px' }} />;
+  } else if (editor.includes('vscode') || editor.includes('visual studio code') || editor.includes('code')) {
+    return <DiVisualstudio size={16} className="inline-block mr-1.5" />;
+  }
+  
+  // Default: try VS Code icon
+  return <DiVisualstudio size={16} className="inline-block mr-1.5" />;
+};
 
 const AboutMe = () => {
   const { data, isLoading, error } = usePortfolio()
@@ -18,8 +36,13 @@ const AboutMe = () => {
   useEffect(() => {
     const fetchWakatime = async () => {
       try {
-        const data = await apiService.getWakaTimeStatusBar()
-        setWakatimeData(data)
+        const statusData = await apiService.getWakaTimeStatusBar()
+        const allTimeData = await apiService.getWakaTimeAllTimeSinceToday()
+        
+        setWakatimeData({
+          ...statusData,
+          allTime: allTimeData.success ? allTimeData.data : null
+        })
       } catch (error) {
         console.error('Failed to fetch WakaTime data:', error)
       } finally {
@@ -28,8 +51,8 @@ const AboutMe = () => {
     }
 
     fetchWakatime()
-    // Refresh every 2 minutes
-    const interval = setInterval(fetchWakatime, 120000)
+    // Refresh every 30 seconds for real-time updates
+    const interval = setInterval(fetchWakatime, 30000)
     
     return () => clearInterval(interval)
   }, [])
@@ -95,14 +118,45 @@ const AboutMe = () => {
             <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'>
               {wakatimeLoading ? (
                 'Loading coding stats...'
-              ) : wakatimeData?.success && wakatimeData.data?.data && wakatimeData.data.data.text ? (
-                <span>
-                  <span className='font-semibold'>{wakatimeData.data.data.text}</span> {wakatimeData.isToday ? 'today' : 'yesterday'} in {wakatimeData.data.data.editor}
-                  {wakatimeData.data.data.project && (
-                    <span> on <span className='font-semibold'>{wakatimeData.data.data.project}</span></span>
+              ) : wakatimeData?.isCurrentlyCoding && wakatimeData.currentStatus ? (
+                <span className='inline-flex items-center gap-1'>
+                  <span className='w-2 h-2 rounded-full bg-green-500 animate-pulse mr-1'></span>
+                  {getEditorIcon(wakatimeData.currentStatus.editor || wakatimeData.data?.data?.editor)}
+                  <span className='font-semibold text-green-600 dark:text-green-400'>Currently coding</span>
+                  <span>:</span>
+                  {wakatimeData.data?.data?.text && (
+                    <span className='font-semibold'>{wakatimeData.data.data.text}</span>
                   )}
-                  {wakatimeData.data.data.languages && wakatimeData.data.data.languages.length > 0 && (
-                    <span> using {wakatimeData.data.data.languages.map(lang => lang.name || lang).join(', ')}</span>
+                  {wakatimeData.currentStatus.project && (
+                    <span className='opacity-75'> on {wakatimeData.currentStatus.project}</span>
+                  )}
+                </span>
+              ) : wakatimeData?.success && wakatimeData.data?.data && wakatimeData.data.data.text ? (
+                <span className='inline-flex items-center gap-1 flex-wrap'>
+                  {getEditorIcon(wakatimeData.data.data.editor)}
+                  <span className='font-semibold'>{wakatimeData.data.data.editor || 'Last Activity'}</span>
+                  <span>:</span>
+                  <span className='font-semibold'>{wakatimeData.data.data.text}</span>
+                  {wakatimeData.isToday ? (
+                    <span className='opacity-75'> today</span>
+                  ) : (
+                    <span className='opacity-75'> yesterday</span>
+                  )}
+                  {wakatimeData.data.data.project && (
+                    <span className='opacity-75'> on {wakatimeData.data.data.project}</span>
+                  )}
+                  {wakatimeData?.allTime?.data?.text && (
+                    <span className='opacity-75'> • Total: {wakatimeData.allTime.data.text}</span>
+                  )}
+                </span>
+              ) : wakatimeData?.allTime?.data?.text ? (
+                <span className='inline-flex items-center gap-1'>
+                  {getEditorIcon(wakatimeData.data?.data?.editor) || <DiVisualstudio size={16} className="inline-block mr-1.5" />}
+                  <span className='font-semibold'>Last Activity</span>
+                  <span>:</span>
+                  <span className='font-semibold'>{wakatimeData.allTime.data.text}</span>
+                  {wakatimeData.allTime.data.range && (
+                    <span className='opacity-75'> ({wakatimeData.allTime.data.range.text || 'recent'})</span>
                   )}
                 </span>
               ) : (

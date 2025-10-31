@@ -13,7 +13,9 @@ import { FaEnvelope, FaBookOpen } from "react-icons/fa";
 import { RiClipboardFill, RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "react-icons/ri";
 
 import { BiLogoPostgresql, BiPaperPlane } from "react-icons/bi";
+import { DiVisualstudio } from "react-icons/di";
 import Tooltip from '@mui/material/Tooltip';
+import cursorIcon from '../../assets/cursor.webp';
 import { Text } from '@radix-ui/themes';
 import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
@@ -39,6 +41,52 @@ const Tip = styled(({ className, ...props }) => (
     },
   }));
 
+// Custom styled tooltip for WakaTime activity with glassmorphism design
+const CustomWakaTip = styled(({ className, ...props }) => (
+    <Tooltip {...props} arrow classes={{ popper: className }} />
+  ))(({ isDark }) => ({
+    [`& .${tooltipClasses.arrow}`]: {
+      color: isDark 
+        ? 'rgba(255, 255, 255, 0.1)' 
+        : 'rgba(0, 0, 0, 0.1)',
+    },
+    [`& .${tooltipClasses.tooltip}`]: {
+      backgroundColor: isDark 
+        ? 'rgba(30, 30, 30, 0.8)' 
+        : 'rgba(255, 255, 255, 0.8)',
+      backdropFilter: 'blur(16px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      border: isDark 
+        ? '1px solid rgba(255, 255, 255, 0.1)' 
+        : '1px solid rgba(0, 0, 0, 0.1)',
+      color: isDark ? '#ffffff' : '#000000',
+      fontSize: '0.85rem',
+      fontWeight: '400',
+      padding: '12px 16px',
+      maxWidth: '320px',
+      borderRadius: '12px',
+      boxShadow: isDark
+        ? '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+        : '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+    },
+  }));
+
+// Get editor icon component
+const getEditorIcon = (editorName) => {
+  if (!editorName) return null;
+  
+  const editor = editorName.toLowerCase();
+  
+  if (editor.includes('cursor')) {
+    return <img src={cursorIcon} alt="Cursor" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />;
+  } else if (editor.includes('vscode') || editor.includes('visual studio code') || editor.includes('code')) {
+    return <DiVisualstudio size={18} className="inline-block mr-1.5" />;
+  }
+  
+  // Default: try VS Code icon
+  return <DiVisualstudio size={18} className="inline-block mr-1.5" />;
+};
+
 const Header = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -51,17 +99,15 @@ const Header = () => {
     const fetchWakatime = async () => {
       try {
         const statusData = await apiService.getWakaTimeStatusBar();
-        // Fetch all time since today to get better last activity data
+        // Fetch all time since today to get total time
         const allTimeData = await apiService.getWakaTimeAllTimeSinceToday();
         
         if (statusData.success) {
-          // Check if actively coding (data exists and not 0)
-          const hasActiveData = statusData.data?.data && 
-                               statusData.data.data.text && 
-                               statusData.data.data.text !== '0 secs';
-          setIsActive(hasActiveData && statusData.isToday);
+          // Check if actively coding (from backend detection)
+          const isCodingNow = statusData.isCurrentlyCoding === true;
+          setIsActive(isCodingNow);
           
-          // Combine status data with all time data for better last activity info
+          // Combine status data with all time data
           setWakatimeData({
             ...statusData,
             allTime: allTimeData.success ? allTimeData.data : null
@@ -73,6 +119,7 @@ const Header = () => {
               success: true,
               data: null,
               isToday: false,
+              isCurrentlyCoding: false,
               allTime: allTimeData.data
             });
           }
@@ -85,86 +132,155 @@ const Header = () => {
     };
 
     fetchWakatime();
-    // Refresh every 2 minutes for real-time updates
-    const interval = setInterval(fetchWakatime, 120000);
+    // Refresh more frequently for real-time updates - every 30 seconds
+    const interval = setInterval(fetchWakatime, 30000);
     
     return () => clearInterval(interval);
   }, []);
 
-  // Format tooltip content for WakaTime activity
-  const getActivityTooltip = () => {
-    // If there's current activity data
+  // Format custom tooltip content for WakaTime activity
+  const getActivityTooltipContent = () => {
+    // If currently coding, show current session info
+    if (isActive && wakatimeData?.currentStatus?.entity) {
+      const current = wakatimeData.currentStatus;
+      const editor = current.editor || wakatimeData.data?.data?.editor;
+      const editorIcon = getEditorIcon(editor);
+      const timeToday = wakatimeData.data?.data?.text || '0 secs';
+      
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            <span className="font-semibold">Currently Coding</span>
+          </div>
+          {editor && (
+            <div className="flex items-center gap-2 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
+              {editorIcon}
+              <span className="font-medium">{editor}</span>
+              <span style={{ opacity: 0.8 }}>:</span>
+              <span className="font-semibold">{timeToday}</span>
+            </div>
+          )}
+          {current.project && (
+            <div className="text-sm opacity-90">
+              Project: <span className="font-medium">{current.project}</span>
+            </div>
+          )}
+          {current.language && (
+            <div className="text-sm opacity-90">
+              Language: <span className="font-medium">{current.language}</span>
+            </div>
+          )}
+          {current.entity && (
+            <div className="text-sm opacity-90">
+              File: <span className="font-medium">{current.entity}</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // If there's current activity data (but not actively coding right now)
     if (wakatimeData && wakatimeData.success && wakatimeData.data?.data) {
       const activity = wakatimeData.data.data;
       const isToday = wakatimeData.isToday;
+      const editor = activity.editor;
+      const editorIcon = getEditorIcon(editor);
+      const timeText = activity.text;
+      const totalTime = wakatimeData?.allTime?.data?.text;
       
-      // Check if actually has coding time
-      if (activity.text && activity.text !== '0 secs') {
-        let content = `Coded ${activity.text} ${isToday ? 'today' : 'yesterday'}`;
-        
-        if (activity.editor) {
-          content += ` in ${activity.editor}`;
-        }
-        
-        if (activity.project) {
-          content += ` on ${activity.project}`;
-        }
-
-        if (activity.languages && activity.languages.length > 0) {
-          const langNames = activity.languages.map(lang => lang.name || lang).join(', ');
-          content += ` using ${langNames}`;
-        }
-
-        return content;
+      if (timeText && timeText !== '0 secs') {
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              {editorIcon}
+              <span className="font-medium">{editor || 'Editor'}</span>
+              <span style={{ opacity: 0.8 }}>:</span>
+              <span className="font-semibold">{timeText}</span>
+            </div>
+            <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
+              Last coded {isToday ? 'today' : 'yesterday'}
+            </div>
+            {activity.project && (
+              <div className="text-sm opacity-90">
+                Project: <span className="font-medium">{activity.project}</span>
+              </div>
+            )}
+            {activity.languages && activity.languages.length > 0 && (
+              <div className="text-sm opacity-90">
+                Languages: <span className="font-medium">{activity.languages.map(lang => lang.name || lang).join(', ')}</span>
+              </div>
+            )}
+            {totalTime && (
+              <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
+                Total: <span className="font-semibold">{totalTime}</span> all time
+              </div>
+            )}
+          </div>
+        );
       }
     }
 
-    // No current activity, show last activity from all_time_since_today
+    // No current activity, show total time from all_time_since_today
     if (wakatimeData?.allTime?.data) {
       const allTimeData = wakatimeData.allTime.data;
       
       if (allTimeData.text) {
-        let content = `Last activity: ${allTimeData.text}`;
-        
-        // Parse the range to get the date
+        let lastActivityText = 'recent';
         if (allTimeData.range) {
           const rangeText = allTimeData.range.text || allTimeData.range.start || '';
-          
-          // Try to extract date information
           if (rangeText.includes('today') || rangeText.includes('Today')) {
-            content += ' today';
+            lastActivityText = 'today';
           } else if (rangeText.includes('yesterday') || rangeText.includes('Yesterday')) {
-            content += ' yesterday';
+            lastActivityText = 'yesterday';
           } else {
-            // Try to parse date from range
             try {
               const rangeDate = new Date(rangeText);
               if (!isNaN(rangeDate.getTime())) {
                 const now = new Date();
                 const diffTime = Math.abs(now - rangeDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
                 if (diffDays === 1) {
-                  content += ' yesterday';
+                  lastActivityText = 'yesterday';
                 } else if (diffDays <= 7) {
-                  content += ` ${diffDays} days ago`;
+                  lastActivityText = `${diffDays} days ago`;
                 } else {
-                  content += ` on ${rangeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                  lastActivityText = rangeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 }
               } else {
-                content += ` (${rangeText})`;
+                lastActivityText = rangeText;
               }
             } catch {
-              content += ` (${rangeText})`;
+              lastActivityText = rangeText;
             }
           }
         }
         
-        return content;
+        // Try to get editor from last activity if available
+        const editor = wakatimeData.data?.data?.editor;
+        const editorIcon = getEditorIcon(editor);
+        
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              {editorIcon || <DiVisualstudio size={18} className="inline-block mr-1.5" />}
+              <span className="font-medium">{editor || 'Last Activity'}</span>
+              <span style={{ opacity: 0.8 }}>:</span>
+              <span className="font-semibold">{allTimeData.text}</span>
+            </div>
+            <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
+              Last activity: <span className="font-medium">{lastActivityText}</span>
+            </div>
+          </div>
+        );
       }
     }
 
-    return 'No coding activity detected';
+    return (
+      <div className="space-y-2">
+        <div className="text-sm opacity-90">No coding activity detected</div>
+      </div>
+    );
   };
 
   // Function to download resume from assets
@@ -193,7 +309,12 @@ const Header = () => {
                                     <div className="relative">
                                         <img src={profileImage} alt="profile image" className='w-24 h-24 rounded-full object-cover shadow-md ' />
 
-                                        <Tip title={getActivityTooltip()} placement="right" arrow isDark={isDark}>
+                                        <CustomWakaTip 
+                                          title={getActivityTooltipContent()} 
+                                          placement="right" 
+                                          arrow 
+                                          isDark={isDark}
+                                        >
                                           <span 
                                             className={`absolute bottom-1 right-3 inline-block w-2 h-2 rounded-full ring-2 ring-offset-2 dark:ring-offset-zinc-950 z-10 transition-all duration-300 ${
                                               isActive 
@@ -201,7 +322,7 @@ const Header = () => {
                                                 : 'bg-gray-400 ring-gray-300 dark:ring-gray-600'
                                             }`}
                                           ></span>
-                                        </Tip>
+                                        </CustomWakaTip>
                                     </div>
 
                             </div>

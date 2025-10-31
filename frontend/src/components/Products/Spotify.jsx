@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { FaSpotify } from 'react-icons/fa'
 
-// API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-ea4s.onrender.com';
+// API Base URL - Use apiService for consistency
+import apiService from '../../services/api';
+
+// Get API base URL from apiService
+const API_BASE_URL = apiService.baseURL || 'https://portfolio-ea4s.onrender.com';
 
 // Personal Spotify "Now Playing" widget - displays what you're currently listening to
 const Spotify = () => {

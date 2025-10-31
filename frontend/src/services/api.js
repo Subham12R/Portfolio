@@ -1,4 +1,26 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-ea4s.onrender.com';
+// Production-ready API configuration
+const getApiBaseUrl = () => {
+  // Priority 1: Check if VITE_API_URL is explicitly set (for custom deployments)
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Priority 2: Default to production URL (for all deployments)
+  const productionUrl = 'https://portfolio-ea4s.onrender.com';
+  
+  // Priority 3: Only use localhost if explicitly in development mode AND running locally
+  // This ensures production builds always use the production URL
+  if (import.meta.env.DEV && typeof window !== 'undefined' && 
+      (window.location.hostname === 'localhost' || 
+       window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:5000';
+  }
+  
+  // Default to production URL
+  return productionUrl;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 class ApiService {
   constructor() {

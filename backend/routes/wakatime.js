@@ -144,7 +144,34 @@ router.get('/status', async (req, res) => {
 // Get status bar data (current coding activity)
 router.get('/status-bar', async (req, res) => {
   try {
-    // First try today's data
+    // First check current status to see if actively coding right now
+    let currentStatusResponse = await fetch(`${WAKATIME_API_URL}/users/current/status`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    let isCurrentlyCoding = false;
+    let currentStatusData = null;
+
+    if (currentStatusResponse.ok) {
+      currentStatusData = await currentStatusResponse.json();
+      // Check if currently coding (entity exists and is recent)
+      if (currentStatusData.data && currentStatusData.data.entity) {
+        // Check if last heartbeat is within last 2 minutes (actively coding)
+        const lastHeartbeat = currentStatusData.data.last_heartbeat_at;
+        if (lastHeartbeat) {
+          const heartbeatTime = new Date(lastHeartbeat);
+          const now = new Date();
+          const diffMinutes = (now - heartbeatTime) / (1000 * 60);
+          isCurrentlyCoding = diffMinutes < 2;
+        }
+      }
+    }
+
+    // Get status bar for today
     let response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/today`, {
       method: 'GET',
       headers: {
@@ -163,7 +190,9 @@ router.get('/status-bar', async (req, res) => {
         res.json({
           success: true,
           data: data,
-          isToday: true
+          isToday: true,
+          isCurrentlyCoding: isCurrentlyCoding,
+          currentStatus: currentStatusData?.data || null
         });
         return;
       }
@@ -191,7 +220,9 @@ router.get('/status-bar', async (req, res) => {
       res.json({
         success: true,
         data: data,
-        isToday: isToday
+        isToday: isToday,
+        isCurrentlyCoding: isCurrentlyCoding,
+        currentStatus: currentStatusData?.data || null
       });
     } else {
       // No data for today or yesterday
@@ -199,6 +230,8 @@ router.get('/status-bar', async (req, res) => {
         success: true,
         data: null,
         isToday: false,
+        isCurrentlyCoding: isCurrentlyCoding,
+        currentStatus: currentStatusData?.data || null,
         message: 'No recent coding activity found'
       });
     }
@@ -208,6 +241,38 @@ router.get('/status-bar', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch WakaTime status bar data',
+      details: error.message
+    });
+  }
+});
+
+// Get all time since today (total coding time and last activity)
+router.get('/all-time-since-today', async (req, res) => {
+  try {
+    const response = await fetch(`${WAKATIME_API_URL}/users/current/all_time_since_today`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`WakaTime API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('WakaTime all time API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch WakaTime all time data',
       details: error.message
     });
   }
