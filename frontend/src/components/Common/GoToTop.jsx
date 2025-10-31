@@ -32,7 +32,7 @@ const GoToTop = () => {
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 bg-zinc-800 hover:bg-zinc-900 cursor-pointer text-white p-3 rounded-full shadow-lg transition-all duration-300 ease-in-out hover:scale-110 "
+          className="fixed bottom-8 right-8 z-50 bg-zinc-800 hover:bg-zinc-900 cursor-pointer text-white p-3 rounded-full shadow-lg transition-all duration-300 ease-in-out hover:scale-110 md:block hidden"
           aria-label="Go to top"
         >
           <svg

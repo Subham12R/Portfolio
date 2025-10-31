@@ -2,8 +2,13 @@ const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const router = express.Router();
 
+// Check if Gemini API key is configured
+if (!process.env.GEMINI_API_KEY) {
+  console.warn('⚠️  WARNING: GEMINI_API_KEY not found in environment variables. AI Assistant will not work.');
+}
+
 // Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 router.post('/chat', async (req, res) => {
   try {
@@ -13,8 +18,15 @@ router.post('/chat', async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    // Get the Gemini model
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // Check if Gemini AI is configured
+    if (!genAI) {
+      return res.status(503).json({ 
+        error: 'AI Assistant is not configured. Please add GEMINI_API_KEY to your environment variables.' 
+      });
+    }
+
+    // Get the Gemini model - using gemini-1.5-flash for better performance
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // Create conversation context for the AI
     const systemPrompt = `You are a helpful and friendly AI assistant for a developer's portfolio website. 
@@ -60,9 +72,16 @@ Keep responses brief, conversational, and user-friendly.`;
 
   } catch (error) {
     console.error('Gemini AI Error:', error);
+    console.error('Error Details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    
     res.status(500).json({
       error: 'Failed to get AI response',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      hint: 'Check your GEMINI_API_KEY and ensure it is valid'
     });
   }
 });
