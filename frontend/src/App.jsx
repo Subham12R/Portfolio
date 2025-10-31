@@ -8,6 +8,7 @@ import UserLayout from './components/Layout/UserLayout'
 import Work from './pages/Work'
 import Gears from './pages/Gears'
 import CursorSetup from './pages/CursorSetup'
+import Blog from './pages/Blog'
 import AdminPage from './admin/AdminPage'
 import SpotifyCallback from './pages/SpotifyCallback'
 import Preloader from './components/Common/Preloader'
@@ -41,6 +42,7 @@ function App() {
                 <Route path="work" element={<Work />} />
                 <Route path="gears" element={<Gears />} />
                 <Route path="setup" element={<CursorSetup />} />
+                <Route path="blog" element={<Blog />} />
               </Route>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/callback" element={<SpotifyCallback />} />

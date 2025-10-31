@@ -113,7 +113,10 @@ class ApiService {
   }
 
   async verifyToken() {
-    return await this.request('/api/auth/verify');
+    // Verify endpoint doesn't require auth, it checks if token is valid
+    return await this.request('/api/auth/verify', {
+      requireAuth: false,
+    });
   }
 
   // Projects API
@@ -449,6 +452,54 @@ class ApiService {
 
   async getWakaTimeStatusBarToday() {
     return await this.request('/api/wakatime/status-bar-today', {
+      requireAuth: false,
+    });
+  }
+
+  // Blogs API methods (stored blog posts with embedded codes)
+  async getBlogs() {
+    return await this.request('/api/blogs', {
+      requireAuth: false,
+    });
+  }
+
+  async getBlog(id) {
+    return await this.request(`/api/blogs/${id}`, {
+      requireAuth: false,
+    });
+  }
+
+  async createBlog(blogData) {
+    return await this.request('/api/blogs', {
+      method: 'POST',
+      body: JSON.stringify(blogData),
+    });
+  }
+
+  async updateBlog(id, blogData) {
+    return await this.request(`/api/blogs/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(blogData),
+    });
+  }
+
+  async deleteBlog(id) {
+    return await this.request(`/api/blogs/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Twitter/Blog API methods (using OEmbed - no auth required)
+  async getTwitterPosts(username = null) {
+    const query = username ? `?username=${encodeURIComponent(username)}` : '';
+    return await this.request(`/api/blog/tweets${query}`, {
+      requireAuth: false,
+    });
+  }
+
+  async getTwitterTweetEmbed(tweetUrl) {
+    const query = tweetUrl ? `?url=${encodeURIComponent(tweetUrl)}` : '';
+    return await this.request(`/api/blog/tweet${query}`, {
       requireAuth: false,
     });
   }

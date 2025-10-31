@@ -192,7 +192,8 @@ const defaultData = {
       linkedin: 'https://linkedin.com/in/yourusername',
       twitter: 'https://twitter.com/yourusername'
     }
-  }
+  },
+  blogs: []
 }
 
 export const PortfolioProvider = ({ children }) => {
@@ -214,14 +215,28 @@ export const PortfolioProvider = ({ children }) => {
       const token = localStorage.getItem('auth-token')
       if (token) {
         apiService.setToken(token)
+      } else {
+        // No token, definitely not authenticated
+        setIsAuthenticated(false)
+        return
       }
       
       const response = await apiService.verifyToken()
-      setIsAuthenticated(true)
+      if (response.valid && response.authenticated) {
+        setIsAuthenticated(true)
+      } else {
+        setIsAuthenticated(false)
+        // Clear invalid token
+        apiService.setToken(null)
+      }
     } catch (error) {
       setIsAuthenticated(false)
       // Clear invalid token
       apiService.setToken(null)
+      // Don't log errors for missing tokens - this is expected
+      if (error.message && !error.message.includes('Access token required')) {
+        console.error('Authentication check error:', error)
+      }
     }
   }
 
@@ -231,12 +246,13 @@ export const PortfolioProvider = ({ children }) => {
     setError(null)
     
     try {
-      const [projects, workExperience, certificates, gears, aboutMe] = await Promise.all([
+      const [projects, workExperience, certificates, gears, aboutMe, blogsResponse] = await Promise.all([
         apiService.getProjects(),
         apiService.getWorkExperience(),
         apiService.getCertificates(),
         apiService.getGears(),
-        apiService.getAboutMe()
+        apiService.getAboutMe(),
+        apiService.getBlogs().catch(() => ({ blogs: [] })) // Don't fail if blogs endpoint doesn't exist yet
       ])
 
       setData({
@@ -244,7 +260,8 @@ export const PortfolioProvider = ({ children }) => {
         workExperience: workExperience || [],
         certificates: certificates || [],
         gears: gears || { devices: [], extensions: [] },
-        aboutMe: aboutMe || defaultData.aboutMe
+        aboutMe: aboutMe || defaultData.aboutMe,
+        blogs: blogsResponse?.blogs || []
       })
     } catch (error) {
       console.error('Error loading portfolio data:', error)
@@ -488,6 +505,54 @@ export const PortfolioProvider = ({ children }) => {
     }
   }
 
+  const addBlog = async (blog) => {
+    try {
+      const response = await apiService.createBlog(blog)
+      const newBlog = response.blog || response
+      setData(prev => ({
+        ...prev,
+        blogs: [...prev.blogs, newBlog]
+      }))
+      return newBlog
+    } catch (error) {
+      console.error('Error creating blog:', error)
+      setError('Failed to create blog')
+      throw error
+    }
+  }
+
+  const updateBlog = async (id, updatedBlog) => {
+    try {
+      const response = await apiService.updateBlog(id, updatedBlog)
+      const blog = response.blog || response
+      setData(prev => ({
+        ...prev,
+        blogs: prev.blogs.map(b => 
+          b.id === id ? blog : b
+        )
+      }))
+      return blog
+    } catch (error) {
+      console.error('Error updating blog:', error)
+      setError('Failed to update blog')
+      throw error
+    }
+  }
+
+  const deleteBlog = async (id) => {
+    try {
+      await apiService.deleteBlog(id)
+      setData(prev => ({
+        ...prev,
+        blogs: prev.blogs.filter(blog => blog.id !== id)
+      }))
+    } catch (error) {
+      console.error('Error deleting blog:', error)
+      setError('Failed to delete blog')
+      throw error
+    }
+  }
+
   const resetData = () => {
     setData(defaultData)
   }
@@ -584,6 +649,9 @@ export const PortfolioProvider = ({ children }) => {
     addGear,
     updateGear,
     deleteGear,
+    addBlog,
+    updateBlog,
+    deleteBlog,
     resetData,
     exportData,
     importData,

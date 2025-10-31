@@ -241,16 +241,62 @@ router.post('/logout', authenticateToken, (req, res) => {
   res.json({ message: 'Logout successful' });
 });
 
-// Verify token
-router.get('/verify', authenticateToken, (req, res) => {
-  res.json({
-    valid: true,
-    user: {
-      id: req.user.id,
-      email: req.user.email,
-      role: req.user.role
+// Verify token (optional - returns false if no token or invalid token)
+router.get('/verify', async (req, res) => {
+  try {
+    // Try to authenticate, but don't fail if no token
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.json({
+        valid: false,
+        authenticated: false
+      });
     }
-  });
+
+    // Verify token
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Check if user exists and is active
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('id, email, role, is_active')
+        .eq('id', decoded.userId)
+        .single();
+
+      if (error || !user || !user.is_active) {
+        return res.json({
+          valid: false,
+          authenticated: false
+        });
+      }
+
+      return res.json({
+        valid: true,
+        authenticated: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role
+        }
+      });
+    } catch (jwtError) {
+      // Token is invalid or expired
+      return res.json({
+        valid: false,
+        authenticated: false,
+        error: 'Invalid or expired token'
+      });
+    }
+  } catch (error) {
+    console.error('Verify token error:', error);
+    res.json({
+      valid: false,
+      authenticated: false
+    });
+  }
 });
 
 module.exports = router;

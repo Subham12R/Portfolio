@@ -12,6 +12,7 @@ const navLinks = [
   { to: '/work', label: 'Work' },
   { to: '/gears', label: 'Gears' },
   { to: '/setup', label: 'Setup' },
+  { to: '/blog', label: 'Blog' },
 ]
 
 const Navbar = () => {
@@ -74,7 +75,7 @@ const Navbar = () => {
                         Certificates
                     </NavLink>
                 </li>
-                <li>
+                {/* <li>
                     <NavLink 
                         to="/contact" 
                         className={({ isActive }) => 
@@ -83,7 +84,7 @@ const Navbar = () => {
                     >
                         Contact
                     </NavLink>
-                </li>
+                </li> */}
                 <li>
                     <NavLink 
                         to="/work" 
@@ -112,6 +113,16 @@ const Navbar = () => {
                         }
                     >
                         Setup
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink 
+                        to="/blog" 
+                        className={({ isActive }) => 
+                            `px-2 py-3 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
+                        }
+                    >
+                        Blog
                     </NavLink>
                 </li>
             </ul>

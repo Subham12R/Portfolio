@@ -14,7 +14,8 @@ import {
   FaSignOutAlt,
   FaDownload,
   FaUpload,
-  FaUndo
+  FaUndo,
+  FaBlog
 } from 'react-icons/fa'
 import { usePortfolio } from '../contexts/PortfolioContext'
 import AdminAuth from '../components/Admin/AdminAuth'
@@ -41,6 +42,9 @@ const AdminPage = () => {
     addGear,
     updateGear,
     deleteGear,
+    addBlog,
+    updateBlog,
+    deleteBlog,
     updateAboutMe,
     resetData,
     exportData,
@@ -59,6 +63,7 @@ const AdminPage = () => {
     { id: 'work', label: 'Work Experience', icon: FaBriefcase },
     { id: 'certificates', label: 'Certificates', icon: FaCertificate },
     { id: 'gears', label: 'Gears & Tools', icon: FaDesktop },
+    { id: 'blogs', label: 'Blogs', icon: FaBlog },
     { id: 'about', label: 'About Me', icon: FaUser }
   ]
 
@@ -86,6 +91,8 @@ const AdminPage = () => {
         deleteWorkExperience(id)
       } else if (activeTab === 'certificates') {
         deleteCertificate(id)
+      } else if (activeTab === 'blogs') {
+        deleteBlog(id)
       }
     }
   }
@@ -123,6 +130,16 @@ const AdminPage = () => {
         addCertificate(editingItem)
       } else {
         updateCertificate(editingItem.id, editingItem)
+      }
+    } else if (activeTab === 'blogs') {
+      if (isAdding) {
+        addBlog(editingItem)
+          .then(() => toast.success('Blog created successfully'))
+          .catch(() => toast.error('Failed to create blog'))
+      } else {
+        updateBlog(editingItem.id, editingItem)
+          .then(() => toast.success('Blog updated successfully'))
+          .catch(() => toast.error('Failed to update blog'))
       }
     }
     
@@ -191,6 +208,12 @@ const AdminPage = () => {
           linkedin: '',
           twitter: ''
         }
+      },
+      blogs: {
+        title: '',
+        embedded_code: '',
+        description: '',
+        order_index: 0
       }
     }
     return emptyItems[type] || {}
@@ -295,6 +318,44 @@ const AdminPage = () => {
             </div>
         </div>
       ))}
+    </div>
+  )
+
+  const renderBlogs = () => (
+    <div className="space-y-4">
+      {data.blogs && data.blogs.length > 0 ? (
+        data.blogs.map((blog) => (
+          <div key={blog.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div className="flex flex-col sm:flex-row justify-between items-start">
+              <div className="flex-1 w-full">
+                <h3 className="font-semibold text-lg text-gray-900 w-full sm:w-auto">{blog.title || 'Untitled Blog'}</h3>
+                {blog.description && (
+                  <p className="text-gray-600 text-sm mt-1">{blog.description}</p>
+                )}
+                <p className="text-gray-500 text-xs mt-2">Order: {blog.order_index || 0}</p>
+              </div>
+              <div className="flex gap-1 mt-3 sm:mt-0 sm:ml-4">
+                <button
+                  onClick={() => handleEdit(blog)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
+                >
+                  <FaEdit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(blog.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+                >
+                  <FaTrash className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="text-center py-8 text-gray-500">
+          <p>No blogs yet. Click "Add Blog" to create your first blog post.</p>
+        </div>
+      )}
     </div>
   )
 
@@ -799,6 +860,62 @@ const AdminPage = () => {
               </>
             )}
 
+            {activeTab === 'blogs' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                  <input
+                    type="text"
+                    value={editingItem.title || ''}
+                    onChange={(e) => setEditingItem({...editingItem, title: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
+                    placeholder="Blog post title"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Embedded Code *</label>
+                  <textarea
+                    value={editingItem.embedded_code || ''}
+                    onChange={(e) => setEditingItem({...editingItem, embedded_code: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white font-mono text-sm"
+                    rows="8"
+                    placeholder="Paste your embedded code here (e.g., Twitter embed, YouTube embed, etc.)"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Paste the complete HTML embed code here. For Twitter embeds, paste ONLY the &lt;blockquote&gt; part (remove the &lt;script&gt; tag). The script is handled automatically.
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1 font-medium">
+                    💡 Tip: For Twitter, copy only the blockquote element from the embed code, not the script tag.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                  <textarea
+                    value={editingItem.description || ''}
+                    onChange={(e) => setEditingItem({...editingItem, description: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
+                    rows="3"
+                    placeholder="Optional description for this blog post"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Order Index</label>
+                  <input
+                    type="number"
+                    value={editingItem.order_index || 0}
+                    onChange={(e) => setEditingItem({...editingItem, order_index: parseInt(e.target.value) || 0})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white"
+                    placeholder="0"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Lower numbers appear first. Blogs are ordered by this index, then by creation date.
+                  </p>
+                </div>
+              </>
+            )}
+
             {activeTab === 'about' && (
               <>
                 <div className="grid grid-cols-2 gap-4">
@@ -928,6 +1045,8 @@ const AdminPage = () => {
         return renderCertificates()
       case 'gears':
         return renderGears()
+      case 'blogs':
+        return renderBlogs()
       case 'about':
         return renderAboutMe()
       default:
