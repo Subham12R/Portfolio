@@ -76,7 +76,7 @@ const Header = () => {
                  <div className='w-full inline-flex flex-col justify-center items-start space-y-2'>
                     <div className='mb-2'>
                         
-                    <h1 className='text-3xl font-bold mb-2 dark:text-zinc-200 text-zinc-900 tracking-tight'>Hi, I'm Subham - <Text as='span' className='text-blue-500 font-bold'>A Full Stack Web Developer.</Text></h1>
+                    <h1 className='text-3xl mb-2 dark:text-zinc-200 text-zinc-900 tracking-tight font-bold'><span className='font-bold text-zinc-800 dark:text-zinc-200'>Hi, I'm Subham</span> - <Text as='span' className='text-blue-500 font-bold'>A Full Stack Web Developer.</Text></h1>
                     {/* <DecryptedText
                         text="A Full Stack Web Developer."
                         speed={100}
