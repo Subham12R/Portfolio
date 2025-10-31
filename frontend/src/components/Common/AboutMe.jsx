@@ -19,11 +19,11 @@ const getEditorIcon = (editorName) => {
   if (editor.includes('cursor')) {
     return <img src={cursorIcon} alt="Cursor" className="inline-block mr-1.5" style={{ width: '16px', height: '16px' }} />;
   } else if (editor.includes('vscode') || editor.includes('visual studio code') || editor.includes('code')) {
-    return <DiVisualstudio size={16} className="inline-block mr-1.5" />;
+    return <DiVisualstudio size={16} className="inline-block mr-1.5 text-blue-500" />;
   }
   
-  // Default: try VS Code icon
-  return <DiVisualstudio size={16} className="inline-block mr-1.5" />;
+  // Default: try VS Code icon in blue
+  return <DiVisualstudio size={16} className="inline-block mr-1.5 text-blue-500" />;
 };
 
 const AboutMe = () => {
@@ -351,74 +351,38 @@ const AboutMe = () => {
                 </span>
               ) : wakatimeData?.allTime?.data?.text ? (
                 <span className='inline-flex items-center gap-1 flex-wrap'>
-                  {getEditorIcon(wakatimeData.data?.data?.editor) || <DiVisualstudio size={16} className="inline-block mr-1.5" />}
-                  <span className='font-semibold'>Last Activity</span>
-                  <span>:</span>
-                  <span className='font-semibold'>{wakatimeData.allTime.data.text}</span>
                   {(() => {
-                    const allTimeData = wakatimeData.allTime.data
-                    let lastActivityText = 'recent'
-                    let isRecentActivity = false
-                    let isOnline = false
+                    // Get the last used editor from current editor or latest heartbeat
+                    const editor = wakatimeData.currentEditor || 
+                                 wakatimeData.latestHeartbeat?.editor || 
+                                 wakatimeData.data?.data?.editor || 
+                                 wakatimeData.statusInfo?.data?.editor ||
+                                 null;
+                    const editorIcon = getEditorIcon(editor);
                     
-                    if (allTimeData.range) {
-                      const rangeText = allTimeData.range.text || allTimeData.range.start || ''
-                      if (rangeText.includes('today') || rangeText.includes('Today')) {
-                        lastActivityText = 'today'
-                        isRecentActivity = true
-                        isOnline = true
-                      } else if (rangeText.includes('yesterday') || rangeText.includes('Yesterday')) {
-                        lastActivityText = 'yesterday'
-                        isRecentActivity = true
-                      } else {
-                        try {
-                          const rangeDate = new Date(rangeText)
-                          if (!isNaN(rangeDate.getTime())) {
-                            const now = new Date()
-                            const diffTime = Math.abs(now - rangeDate)
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                            const diffHours = Math.floor(diffTime / (1000 * 60 * 60))
-                            
-                            if (diffDays === 0 && diffHours < 24) {
-                              if (diffHours < 6) {
-                                lastActivityText = `${diffHours}h ago`
-                                isOnline = true
-                              } else {
-                                lastActivityText = 'today'
-                                isOnline = true
-                              }
-                              isRecentActivity = true
-                            } else if (diffDays === 1) {
-                              lastActivityText = 'yesterday'
-                              isRecentActivity = true
-                            } else if (diffDays <= 6) {
-                              lastActivityText = 'recent'
-                              isRecentActivity = true
-                            } else {
-                              lastActivityText = `${diffDays} days ago`
-                              isRecentActivity = false
-                            }
-                          }
-                        } catch {
-                          lastActivityText = 'recent'
-                          isRecentActivity = true
-                        }
-                      }
-                    }
+                    // Determine if online based on last heartbeat or recent activity
+                    const isOnline = wakatimeData?.isOffline === false || 
+                                    (wakatimeData?.lastHeartbeat && (() => {
+                                      const heartbeatTime = new Date(wakatimeData.lastHeartbeat);
+                                      const now = new Date();
+                                      const diffMinutes = (now - heartbeatTime) / (1000 * 60);
+                                      return diffMinutes <= 2; // Online if heartbeat within last 2 minutes
+                                    })());
                     
                     return (
-                      <span className='opacity-75'>
-                        {isOnline ? (
-                          <span className='inline-flex items-center gap-1'>
-                            <span className='w-1.5 h-1.5 rounded-full bg-green-500 mr-1'></span>
-                            <span className='text-green-600 dark:text-green-400'>Online</span>
-                            <span> • {lastActivityText}</span>
+                      <>
+                        {editorIcon || <DiVisualstudio size={16} className="inline-block mr-1.5 text-blue-500" />}
+                        <span className='font-semibold'>{editor || 'VS Code'}</span>
+                        <span>:</span>
+                        <span className='font-semibold'>{wakatimeData.allTime.data.text}</span>
+                        <span className='opacity-75 inline-flex items-center gap-1 ml-1'>
+                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                          <span className={isOnline ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}>
+                            {isOnline ? 'Online' : 'Offline'}
                           </span>
-                        ) : (
-                          <span> ({isRecentActivity ? 'recent' : lastActivityText})</span>
-                        )}
-                      </span>
-                    )
+                        </span>
+                      </>
+                    );
                   })()}
                 </span>
               ) : (

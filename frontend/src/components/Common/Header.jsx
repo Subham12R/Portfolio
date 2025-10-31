@@ -80,11 +80,11 @@ const getEditorIcon = (editorName) => {
   if (editor.includes('cursor')) {
     return <img src={cursorIcon} alt="Cursor" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />;
   } else if (editor.includes('vscode') || editor.includes('visual studio code') || editor.includes('code')) {
-    return <DiVisualstudio size={18} className="inline-block mr-1.5" />;
+    return <DiVisualstudio size={18} className="inline-block mr-1.5 text-blue-500" />;
   }
   
-  // Default: try VS Code icon
-  return <DiVisualstudio size={18} className="inline-block mr-1.5" />;
+  // Default: try VS Code icon in blue
+  return <DiVisualstudio size={18} className="inline-block mr-1.5 text-blue-500" />;
 };
 
 const Header = () => {
@@ -431,100 +431,76 @@ const Header = () => {
       const allTimeData = wakatimeData.allTime.data;
       
       if (allTimeData.text) {
-        let lastActivityText = 'recent';
-        let isRecentActivity = false;
-        let isOnline = false;
+        // Determine if online based on last heartbeat or recent activity
+        const isOnline = wakatimeData?.isOffline === false || 
+                        (wakatimeData?.lastHeartbeat && (() => {
+                          const heartbeatTime = new Date(wakatimeData.lastHeartbeat);
+                          const now = new Date();
+                          const diffMinutes = (now - heartbeatTime) / (1000 * 60);
+                          return diffMinutes <= 2; // Online if heartbeat within last 2 minutes
+                        })());
         
-        if (allTimeData.range) {
-          const rangeText = allTimeData.range.text || allTimeData.range.start || '';
-          if (rangeText.includes('today') || rangeText.includes('Today')) {
-            lastActivityText = 'today';
-            isRecentActivity = true;
-            isOnline = true;
-          } else if (rangeText.includes('yesterday') || rangeText.includes('Yesterday')) {
-            lastActivityText = 'yesterday';
-            isRecentActivity = true;
-          } else {
-            try {
-              const rangeDate = new Date(rangeText);
-              if (!isNaN(rangeDate.getTime())) {
-                const now = new Date();
-                const diffTime = Math.abs(now - rangeDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-                
-                if (diffDays === 0 && diffHours < 24) {
-                  // Activity within last 24 hours
-                  if (diffHours < 6) {
-                    lastActivityText = `${diffHours}h ago`;
-                    isOnline = true;
-                  } else {
-                    lastActivityText = 'today';
-                    isOnline = true;
-                  }
-                  isRecentActivity = true;
-                } else if (diffDays === 1) {
-                  lastActivityText = 'yesterday';
-                  isRecentActivity = true;
-                } else if (diffDays <= 6) {
-                  lastActivityText = 'recent';
-                  isRecentActivity = true;
-                } else {
-                  lastActivityText = `${diffDays} days ago`;
-                  isRecentActivity = false;
-                }
-              } else {
-                // If we can't parse date but have range text, assume recent if it's not clear
-                lastActivityText = 'recent';
-                isRecentActivity = true;
-              }
-            } catch {
-              lastActivityText = 'recent';
-              isRecentActivity = true;
-            }
-          }
-        } else {
-          // No range data, assume recent
-          isRecentActivity = true;
-        }
-        
-        // Try to get editor from last activity if available
-        const editor = wakatimeData.data?.data?.editor;
+        // Get the last used editor from current editor or latest heartbeat
+        const editor = wakatimeData.currentEditor || 
+                     wakatimeData.latestHeartbeat?.editor || 
+                     wakatimeData.data?.data?.editor || 
+                     wakatimeData.statusInfo?.data?.editor ||
+                     null;
         const editorIcon = getEditorIcon(editor);
         
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              {isOnline && (
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              {editorIcon && (
+                <>
+                  {editorIcon}
+                  <span className="font-medium">{editor}</span>
+                </>
               )}
-              {editorIcon || <DiVisualstudio size={18} className="inline-block mr-1.5" />}
-              <span className="font-medium">{editor || 'Last Activity'}</span>
+              {!editorIcon && (
+                <>
+                  <DiVisualstudio size={18} className="inline-block mr-1.5 text-blue-500" />
+                  <span className="font-medium">VS Code</span>
+                </>
+              )}
               <span style={{ opacity: 0.8 }}>:</span>
               <span className="font-semibold">{allTimeData.text}</span>
             </div>
             <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
-              {isOnline ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                  <span className="font-medium text-green-600 dark:text-green-400">Online</span>
-                  <span className="opacity-75">• Last activity: {lastActivityText}</span>
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                <span className={`font-medium ${isOnline ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                  {isOnline ? 'Online' : 'Offline'}
                 </span>
-              ) : (
-                <span>
-                  Last activity: <span className="font-medium">{isRecentActivity ? 'recent' : lastActivityText}</span>
-                </span>
-              )}
+              </div>
             </div>
           </div>
         );
       }
     }
 
+    // Get editor even when offline
+    const editor = wakatimeData?.currentEditor || 
+                   wakatimeData?.latestHeartbeat?.editor || 
+                   wakatimeData?.data?.data?.editor || 
+                   wakatimeData?.statusInfo?.data?.editor ||
+                   null;
+    const editorIcon = getEditorIcon(editor);
+
     return (
       <div className="space-y-2">
-        <div className="text-sm opacity-90">Offline</div>
-        <div className="text-sm opacity-90">Last activity: {wakatimeData?.allTime?.data?.text}</div> 
+        {editorIcon && (
+          <div className="flex items-center gap-2">
+            {editorIcon}
+            <span className="font-medium">{editor}</span>
+          </div>
+        )}
+        <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+            <span className="font-medium text-gray-500 dark:text-gray-400">Offline</span>
+          </div>
+        </div>
       </div>
     );
   };
