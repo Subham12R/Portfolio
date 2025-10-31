@@ -180,7 +180,7 @@ const Projects = () => {
       case 'node':
         return <FaNode className="text-green-600" />
       case 'express':
-        return <SiExpress className="text-gray-600" />
+        return <SiExpress className="text-gray-700 dark:text-gray-300" />
       case 'nestjs':
         return <SiNestjs className="text-red-600" />
       
@@ -212,10 +212,15 @@ const Projects = () => {
         return <SiFigma className="text-pink-500" />
       case 'git':
         return <FaGitAlt className="text-orange-500" />
+      case 'github':
+        return <FaGithub className="text-gray-900 dark:text-gray-100" />
       case 'postman':
         return <SiPostman className="text-orange-500" />
       case 'bun':
         return <SiBun className="text-gray-700" />
+      case 'express.js':
+      case 'expressjs':
+        return <SiExpress className="text-gray-700 dark:text-gray-300" />
       
       // Testing & Build Tools
       case 'jest':

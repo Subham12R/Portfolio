@@ -21,14 +21,19 @@ h1{
 }
 
 p{
-  font-family: "Source Code Pro", monospace;
+  font-family: "Roboto", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
 }
 
 h2{
-  font-family: "Bebas Neue", sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 400;
+  font-style: normal;
+}
+span{
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
   font-style: normal;
 }
 

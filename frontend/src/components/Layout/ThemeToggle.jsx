@@ -115,26 +115,52 @@ export const ThemeToggleButton = ({
     blur,
     gifUrl,
   });
+  const [rotation, setRotation] = React.useState(0);
+
+  React.useEffect(() => {
+    setRotation(prev => prev + 360);
+  }, [isDark]);
 
   return (
-    <button
+    <motion.button
       type="button"
       className={cn(
-        "size-10 cursor-pointer rounded-full transition-all duration-300 active:scale-95 p-2 border border-gray-200 dark:border-zinc-700",
+        "size-10 cursor-pointer rounded-full p-2 border border-gray-200 dark:border-zinc-700",
         isDark ? "bg-transparent text-white" : "bg-transparent text-black",
         className,
       )}
       onClick={toggleTheme}
       aria-label="Toggle theme"
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      animate={{ rotate: rotation }}
+      transition={{
+        rotate: {
+          duration: 0.6,
+          ease: [0.65, 0, 0.35, 1],
+        },
+        scale: {
+          type: "spring",
+          stiffness: 400,
+          damping: 17,
+        },
+      }}
     >
       <span className="sr-only">Toggle theme</span>
-      <svg
+      <motion.svg
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
         fill="currentColor"
         strokeLinecap="round"
         viewBox="0 0 32 32"
         className="w-full h-full"
+        animate={{
+          scale: isDark ? [1, 1.1, 1] : [1, 0.9, 1],
+        }}
+        transition={{
+          duration: 0.6,
+          ease: [0.65, 0, 0.35, 1],
+        }}
       >
                  <clipPath id="skiper-btn-theme">
            <motion.path
@@ -146,7 +172,12 @@ export const ThemeToggleButton = ({
          <g clipPath="url(#skiper-btn-theme)">
            <motion.circle
              animate={{ r: isDark ? 10 : 8 }}
-             transition={{ ease: [0.65, 0, 0.35, 1], duration: 0.6 }}
+             transition={{ 
+               type: "spring",
+               stiffness: 300,
+               damping: 20,
+               duration: 0.6 
+             }}
              cx="16"
              cy="16"
            />
@@ -154,16 +185,20 @@ export const ThemeToggleButton = ({
              animate={{
                scale: isDark ? 0.5 : 1,
                opacity: isDark ? 0 : 1,
+               rotate: isDark ? 90 : 0,
              }}
-             transition={{ ease: [0.65, 0, 0.35, 1], duration: 0.6 }}
+             transition={{ 
+               ease: [0.65, 0, 0.35, 1], 
+               duration: 0.6 
+             }}
              stroke="currentColor"
              strokeWidth="1.5"
            >
             <path d="M18.3 3.2c0 1.3-1 2.3-2.3 2.3s-2.3-1-2.3-2.3S14.7.9 16 .9s2.3 1 2.3 2.3zm-4.6 25.6c0-1.3 1-2.3 2.3-2.3s2.3 1 2.3 2.3-1 2.3-2.3 2.3-2.3-1-2.3-2.3zm15.1-10.5c-1.3 0-2.3-1-2.3-2.3s1-2.3 2.3-2.3 2.3 1 2.3 2.3-1 2.3-2.3 2.3zM3.2 13.7c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3S.9 17.3.9 16s1-2.3 2.3-2.3zm5.8-7C9 7.9 7.9 9 6.7 9S4.4 8 4.4 6.7s1-2.3 2.3-2.3S9 5.4 9 6.7zm16.3 21c-1.3 0-2.3-1-2.3-2.3s1-2.3 2.3-2.3 2.3 1 2.3 2.3-1 2.3-2.3 2.3zm2.4-21c0 1.3-1 2.3-2.3 2.3S23 7.9 23 6.7s1-2.3 2.3-2.3 2.4 1 2.4 2.3zM6.7 23C8 23 9 24 9 25.3s-1 2.3-2.3 2.3-2.3-1-2.3-2.3 1-2.3 2.3-2.3z" />
           </motion.g>
         </g>
-      </svg>
-    </button>
+      </motion.svg>
+    </motion.button>
   );
 };
 

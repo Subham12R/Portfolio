@@ -171,10 +171,14 @@ const Work = () => {
         return <SiRedis className="text-red-500" />
       case 'docker':
         return <SiDocker className="text-blue-500" />
+      case 'express':
+      case 'express.js':
+      case 'expressjs':
+        return <SiExpress className="text-gray-700 dark:text-gray-300" />
       case 'github':
-        return <FaGithub className="text-gray-500" />
+        return <FaGithub className="text-gray-900 dark:text-gray-100" />
       case 'git':
-        return <FaGitAlt className="text-gray-500" />
+        return <FaGitAlt className="text-orange-500" />
       default:
         return <FaReact className="text-gray-500" />
     }

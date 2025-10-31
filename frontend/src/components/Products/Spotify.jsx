@@ -101,10 +101,12 @@ const Spotify = () => {
   if (!isOnline) {
     return (
       <div className='w-full h-full bg-transparent  border shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
-        <div className='flex items-center gap-2'>
-          <FaSpotify className='text-gray-400' size={30}/>
-          <div>
+        <div className='flex items-center gap-2 bg-green-500 p-2 rounded-md'>
+          <div className='flex items-center gap-2'>
+            <FaSpotify className='text-green-500 bg-green-500 p-2 rounded-md' size={30}/>
             <p className='text-gray-500 dark:text-gray-400 text-sm mb-1'>Offline</p>
+          </div>
+          <div>
             <p className='text-gray-700 dark:text-gray-300 text-sm'>Unable to fetch music data</p>
           </div>
         </div>
@@ -114,9 +116,9 @@ const Spotify = () => {
 
   if (!currentTrack) {
     return (
-      <div className='w-full h-full bg-transparent  border shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
-        <div className='flex items-center gap-3'>
-          <FaSpotify className='text-gray-400' size={30} />
+      <div className='w-full h-full bg-green-900/10  border border-green-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] rounded-md p-4'>
+        <div className='flex items-center gap-2'>
+          <FaSpotify className='text-green-500 bg-green-500/10 p-2 rounded-md' size={50} />
           <div>
             <p className='text-gray-500 dark:text-gray-400 text-sm mb-1'>Offline</p>
             <p className='text-gray-400 dark:text-gray-500 text-sm'>Not currently playing</p>

@@ -83,7 +83,7 @@ const AboutMe = () => {
                     <span className='inline-flex items-center gap-2 py-2 text-3xl'><RiTailwindCssFill className='text-blue-800' /></span>
                     <span className='inline-flex items-center gap-2 py-2 text-3xl'><SiTypescript className='text-blue-500' /></span>
                     <span className='inline-flex items-center gap-2 py-2 text-3xl'><SiJavascript className='text-yellow-500' /></span>
-                    <span className='inline-flex items-center gap-2 py-2 text-3xl'><SiExpress className='text-red-800' /></span>
+                    <span className='inline-flex items-center gap-2 py-2 text-3xl'><SiExpress className='text-gray-700 dark:text-gray-300' /></span>
                     <span className='inline-flex items-center gap-2 py-2 text-3xl'><SiPostgresql className='text-blue-700' /></span>
                 </div>
             </div>

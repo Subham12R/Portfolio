@@ -8,10 +8,10 @@ import { useTheme } from '../../contexts/ThemeContext';
 import {FaReact} from 'react-icons/fa';
 import { FaLinkedin } from "react-icons/fa";
 import { FaGithub } from "react-icons/fa";
-import { FaSquareXTwitter } from "react-icons/fa6";
+import { FaSquareXTwitter, FaPinterestP } from "react-icons/fa6";
 import { FaEnvelope, FaBookOpen } from "react-icons/fa";
 import { RiClipboardFill, RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "react-icons/ri";
-import { SiExpress } from "react-icons/si";
+
 import { BiLogoPostgresql, BiPaperPlane } from "react-icons/bi";
 import Tooltip from '@mui/material/Tooltip';
 import { Text } from '@radix-ui/themes';
@@ -169,6 +169,16 @@ const Header = () => {
                                 className='text-zinc-800 dark:text-zinc-500 hover:text-blue-400 dark:hover:text-blue-300 transition-all duration-150'
                             >
                                 <FaSquareXTwitter size={20}/>
+                            </a>
+                        </Tip>
+                        <Tip title="Follow me on Pinterest" placement="top" arrow isDark={isDark}>
+                            <a 
+                                href="https://twitter.com/Subham12R" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className='text-zinc-800 dark:text-zinc-500 hover:text-blue-400 dark:hover:text-blue-300 transition-all duration-150'
+                            >
+                                <FaPinterestP size={20}/>
                             </a>
                         </Tip>
                     </div>
