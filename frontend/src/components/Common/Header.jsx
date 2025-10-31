@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import profileImage from '../../assets/profile.png';
@@ -18,6 +18,7 @@ import { Text } from '@radix-ui/themes';
 import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
 import TechBadge from './TechBadge';
+import apiService from '../../services/api';
 
 
 const Tip = styled(({ className, ...props }) => (
@@ -42,6 +43,129 @@ const Header = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const [wakatimeData, setWakatimeData] = useState(null);
+  const [isActive, setIsActive] = useState(false);
+
+  // Fetch WakaTime data for activity status
+  useEffect(() => {
+    const fetchWakatime = async () => {
+      try {
+        const statusData = await apiService.getWakaTimeStatusBar();
+        // Fetch all time since today to get better last activity data
+        const allTimeData = await apiService.getWakaTimeAllTimeSinceToday();
+        
+        if (statusData.success) {
+          // Check if actively coding (data exists and not 0)
+          const hasActiveData = statusData.data?.data && 
+                               statusData.data.data.text && 
+                               statusData.data.data.text !== '0 secs';
+          setIsActive(hasActiveData && statusData.isToday);
+          
+          // Combine status data with all time data for better last activity info
+          setWakatimeData({
+            ...statusData,
+            allTime: allTimeData.success ? allTimeData.data : null
+          });
+        } else {
+          // Still set all time data even if no current status
+          if (allTimeData.success && allTimeData.data) {
+            setWakatimeData({
+              success: true,
+              data: null,
+              isToday: false,
+              allTime: allTimeData.data
+            });
+          }
+          setIsActive(false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch WakaTime data:', error);
+        setIsActive(false);
+      }
+    };
+
+    fetchWakatime();
+    // Refresh every 2 minutes for real-time updates
+    const interval = setInterval(fetchWakatime, 120000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Format tooltip content for WakaTime activity
+  const getActivityTooltip = () => {
+    // If there's current activity data
+    if (wakatimeData && wakatimeData.success && wakatimeData.data?.data) {
+      const activity = wakatimeData.data.data;
+      const isToday = wakatimeData.isToday;
+      
+      // Check if actually has coding time
+      if (activity.text && activity.text !== '0 secs') {
+        let content = `Coded ${activity.text} ${isToday ? 'today' : 'yesterday'}`;
+        
+        if (activity.editor) {
+          content += ` in ${activity.editor}`;
+        }
+        
+        if (activity.project) {
+          content += ` on ${activity.project}`;
+        }
+
+        if (activity.languages && activity.languages.length > 0) {
+          const langNames = activity.languages.map(lang => lang.name || lang).join(', ');
+          content += ` using ${langNames}`;
+        }
+
+        return content;
+      }
+    }
+
+    // No current activity, show last activity from all_time_since_today
+    if (wakatimeData?.allTime?.data) {
+      const allTimeData = wakatimeData.allTime.data;
+      
+      if (allTimeData.text) {
+        let content = `Last activity: ${allTimeData.text}`;
+        
+        // Parse the range to get the date
+        if (allTimeData.range) {
+          const rangeText = allTimeData.range.text || allTimeData.range.start || '';
+          
+          // Try to extract date information
+          if (rangeText.includes('today') || rangeText.includes('Today')) {
+            content += ' today';
+          } else if (rangeText.includes('yesterday') || rangeText.includes('Yesterday')) {
+            content += ' yesterday';
+          } else {
+            // Try to parse date from range
+            try {
+              const rangeDate = new Date(rangeText);
+              if (!isNaN(rangeDate.getTime())) {
+                const now = new Date();
+                const diffTime = Math.abs(now - rangeDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) {
+                  content += ' yesterday';
+                } else if (diffDays <= 7) {
+                  content += ` ${diffDays} days ago`;
+                } else {
+                  content += ` on ${rangeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                }
+              } else {
+                content += ` (${rangeText})`;
+              }
+            } catch {
+              content += ` (${rangeText})`;
+            }
+          }
+        }
+        
+        return content;
+      }
+    }
+
+    return 'No coding activity detected';
+  };
 
   // Function to download resume from assets
   const downloadResume = () => {
@@ -69,7 +193,15 @@ const Header = () => {
                                     <div className="relative">
                                         <img src={profileImage} alt="profile image" className='w-24 h-24 rounded-full object-cover shadow-md ' />
 
-                                        <span className="absolute bottom-1 right-3 inline-block w-2 h-2 bg-green-500 rounded-full ring-2 ring-green-200 dark:ring-green-700 ring-offset-2 dark:ring-offset-zinc-950 z-10"></span>
+                                        <Tip title={getActivityTooltip()} placement="right" arrow isDark={isDark}>
+                                          <span 
+                                            className={`absolute bottom-1 right-3 inline-block w-2 h-2 rounded-full ring-2 ring-offset-2 dark:ring-offset-zinc-950 z-10 transition-all duration-300 ${
+                                              isActive 
+                                                ? 'bg-green-500 ring-green-200 dark:ring-green-700 animate-pulse' 
+                                                : 'bg-gray-400 ring-gray-300 dark:ring-gray-600'
+                                            }`}
+                                          ></span>
+                                        </Tip>
                                     </div>
 
                             </div>

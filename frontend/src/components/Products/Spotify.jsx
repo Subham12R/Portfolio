@@ -7,7 +7,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-ea4s.onr
 // Personal Spotify "Now Playing" widget - displays what you're currently listening to
 const Spotify = () => {
   const [currentTrack, setCurrentTrack] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
 
   // Monitor online/offline status
@@ -61,17 +60,15 @@ const Spotify = () => {
     // Don't fetch if offline
     if (!isOnline) {
       setCurrentTrack(null)
-      setIsLoading(false)
       return
     }
 
-    setIsLoading(true)
+    // Silently fetch without showing loading state
     await fetchCurrentTrack()
-    setIsLoading(false)
   }, [isOnline])
 
   useEffect(() => {
-    // Initial fetch
+    // Initial fetch (silently)
     fetchNowPlaying()
     
     // Poll every 30 seconds for live updates (30000 ms)
@@ -86,17 +83,6 @@ const Spotify = () => {
       window.removeEventListener('focus', handleFocus)
     }
   }, [fetchNowPlaying])
-
-  if (isLoading) {
-    return (
-      <div className='w-full h-full bg-transparent  border shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
-        <div className='flex items-center gap-2 text-gray-500 dark:text-gray-400'>
-          <FaSpotify className='text-green-500 animate-pulse' />
-          <p className='text-sm'>Loading Spotify...</p>
-        </div>
-      </div>
-    )
-  }
 
   if (!isOnline) {
     return (

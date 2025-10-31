@@ -385,6 +385,12 @@ class ApiService {
       requireAuth: false,
     });
   }
+
+  async getWakaTimeAllTimeSinceToday() {
+    return await this.request('/api/wakatime/all-time-since-today', {
+      requireAuth: false,
+    });
+  }
 }
 
 // Create and export a singleton instance
