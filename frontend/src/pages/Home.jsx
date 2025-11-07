@@ -7,6 +7,7 @@ import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
 import { Link } from 'react-router-dom'
 import AboutMe from '../components/Common/AboutMe'
 import Certificates from '../components/Common/Certificates'
+import LogoBadge from '../components/Common/LogoBadge'
 import { GoGear } from "react-icons/go";
 import { usePortfolio } from '../contexts/PortfolioContext';
 import Header from '../components/Common/Header'
@@ -19,7 +20,7 @@ import { tooltipClasses } from '@mui/material/Tooltip';
 import { useTheme } from '../contexts/ThemeContext';
 import { FaSquareXTwitter } from 'react-icons/fa6'
 import Assistant from '../components/Common/Assistant'
-import cursorIcon from '../assets/cursor.webp'
+import cursorIcon from '../assets/logo/cursor.webp'
 
 const Tip = styled(({ className, ...props }) => (
     <Tooltip {...props} arrow classes={{ popper: className }} />
@@ -349,13 +350,21 @@ const Home = () => {
                       {/* Technologies & Tools */}
                       <div>
                         <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Technologies & Tools</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {exp.tech?.map((tech, i) => (
-                            <span key={i} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-zinc-500/20 border border-dashed border-gray-200 dark:border-zinc-700  px-3 py-1.5 rounded-md text-xs font-medium text-gray-700 dark:text-zinc-300">
-                              {getTechIcon(tech.name || tech)}
-                              <span>{tech.name || tech}</span>
-                            </span>
-                          ))}
+                        <div className="flex flex-wrap gap-3">
+                          {exp.tech?.map((tech, i) => {
+                            const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name
+                            const techLabel = typeof tech === 'string' ? tech : tech.name || tech.icon
+
+                            return (
+                              <Tip key={i} title={techLabel} placement="top" arrow isDark={isDark}>
+                                <div>
+                                  <LogoBadge name={techValue}>
+                                    {getTechIcon(techValue)}
+                                  </LogoBadge>
+                                </div>
+                              </Tip>
+                            )
+                          })}
                         </div>
                       </div>
                       
@@ -450,12 +459,20 @@ const Home = () => {
           {/* Tech Stack */}
           <div className='flex flex-wrap gap-2 mb-4'>
             <p className='text-gray-600 dark:text-gray-400 text-sm w-full'>Technologies &amp; Tools</p>
-            {project.tech?.map((tech, i) => (
-              <span key={i} className='flex items-center justify-center flex-col gap-4 text-3xl px-1 '>
-                {getTechIcon(tech.name || tech)}
-               
-              </span>
-            ))}
+            {project.tech?.map((tech, i) => {
+              const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name
+              const techLabel = typeof tech === 'string' ? tech : tech.name || tech.icon
+
+              return (
+                <Tip key={i} title={techLabel} placement="top" arrow isDark={isDark}>
+                  <div>
+                    <LogoBadge name={techValue}>
+                      {getTechIcon(techValue)}
+                    </LogoBadge>
+                  </div>
+                </Tip>
+              )
+            })}
           </div>
 
              <span className="text-xs px-2 py-1 rounded-md bg-green-500 text-emerald-900 font-medium ">{project.status || 'Completed'}</span>

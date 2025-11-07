@@ -15,7 +15,7 @@ import { RiClipboardFill, RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "
 import { BiLogoPostgresql, BiPaperPlane } from "react-icons/bi";
 import { DiVisualstudio } from "react-icons/di";
 import Tooltip from '@mui/material/Tooltip';
-import cursorIcon from '../../assets/cursor.webp';
+import cursorIcon from '../../assets/logo/cursor.webp';
 import { Text } from '@radix-ui/themes';
 import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';

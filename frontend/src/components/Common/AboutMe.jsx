@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import profileImage from '../../assets/profile.png'
-import { FaReact } from 'react-icons/fa'
-import { RiNextjsFill, RiTailwindCssFill } from 'react-icons/ri'
-import { SiTypescript, SiJavascript, SiExpress, SiPostgresql } from 'react-icons/si'
-import { DiVisualstudio } from "react-icons/di";
+import { SiJavascript, SiExpress, SiPostgresql } from 'react-icons/si'
+import { DiVisualstudio } from 'react-icons/di'
 import GitHubCalendar from 'react-github-calendar';
 import { usePortfolio } from '../../contexts/PortfolioContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
-import cursorIcon from '../../assets/cursor.webp';
+import cursorIcon from '../../assets/logo/cursor.webp';
+import LogoBadge from './LogoBadge';
 
 // Helper to check if editor is Cursor
 const isCursorEditor = (editorName) => {
@@ -376,14 +375,23 @@ const AboutMe = () => {
 
             <div className='flex flex-col justify-center items-start gap-2 mt-4'>
                 <h1 className='text-xl font-bold dark:text-white'>Skills</h1>
-                <div className='flex justify-start items-center gap-2'>
-                    <span className='inline-flex items-center gap-2 py-2 text-3xl'><FaReact className='text-blue-500' /></span>
-                    <span className='inline-flex items-center gap-2 py-2 text-3xl'><RiNextjsFill className='text-black' /></span>
-                    <span className='inline-flex items-center gap-2 py-2 text-3xl'><RiTailwindCssFill className='text-blue-800' /></span>
-                    <span className='inline-flex items-center gap-2 py-2 text-3xl'><SiTypescript className='text-blue-500' /></span>
-                    <span className='inline-flex items-center gap-2 py-2 text-3xl'><SiJavascript className='text-yellow-500' /></span>
-                    <span className='inline-flex items-center gap-2 py-2 text-3xl'><SiExpress className='text-gray-700 dark:text-gray-300' /></span>
-                    <span className='inline-flex items-center gap-2 py-2 text-3xl'><SiPostgresql className='text-blue-700' /></span>
+                <div className='flex flex-wrap justify-start items-center gap-3'>
+                  {[
+                    { label: 'React', key: 'react' },
+                    { label: 'Next.js', key: 'nextjs' },
+                    { label: 'Tailwind CSS', key: 'tailwindcss' },
+                    { label: 'TypeScript', key: 'typescript' },
+                    { label: 'JavaScript', key: 'javascript', fallback: <SiJavascript className='text-yellow-500 text-xl' /> },
+                    { label: 'Express', key: 'express', fallback: <SiExpress className='text-gray-700 dark:text-gray-300 text-xl' /> },
+                    { label: 'PostgreSQL', key: 'postgresql', fallback: <SiPostgresql className='text-blue-700 text-xl' /> },
+                  ].map((skill) => (
+                    <div key={skill.label} className='flex flex-col items-center gap-1'>
+                      <LogoBadge name={skill.key}>
+                        {skill.fallback || <span className='text-sm font-semibold text-zinc-500 dark:text-zinc-300'>{skill.label[0]}</span>}
+                      </LogoBadge>
+                      <span className='text-xs text-gray-600 dark:text-zinc-400'>{skill.label}</span>
+                    </div>
+                  ))}
                 </div>
             </div>
             </div>

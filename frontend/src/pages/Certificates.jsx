@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
 import { FaExternalLinkAlt } from 'react-icons/fa'
 import { usePortfolio } from '../contexts/PortfolioContext'
+import LogoBadge from '../components/Common/LogoBadge'
 
 // Dummy certificate data - COMMENTED OUT - now using backend data
 /* const certificateData = [
@@ -212,14 +213,15 @@ const Certificates = () => {
                     <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                       Key Topics Covered
                     </p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-3">
                       {certificate.skills.map((skill, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full text-xs font-medium text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-                        >
-                          {skill}
-                        </span>
+                        <div key={i} title={skill} className="cursor-pointer">
+                          <LogoBadge name={skill} size='sm'>
+                            <span className="text-[0.65rem] font-semibold text-blue-700 dark:text-blue-300">
+                              {skill?.charAt(0) || '?' }
+                            </span>
+                          </LogoBadge>
+                        </div>
                       ))}
                     </div>
                   </div>

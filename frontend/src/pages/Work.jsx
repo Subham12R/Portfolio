@@ -11,6 +11,7 @@ import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
 import { SiMongodb, SiRedis, SiDocker,  } from 'react-icons/si'
 import { FaGitAlt, } from 'react-icons/fa'
+import LogoBadge from '../components/Common/LogoBadge'
 
 const Tip = styled(({ className, ...props }) => (
   <Tooltip {...props} arrow classes={{ popper: className }} />
@@ -292,13 +293,21 @@ const Work = () => {
                       {/* Technologies & Tools */}
                       <div>
                         <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Technologies & Tools</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {exp.tech?.map((tech, i) => (
-                            <span key={i} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-transparent border border-dashed border-gray-200 dark:border-zinc-700  px-3 py-1.5 rounded-md text-xs font-medium text-gray-700 dark:text-zinc-300">
-                              {getTechIcon(tech.name || tech)}
-                              <span>{tech.name || tech}</span>
-                            </span>
-                          ))}
+                        <div className="flex flex-wrap gap-3">
+                          {exp.tech?.map((tech, i) => {
+                            const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name
+                            const techLabel = typeof tech === 'string' ? tech : tech.name || tech.icon
+
+                            return (
+                              <Tip key={i} title={techLabel} placement="top" arrow isDark={isDark}>
+                                <div>
+                                  <LogoBadge name={techValue}>
+                                    {getTechIcon(techValue)}
+                                  </LogoBadge>
+                                </div>
+                              </Tip>
+                            )
+                          })}
                         </div>
                       </div>
                       

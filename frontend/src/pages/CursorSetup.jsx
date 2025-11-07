@@ -1,6 +1,6 @@
 import React from 'react'
 import { FaDownload, FaFileAlt, FaCode, FaChevronRight, FaCopy } from 'react-icons/fa'
-import cursorIcon from '../assets/cursor.webp'
+import cursorIcon from '../assets/logo/cursor.webp'
 
 // Common Cursor extensions list - Update this with your actual extensions
 const cursorExtensions = [
