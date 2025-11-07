@@ -389,7 +389,6 @@ const AboutMe = () => {
                       <LogoBadge name={skill.key}>
                         {skill.fallback || <span className='text-sm font-semibold text-zinc-500 dark:text-zinc-300'>{skill.label[0]}</span>}
                       </LogoBadge>
-                      <span className='text-xs text-gray-600 dark:text-zinc-400'>{skill.label}</span>
                     </div>
                   ))}
                 </div>
