@@ -4,6 +4,7 @@ import Footer from '../Common/Footer'
 import Header from '../Common/Header'
 import Navbar from '../Common/Navbar'
 import GoToTop from '../Common/GoToTop'
+import Neko from '../Common/Neko'
 
 const UserLayout = () => {
 
@@ -20,6 +21,7 @@ const UserLayout = () => {
 
       <Footer />
       <GoToTop />
+      <Neko />
     </>
   )
 }

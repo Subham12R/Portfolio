@@ -43,12 +43,33 @@ const AboutMe = () => {
   const [wakatimeData, setWakatimeData] = useState(null)
   const [wakatimeLoading, setWakatimeLoading] = useState(true)
   const [isActive, setIsActive] = useState(false)
-  const [currentSessionTime, setCurrentSessionTime] = useState(0)
+  const [currentEditor, setCurrentEditor] = useState(null)
+  const [sessionTime, setSessionTime] = useState(0)
   const [sessionStartTime, setSessionStartTime] = useState(null)
-  const [onlineSessionTime, setOnlineSessionTime] = useState(0)
-  const [onlineStartTime, setOnlineStartTime] = useState(null)
-  const sessionStartTimeRef = useRef(null)
-  const onlineStartTimeRef = useRef(null)
+  const lastResponseTimeRef = useRef(null)
+  const lastSessionStartRef = useRef(null) // Track last session start time for resuming
+  
+  // Helper to get/set last session start from localStorage
+  const getLastSessionStart = () => {
+    try {
+      const stored = localStorage.getItem('wakatime_last_session_start')
+      return stored ? new Date(stored) : null
+    } catch {
+      return null
+    }
+  }
+  
+  const setLastSessionStart = (date) => {
+    try {
+      if (date) {
+        localStorage.setItem('wakatime_last_session_start', date.toISOString())
+      } else {
+        localStorage.removeItem('wakatime_last_session_start')
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
 
   // Helper function to format time
   const formatTime = (seconds) => {
@@ -65,13 +86,13 @@ const AboutMe = () => {
     }
   }
 
-  // Local timer that runs independently when session is active
+  // Timer that runs when session is active
   useEffect(() => {
     let timerIntervalId = null
     
     if (sessionStartTime && isActive) {
       timerIntervalId = setInterval(() => {
-        setCurrentSessionTime(prev => {
+        setSessionTime(prev => {
           if (sessionStartTime) {
             const now = new Date()
             const start = new Date(sessionStartTime)
@@ -81,7 +102,7 @@ const AboutMe = () => {
         })
       }, 1000)
     } else {
-      setCurrentSessionTime(0)
+      setSessionTime(0)
     }
     
     return () => {
@@ -89,248 +110,145 @@ const AboutMe = () => {
     }
   }, [sessionStartTime, isActive])
 
-  // Online session timer that runs when online (not just when actively coding)
-  useEffect(() => {
-    let onlineTimerIntervalId = null
-    
-    // Check if online using the same logic as render
-    // Default to online unless explicitly marked offline (no heartbeat in 5+ minutes)
-    const isOnline = wakatimeData?.isOffline === false || 
-                    (wakatimeData?.lastHeartbeat && (() => {
-                      const heartbeatTime = new Date(wakatimeData.lastHeartbeat);
-                      const now = new Date();
-                      const diffMinutes = (now - heartbeatTime) / (1000 * 60);
-                      return diffMinutes <= 5; // Online if heartbeat within last 5 minutes (matching offline threshold)
-                    })()) ||
-                    (wakatimeData && wakatimeData.isOffline === undefined); // Default online if isOffline not set
-    
-    if (isOnline && onlineStartTime) {
-      // Start/continue online timer that increments every second
-      onlineTimerIntervalId = setInterval(() => {
-        setOnlineSessionTime(prev => {
-          // Recalculate from start time to keep it accurate
-          if (onlineStartTime) {
-            const now = new Date()
-            const start = new Date(onlineStartTime)
-            return Math.floor((now - start) / 1000)
-          }
-          return prev + 1
-        })
-      }, 1000)
-    } else {
-      // Reset online timer when offline
-      setOnlineSessionTime(0)
-      setOnlineStartTime(null)
-      onlineStartTimeRef.current = null
-    }
-    
-    return () => {
-      if (onlineTimerIntervalId) clearInterval(onlineTimerIntervalId)
-    }
-  }, [onlineStartTime, wakatimeData])
-
-  // Fetch WakaTime data with dynamic polling
+  // Fetch WakaTime data and manage timer
   useEffect(() => {
     let pollIntervalId = null
-    let pollCount = 0
-    const MAX_POLLS_WHEN_INACTIVE = 10
+    const POLL_INTERVAL = 30000 // Poll every 30 seconds
+    const NO_RESPONSE_THRESHOLD = 60 * 60 * 1000 // 1 hour in milliseconds
 
     const fetchWakatime = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0]
+        // Fetch current status
+        const statusResponse = await apiService.getWakaTimeStatus().catch(() => ({ success: false, data: null }))
         
-        // Fetch multiple endpoints in parallel for better data
-        // Use catch to prevent one failure from breaking everything
-        const [statusResponse, statusData, allTimeData, heartbeatsResponse, durationsResponse] = await Promise.all([
-          apiService.getWakaTimeStatus().catch((err) => {
-            console.warn('Failed to fetch status:', err)
-            return { success: false, data: null }
-          }),
-          apiService.getWakaTimeStatusBar().catch((err) => {
-            console.warn('Failed to fetch status bar:', err)
-            return { success: false, data: null }
-          }),
-          apiService.getWakaTimeAllTimeSinceToday().catch((err) => {
-            console.warn('Failed to fetch all time:', err)
-            return { success: false, data: null }
-          }),
-          apiService.getWakaTimeHeartbeats(today).catch(() => ({ success: false, data: null })),
-          apiService.getWakaTimeDurations(today).catch(() => ({ success: false, data: null }))
-        ])
-        
-        if (statusData.success) {
-          const statusInfo = statusResponse.success ? statusResponse.data : null
-          const heartbeatsData = heartbeatsResponse.success ? heartbeatsResponse.data : null
-          const durationsData = durationsResponse.success ? durationsResponse.data : null
+        if (statusResponse.success && statusResponse.data?.data) {
+          const statusData = statusResponse.data.data
+          const lastHeartbeat = statusData.last_heartbeat_at
+          const editor = statusData.editor
+          const hasEntity = statusData.entity // Entity means actively coding
           
-          // Get the most recent heartbeat from heartbeats endpoint (more accurate)
-          let lastHeartbeat = statusInfo?.data?.last_heartbeat_at
-          let latestHeartbeat = null
+          // Update last response time
+          lastResponseTimeRef.current = new Date()
           
-          if (heartbeatsData?.data && Array.isArray(heartbeatsData.data) && heartbeatsData.data.length > 0) {
-            // Sort by time descending and get the most recent
-            const sortedHeartbeats = [...heartbeatsData.data].sort((a, b) => {
-              const timeA = new Date(a.time || a.created_at || 0)
-              const timeB = new Date(b.time || b.created_at || 0)
-              return timeB - timeA
-            })
-            latestHeartbeat = sortedHeartbeats[0]
-            lastHeartbeat = latestHeartbeat.time || latestHeartbeat.created_at || lastHeartbeat
-          }
-          
-          const hasActiveEntity = statusInfo?.data?.entity && statusInfo.data.editor
-          
-          // Check if offline using heartbeat data (more accurate)
-          // Default to online unless no heartbeat in 5+ minutes (matching Header logic)
-          const OFFLINE_THRESHOLD_MINUTES = 5
-          let isOffline = false
+          // Check if we have recent activity (within last 2 minutes)
+          let hasRecentActivity = false
           if (lastHeartbeat) {
             const heartbeatTime = new Date(lastHeartbeat)
             const now = new Date()
             const diffMinutes = (now - heartbeatTime) / (1000 * 60)
-            // Offline if no heartbeat in last 5 minutes
-            isOffline = diffMinutes > OFFLINE_THRESHOLD_MINUTES
+            hasRecentActivity = diffMinutes < 2 && hasEntity
+          }
+          
+          // If we have recent activity, start/continue the timer
+          if (hasRecentActivity) {
+            const heartbeatTime = new Date(lastHeartbeat)
+            
+            if (!sessionStartTime) {
+              // Check if we should resume a previous session or start new
+              const lastSessionStart = getLastSessionStart()
+              const RESUME_THRESHOLD = 60 * 60 * 1000 // 1 hour - if heartbeat is within 1 hour of last session, resume
+              
+              if (lastSessionStart && lastSessionStartRef.current) {
+                const timeSinceLastSession = heartbeatTime - lastSessionStart
+                // If heartbeat is within 1 hour of last session start, resume it
+                if (timeSinceLastSession >= 0 && timeSinceLastSession < RESUME_THRESHOLD) {
+                  // Resume previous session
+                  setSessionStartTime(lastSessionStart)
+                  lastSessionStartRef.current = lastSessionStart
+                  setLastSessionStart(lastSessionStart)
+                } else {
+                  // Start new session from heartbeat
+                  setSessionStartTime(heartbeatTime)
+                  lastSessionStartRef.current = heartbeatTime
+                  setLastSessionStart(heartbeatTime)
+                }
+              } else {
+                // No previous session - start new from heartbeat
+                setSessionStartTime(heartbeatTime)
+                lastSessionStartRef.current = heartbeatTime
+                setLastSessionStart(heartbeatTime)
+              }
+              setSessionTime(0)
+            } else {
+              // Session already running - update stored time if needed
+              if (lastSessionStartRef.current !== sessionStartTime) {
+                lastSessionStartRef.current = sessionStartTime
+                setLastSessionStart(sessionStartTime)
+              }
+            }
+            setIsActive(true)
+            setCurrentEditor(editor)
           } else {
-            // No heartbeat at all - mark as offline
-            isOffline = true
-          }
-          
-          const isCodingNow = !isOffline && (statusData.isCurrentlyCoding === true || hasActiveEntity)
-          
-          // Get current editor from status or latest heartbeat
-          const currentEditor = latestHeartbeat?.editor || statusInfo?.data?.editor || statusData.data?.data?.editor || null
-          
-          // Calculate accurate time from durations if available
-          let accurateTimeToday = 0
-          if (durationsData?.data && Array.isArray(durationsData.data)) {
-            accurateTimeToday = durationsData.data.reduce((total, duration) => {
-              return total + (duration.duration || 0)
-            }, 0)
-          }
-          
-          // Start timer if active heartbeat detected
-          if (isCodingNow && (hasActiveEntity || latestHeartbeat) && lastHeartbeat) {
-            if (!sessionStartTimeRef.current) {
+            // No recent activity - stop timer but keep session start for potential resume
+            setIsActive(false)
+            // Don't clear sessionStartTime immediately - keep it for potential resume
+            // Only clear if we're sure the session is over (no heartbeat for >1 hour)
+            if (lastHeartbeat) {
               const heartbeatTime = new Date(lastHeartbeat)
               const now = new Date()
-              const initialSeconds = Math.floor((now - heartbeatTime) / 1000)
-              setCurrentSessionTime(Math.max(0, initialSeconds))
-              setSessionStartTime(heartbeatTime)
-              sessionStartTimeRef.current = heartbeatTime
+              const diffMinutes = (now - heartbeatTime) / (1000 * 60)
+              if (diffMinutes > 60) {
+                // No activity for >1 hour - clear session
+                setSessionStartTime(null)
+                lastSessionStartRef.current = null
+                setLastSessionStart(null)
+                setSessionTime(0)
+              }
             }
           }
-          
-          // Start/continue online timer when online (not just when coding)
-          if (!isOffline && lastHeartbeat) {
-            if (!onlineStartTimeRef.current) {
-              // New online session detected - initialize timer from heartbeat
-              const heartbeatTime = new Date(lastHeartbeat)
-              const now = new Date()
-              const initialSeconds = Math.floor((now - heartbeatTime) / 1000)
-              setOnlineSessionTime(Math.max(0, initialSeconds))
-              setOnlineStartTime(heartbeatTime)
-              onlineStartTimeRef.current = heartbeatTime
-            }
-            // Online timer will continue running via the separate useEffect
-          }
-          
-          // Stop all timers if offline
-          if (isOffline) {
-            if (sessionStartTimeRef.current) {
-              setSessionStartTime(null)
-              sessionStartTimeRef.current = null
-              setCurrentSessionTime(0)
-            }
-            if (onlineStartTimeRef.current) {
-              setOnlineStartTime(null)
-              onlineStartTimeRef.current = null
-              setOnlineSessionTime(0)
-            }
-          }
-          
-          setIsActive(isCodingNow)
           
           setWakatimeData({
-            ...statusData,
-            statusInfo: statusInfo,
-            currentStatus: statusInfo?.data || null,
-            currentEditor: currentEditor,
-            isOffline: isOffline,
+            success: true,
+            editor: editor,
             lastHeartbeat: lastHeartbeat,
-            latestHeartbeat: latestHeartbeat,
-            heartbeats: heartbeatsData,
-            durations: durationsData,
-            accurateTimeToday: accurateTimeToday,
-            allTime: allTimeData.success ? allTimeData.data : null
+            hasEntity: hasEntity
           })
-
-          // Dynamic polling
-          if (isCodingNow && hasActiveEntity) {
-            pollCount = 0
-            clearInterval(pollIntervalId)
-            pollIntervalId = setInterval(fetchWakatime, 10000)
-          } else if (!isOffline && pollCount < MAX_POLLS_WHEN_INACTIVE) {
-            pollCount++
-            clearInterval(pollIntervalId)
-            pollIntervalId = setInterval(fetchWakatime, 20000)
-          } else if (isOffline) {
-            clearInterval(pollIntervalId)
-            pollIntervalId = setInterval(fetchWakatime, 60000)
-          } else {
-            clearInterval(pollIntervalId)
-            pollIntervalId = setInterval(fetchWakatime, 120000)
-          }
-          
           setWakatimeLoading(false)
         } else {
-          if (allTimeData.success && allTimeData.data) {
-            setWakatimeData({
-              success: true,
-              data: null,
-              isToday: false,
-              isCurrentlyCoding: false,
-              allTime: allTimeData.data
-            })
+          // Check if we haven't had a response for more than 1 hour
+          if (lastResponseTimeRef.current) {
+            const timeSinceLastResponse = new Date() - lastResponseTimeRef.current
+            if (timeSinceLastResponse > NO_RESPONSE_THRESHOLD) {
+              // Stop timer if no response for >1 hour
+              setIsActive(false)
+              setSessionStartTime(null)
+              lastSessionStartRef.current = null
+              setLastSessionStart(null)
+              setSessionTime(0)
+              setCurrentEditor(null)
+            }
           }
-          setIsActive(false)
-          setSessionStartTime(null)
-          sessionStartTimeRef.current = null
-          setCurrentSessionTime(0)
-          setOnlineStartTime(null)
-          onlineStartTimeRef.current = null
-          setOnlineSessionTime(0)
-          
-          pollCount++
-          clearInterval(pollIntervalId)
-          if (pollCount < MAX_POLLS_WHEN_INACTIVE) {
-            pollIntervalId = setInterval(fetchWakatime, 60000)
-          } else {
-            pollIntervalId = setInterval(fetchWakatime, 300000)
-          }
-          
           setWakatimeLoading(false)
         }
       } catch (error) {
         console.error('Failed to fetch WakaTime data:', error)
-        setIsActive(false)
-        setSessionStartTime(null)
-        sessionStartTimeRef.current = null
-        setCurrentSessionTime(0)
-        setOnlineStartTime(null)
-        onlineStartTimeRef.current = null
-        setOnlineSessionTime(0)
-        clearInterval(pollIntervalId)
-        pollIntervalId = setInterval(fetchWakatime, 60000)
+        // Check if we haven't had a response for more than 1 hour
+        if (lastResponseTimeRef.current) {
+          const timeSinceLastResponse = new Date() - lastResponseTimeRef.current
+          if (timeSinceLastResponse > NO_RESPONSE_THRESHOLD) {
+            // Stop timer if no response for >1 hour
+            setIsActive(false)
+            setSessionStartTime(null)
+            lastSessionStartRef.current = null
+            setLastSessionStart(null)
+            setSessionTime(0)
+            setCurrentEditor(null)
+          }
+        }
         setWakatimeLoading(false)
       }
     }
 
+    // Initial fetch
     fetchWakatime()
+    
+    // Poll every 30 seconds
+    pollIntervalId = setInterval(fetchWakatime, POLL_INTERVAL)
     
     return () => {
       if (pollIntervalId) clearInterval(pollIntervalId)
     }
-  }, [])
+  }, [sessionStartTime])
   
   // Use backend data instead of hardcoded data
   const aboutMeData = data?.aboutMe || {
@@ -401,94 +319,27 @@ const AboutMe = () => {
             <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'>
               {wakatimeLoading ? (
                 'Loading coding stats...'
-              ) : isActive && !wakatimeData?.isOffline && (wakatimeData?.currentStatus || wakatimeData?.statusInfo) ? (
+              ) : isActive && currentEditor ? (
                 <span className='inline-flex items-center gap-1 flex-wrap'>
                   <span className='w-2 h-2 rounded-full bg-green-500 animate-pulse mr-1'></span>
-                  {getEditorIcon(wakatimeData.currentEditor || wakatimeData.currentStatus?.editor || wakatimeData.data?.data?.editor)}
+                  {getEditorIcon(currentEditor)}
                   <span className='font-semibold text-green-600 dark:text-green-400'>Currently coding</span>
                   <span>:</span>
-                  {(() => {
-                    if (sessionStartTime && currentSessionTime > 0) {
-                      return <span className='font-semibold'>{formatTime(currentSessionTime)} <span className='text-xs text-green-600 dark:text-green-400 opacity-75'>(live)</span></span>
-                    } else if (wakatimeData.accurateTimeToday && wakatimeData.accurateTimeToday > 0) {
-                      return <span className='font-semibold'>{formatTime(wakatimeData.accurateTimeToday)}</span>
-                    } else if (wakatimeData.data?.data?.text) {
-                      return <span className='font-semibold'>{wakatimeData.data.data.text}</span>
-                    }
-                    return null
-                  })()}
-                  {wakatimeData.currentStatus?.project && (
-                    <span className='opacity-75'> on {wakatimeData.currentStatus.project}</span>
-                  )}
+                  <span className='font-semibold'>{formatTime(sessionTime)} <span className='text-xs text-green-600 dark:text-green-400 opacity-75'>(live)</span></span>
                 </span>
-              ) : wakatimeData?.success && wakatimeData.data?.data && wakatimeData.data.data.text ? (
+              ) : currentEditor && wakatimeData?.lastHeartbeat ? (
                 <span className='inline-flex items-center gap-1 flex-wrap'>
-                  {getEditorIcon(wakatimeData.data.data.editor)}
-                  <span className='font-semibold'>{wakatimeData.data.data.editor || 'Last Activity'}</span>
+                  {getEditorIcon(currentEditor)}
+                  <span className='font-semibold'>{currentEditor}</span>
                   <span>:</span>
-                  <span className='font-semibold'>{wakatimeData.data.data.text}</span>
-                  {wakatimeData.isToday ? (
-                    <span className='opacity-75'> today</span>
-                  ) : (
-                    <span className='opacity-75'> yesterday</span>
-                  )}
-                  {wakatimeData.data.data.project && (
-                    <span className='opacity-75'> on {wakatimeData.data.data.project}</span>
-                  )}
-                  {wakatimeData?.allTime?.data?.text && (
-                    <span className='opacity-75'> • Total: {wakatimeData.allTime.data.text}</span>
-                  )}
-                </span>
-              ) : wakatimeData?.allTime?.data?.text ? (
-                <span className='inline-flex items-center gap-1 flex-wrap'>
-                  {(() => {
-                    // Get the last used editor from current editor or latest heartbeat
-                    const editor = wakatimeData.currentEditor || 
-                                 wakatimeData.latestHeartbeat?.editor || 
-                                 wakatimeData.data?.data?.editor || 
-                                 wakatimeData.statusInfo?.data?.editor ||
-                                 null;
-                    const editorIcon = getEditorIcon(editor);
-                    
-                    // Determine if online based on last heartbeat or recent activity
-                    // Default to online unless explicitly marked offline (no heartbeat in 5+ minutes)
-                    const isOnline = wakatimeData?.isOffline === false || 
-                                    (wakatimeData?.lastHeartbeat && (() => {
-                                      const heartbeatTime = new Date(wakatimeData.lastHeartbeat);
-                                      const now = new Date();
-                                      const diffMinutes = (now - heartbeatTime) / (1000 * 60);
-                                      return diffMinutes <= 5; // Online if heartbeat within last 5 minutes (matching offline threshold)
-                                    })()) ||
-                                    (wakatimeData && wakatimeData.isOffline === undefined); // Default online if isOffline not set
-                    
-                    // Show timer if online
-                    const timerDisplay = isOnline && onlineSessionTime > 0 ? formatTime(onlineSessionTime) : null;
-                    
-                    return (
-                      <>
-                        {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '16px', height: '16px' }} />}
-                        <span className='opacity-75'>{isCursorEditor(editor) ? 'Vibed in VSCODE for ' : 'Vibed in Cursor for '}</span>
-                        {isOnline && timerDisplay ? (
-                          <span className='font-semibold text-green-600 dark:text-green-400'>{timerDisplay}</span>
-                        ) : (
-                          <span className='font-semibold'>{wakatimeData.allTime.data.text}</span>
-                        )}
-                        <span className='opacity-75 inline-flex items-center gap-1 ml-1'>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
-                          <span className={isOnline ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}>
-                            {isOnline ? 'Online' : 'Offline'}
-                          </span>
-                          {isOnline && timerDisplay && (
-                            <>
-                              <span>•</span>
-                              <span className='font-semibold text-green-600 dark:text-green-400'>{timerDisplay}</span>
-                              <span className='text-xs text-green-600 dark:text-green-400'>(live)</span>
-                            </>
-                          )}
-                        </span>
-                      </>
-                    );
-                  })()}
+                  <span className='opacity-75'>
+                    Last activity {(() => {
+                      const lastHeartbeat = new Date(wakatimeData.lastHeartbeat)
+                      const now = new Date()
+                      const diffMinutes = Math.floor((now - lastHeartbeat) / (1000 * 60))
+                      return diffMinutes < 60 ? `${diffMinutes}m ago` : `${Math.floor(diffMinutes / 60)}h ago`
+                    })()}
+                  </span>
                 </span>
               ) : (
                 'No recent coding activity - check out my GitHub activity below!'

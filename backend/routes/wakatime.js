@@ -1,11 +1,27 @@
 const express = require('express');
 const router = express.Router();
 
-const WAKATIME_API_KEY = process.env.WAKATIME_API_KEY;
 const WAKATIME_API_URL = 'https://api.wakatime.com/api/v1';
 
-if (!WAKATIME_API_KEY) {
-  console.warn('WARNING: WAKATIME_API_KEY is not set in environment variables');
+// Import OAuth token management
+const { getValidAccessToken } = require('./wakatime-oauth');
+
+// Fallback to API key if OAuth not configured (for backward compatibility)
+const WAKATIME_API_KEY = process.env.WAKATIME_API_KEY;
+
+// Helper to get authentication header (OAuth Bearer token or API key fallback)
+async function getAuthHeader() {
+  try {
+    // Try to use OAuth token first
+    const accessToken = await getValidAccessToken();
+    return `Bearer ${accessToken}`;
+  } catch (error) {
+    // Fallback to API key if OAuth not configured
+    if (WAKATIME_API_KEY) {
+      return `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`;
+    }
+    throw new Error('No WakaTime authentication configured. Please set up OAuth or WAKATIME_API_KEY.');
+  }
 }
 
 // Rate limiting state to track 429 errors and implement backoff
@@ -49,123 +65,9 @@ const resetRateLimit = () => {
   rateLimitState.backoffUntil = null;
 };
 
-// Helper function to format duration
-function formatDuration(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  return { hours, minutes, totalSeconds };
-}
-
-// Get today's coding time
-router.get('/today', async (req, res) => {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    
-    // First, try to get durations for today
-    let response = await fetch(`${WAKATIME_API_URL}/users/current/durations?date=${today}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    let todayTotalSeconds = 0;
-    let lastCodingDate = null;
-    let editorInfo = null;
-
-    if (response.ok) {
-      const durationsData = await response.json();
-      
-      // Calculate total from durations
-      if (durationsData.data && durationsData.data.length > 0) {
-        todayTotalSeconds = durationsData.data.reduce((total, duration) => total + (duration.duration || 0), 0);
-        // Get editor info from first duration
-        editorInfo = durationsData.data[0].project || 'Unknown';
-      }
-    }
-
-    // If no coding today, try to get summaries for last 7 days
-    if (todayTotalSeconds === 0) {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 7);
-      
-      const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = endDate.toISOString().split('T')[0];
-      
-      response = await fetch(`${WAKATIME_API_URL}/users/current/summaries?start=${startDateStr}&end=${endDateStr}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const summariesData = await response.json();
-        
-        if (summariesData.data && summariesData.data.length > 0) {
-          // Find the most recent day with coding
-          for (const day of summariesData.data) {
-            const daySeconds = day?.grand_total?.total_seconds || 0;
-            if (daySeconds > 0) {
-              todayTotalSeconds = daySeconds;
-              lastCodingDate = day.range?.date || day.range?.text || null;
-              // Get editor info from the day's data
-              if (day.editors && day.editors.length > 0) {
-                editorInfo = day.editors[0].name;
-              }
-              break;
-            }
-          }
-      }
-    }
-    }
-    
-    // Reset rate limit counter on successful request
-    resetRateLimit();
-    
-    const { hours, minutes } = formatDuration(todayTotalSeconds);
-    const isToday = lastCodingDate === null;
-    
-    res.json({
-      success: true,
-      time: {
-        hours,
-        minutes,
-        totalSeconds: todayTotalSeconds,
-        formatted: hours > 0 ? `${hours}hr ${minutes}min` : `${minutes}min`,
-        isToday,
-        lastCodingDate,
-        editor: editorInfo
-      }
-    });
-
-  } catch (error) {
-    if (!error.message?.includes('429')) {
-      console.error('WakaTime API error:', error);
-    }
-    res.json({
-      success: false,
-      error: 'Failed to fetch WakaTime data',
-      details: error.message
-    });
-  }
-});
-
 // Get current status (what you're coding now)
 router.get('/status', async (req, res) => {
   try {
-    // Check if API key is configured
-    if (!WAKATIME_API_KEY) {
-      return res.json({
-        success: false,
-        error: 'WakaTime API key not configured',
-        details: 'WAKATIME_API_KEY environment variable is not set'
-      });
-    }
-
     // Check if we should back off due to rate limiting
     if (shouldBackOff()) {
       const backoffMinutes = Math.ceil((rateLimitState.backoffUntil - new Date()) / (1000 * 60));
@@ -178,11 +80,13 @@ router.get('/status', async (req, res) => {
       });
     }
 
-    // WakaTime uses Basic auth but differently - the API key is the username, password is empty
+    // Get authentication header (OAuth Bearer token or API key fallback)
+    const authHeader = await getAuthHeader();
+
     const response = await fetch(`${WAKATIME_API_URL}/users/current/status`, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       }
     });
@@ -262,11 +166,14 @@ router.get('/status-bar', async (req, res) => {
       });
     }
 
+    // Get authentication header
+    const authHeader = await getAuthHeader();
+
     // First check current status to see if actively coding right now
     let currentStatusResponse = await fetch(`${WAKATIME_API_URL}/users/current/status`, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       }
     });
@@ -297,7 +204,7 @@ router.get('/status-bar', async (req, res) => {
     let response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/today`, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       }
     });
@@ -330,7 +237,7 @@ router.get('/status-bar', async (req, res) => {
     response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/${yesterdayStr}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       }
     });
@@ -387,10 +294,13 @@ router.get('/all-time-since-today', async (req, res) => {
       });
     }
 
+    // Get authentication header
+    const authHeader = await getAuthHeader();
+
     const response = await fetch(`${WAKATIME_API_URL}/users/current/all_time_since_today`, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       }
     });
@@ -437,10 +347,13 @@ router.get('/durations', async (req, res) => {
     const { date } = req.query;
     const dateParam = date ? `?date=${date}` : '';
     
+    // Get authentication header
+    const authHeader = await getAuthHeader();
+
     const response = await fetch(`${WAKATIME_API_URL}/users/current/durations${dateParam}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       }
     });
@@ -498,10 +411,13 @@ router.get('/heartbeats', async (req, res) => {
     const { date } = req.query;
     const dateParam = date ? `?date=${date}` : '';
     
+    // Get authentication header
+    const authHeader = await getAuthHeader();
+
     const response = await fetch(`${WAKATIME_API_URL}/users/current/heartbeats${dateParam}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       }
     });
@@ -553,142 +469,5 @@ router.get('/heartbeats', async (req, res) => {
   }
 });
 
-// Get stats for current user (with optional range parameter)
-router.get('/stats/:range?', async (req, res) => {
-  try {
-    const { range } = req.params;
-    const rangeParam = range ? `/${range}` : '';
-    
-    const response = await fetch(`${WAKATIME_API_URL}/users/current/stats${rangeParam}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      // Handle rate limiting
-      if (response.status === 429) {
-        handleRateLimit();
-        return res.json({
-          success: false,
-          error: 'WakaTime API rate limited',
-          details: 'Too many requests. Please try again later.',
-          statusCode: 429
-        });
-      }
-      throw new Error(`WakaTime API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    // Reset rate limit counter on successful request
-    resetRateLimit();
-    
-    res.json({
-      success: true,
-      data: data
-    });
-
-  } catch (error) {
-    if (!error.message?.includes('429')) {
-      console.error('WakaTime stats API error:', error);
-    }
-    res.json({
-      success: false,
-      error: 'Failed to fetch WakaTime stats',
-      details: error.message
-    });
-  }
-});
-
-// Get editors information
-router.get('/editors', async (req, res) => {
-  try {
-    const response = await fetch(`${WAKATIME_API_URL}/editors`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      // Handle rate limiting
-      if (response.status === 429) {
-        handleRateLimit();
-        return res.json({
-          success: false,
-          error: 'WakaTime API rate limited',
-          details: 'Too many requests. Please try again later.',
-          statusCode: 429
-        });
-      }
-      throw new Error(`WakaTime API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    // Reset rate limit counter on successful request
-    resetRateLimit();
-    
-    res.json({
-      success: true,
-      data: data
-    });
-
-  } catch (error) {
-    if (!error.message?.includes('429')) {
-      console.error('WakaTime editors API error:', error);
-    }
-    res.json({
-      success: false,
-      error: 'Failed to fetch WakaTime editors',
-      details: error.message
-    });
-  }
-});
-
-// Get status bar for today (enhanced version)
-router.get('/status-bar-today', async (req, res) => {
-  try {
-    const response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/today`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`WakaTime API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    res.json({
-      success: true,
-      data: data
-    });
-
-  } catch (error) {
-    console.error('WakaTime status bar today API error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch WakaTime status bar today',
-      details: error.message
-    });
-  }
-});
-
-// Health check
-router.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    hasApiKey: !!WAKATIME_API_KEY,
-    apiKeyPrefix: WAKATIME_API_KEY ? WAKATIME_API_KEY.substring(0, 10) + '...' : 'none'
-  });
-});
-
 module.exports = router;
+

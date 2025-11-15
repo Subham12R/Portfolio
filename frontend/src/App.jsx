@@ -11,6 +11,7 @@ import CursorSetup from './pages/CursorSetup'
 import Blog from './pages/Blog'
 import AdminPage from './admin/AdminPage'
 import SpotifyCallback from './pages/SpotifyCallback'
+import WakaTimeCallback from './pages/WakaTimeCallback'
 import Preloader from './components/Common/Preloader'
 import { PortfolioProvider } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -46,6 +47,7 @@ function App() {
               </Route>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/callback" element={<SpotifyCallback />} />
+              <Route path="/wakatime/callback" element={<WakaTimeCallback />} />
               </Routes>
               <Toaster richColors position="top-center" />
           </BrowserRouter>

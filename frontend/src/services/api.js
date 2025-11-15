@@ -409,20 +409,14 @@ class ApiService {
   }
 
   // WakaTime API methods
-  async getWakaTimeStatusBar() {
-    return await this.request('/api/wakatime/status-bar', {
-      requireAuth: false,
-    });
-  }
-
   async getWakaTimeStatus() {
     return await this.request('/api/wakatime/status', {
       requireAuth: false,
     });
   }
 
-  async getWakaTimeToday() {
-    return await this.request('/api/wakatime/today', {
+  async getWakaTimeStatusBar() {
+    return await this.request('/api/wakatime/status-bar', {
       requireAuth: false,
     });
   }
@@ -447,21 +441,37 @@ class ApiService {
     });
   }
 
-  async getWakaTimeStats(range = null) {
-    const path = range ? `/api/wakatime/stats/${range}` : '/api/wakatime/stats';
-    return await this.request(path, {
+  // WakaTime OAuth methods
+  async getWakaTimeAuthUrl() {
+    return await this.request('/api/wakatime/oauth/authorize', {
       requireAuth: false,
     });
   }
 
-  async getWakaTimeEditors() {
-    return await this.request('/api/wakatime/editors', {
+  async exchangeWakaTimeCode(code) {
+    return await this.request('/api/wakatime/oauth/callback', {
+      method: 'POST',
+      requireAuth: false,
+      body: JSON.stringify({ code }),
+    });
+  }
+
+  async getWakaTimeOAuthStatus() {
+    return await this.request('/api/wakatime/oauth/status', {
       requireAuth: false,
     });
   }
 
-  async getWakaTimeStatusBarToday() {
-    return await this.request('/api/wakatime/status-bar-today', {
+  async refreshWakaTimeToken() {
+    return await this.request('/api/wakatime/oauth/refresh', {
+      method: 'POST',
+      requireAuth: false,
+    });
+  }
+
+  async revokeWakaTimeToken() {
+    return await this.request('/api/wakatime/oauth/revoke', {
+      method: 'POST',
       requireAuth: false,
     });
   }
@@ -510,6 +520,13 @@ class ApiService {
   async getTwitterTweetEmbed(tweetUrl) {
     const query = tweetUrl ? `?url=${encodeURIComponent(tweetUrl)}` : '';
     return await this.request(`/api/blog/tweet${query}`, {
+      requireAuth: false,
+    });
+  }
+
+  // Spotify API methods
+  async getSpotifyCurrentlyPlaying() {
+    return await this.request('/api/spotify/currently-playing', {
       requireAuth: false,
     });
   }

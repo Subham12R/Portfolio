@@ -13,6 +13,7 @@ const aboutRoutes = require('./routes/about');
 const uploadRoutes = require('./routes/upload');
 const spotifyRoutes = require('./routes/spotify');
 const wakatimeRoutes = require('./routes/wakatime');
+const wakatimeOAuthRoutes = require('./routes/wakatime-oauth').router;
 const blogRoutes = require('./routes/blog');
 const blogsRoutes = require('./routes/blogs');
 
@@ -72,6 +73,7 @@ app.get('/', (req, res) => {
       upload: '/api/upload',
       spotify: '/api/spotify',
       wakatime: '/api/wakatime',
+      wakatimeOAuth: '/api/wakatime/oauth',
       blog: '/api/blog',
       blogs: '/api/blogs'
     }
@@ -98,6 +100,7 @@ app.use('/api/about', aboutRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/spotify', spotifyRoutes);
 app.use('/api/wakatime', wakatimeRoutes);
+app.use('/api/wakatime/oauth', wakatimeOAuthRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/blogs', blogsRoutes);
 
