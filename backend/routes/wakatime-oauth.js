@@ -107,6 +107,21 @@ async function getValidAccessToken() {
 // Export the getValidAccessToken function for use in wakatime.js
 module.exports.getValidAccessToken = getValidAccessToken;
 
+// Root endpoint - list available OAuth endpoints
+router.get('/', (req, res) => {
+  res.json({
+    message: 'WakaTime OAuth endpoints',
+    endpoints: {
+      authorize: '/api/wakatime/oauth/authorize',
+      callback: '/api/wakatime/oauth/callback',
+      status: '/api/wakatime/oauth/status',
+      refresh: '/api/wakatime/oauth/refresh',
+      revoke: '/api/wakatime/oauth/revoke'
+    },
+    note: 'Use /authorize to start the OAuth flow'
+  });
+});
+
 // Step 1: Initiate OAuth authorization
 router.get('/authorize', (req, res) => {
   if (!WAKATIME_CLIENT_ID) {
