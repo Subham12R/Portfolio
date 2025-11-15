@@ -256,6 +256,8 @@ router.get('/status', (req, res) => {
 });
 
 // Revoke tokens
+// Supports: token revocation, user_id revocation, all tokens for user, all tokens for app
+// Body can be JSON or form-urlencoded (both supported by WakaTime API)
 router.post('/revoke', async (req, res) => {
   try {
     if (!WAKATIME_CLIENT_ID || !WAKATIME_CLIENT_SECRET) {
@@ -264,41 +266,73 @@ router.post('/revoke', async (req, res) => {
       });
     }
 
-    const tokenToRevoke = req.body.token || wakatimeAccessToken || wakatimeRefreshToken;
+    const { token, user_id, all } = req.body;
+    
+    // Build revoke request body
+    const revokeData = {
+      client_id: WAKATIME_CLIENT_ID,
+      client_secret: WAKATIME_CLIENT_SECRET
+    };
 
-    if (!tokenToRevoke) {
-      return res.status(400).json({
-        error: 'No token to revoke'
-      });
+    // Add optional parameters based on request
+    if (all === true || all === 'true') {
+      revokeData.all = 'true';
+      if (token) {
+        revokeData.token = token; // Revoke all tokens for user (using their token)
+      }
+      // If no token provided with all=true, revokes all tokens for the app
+    } else if (user_id) {
+      revokeData.user_id = user_id; // Revoke all tokens for specific user
+    } else {
+      // Default: revoke the provided token or current tokens
+      const tokenToRevoke = token || wakatimeAccessToken || wakatimeRefreshToken;
+      if (!tokenToRevoke) {
+        return res.status(400).json({
+          error: 'No token to revoke. Provide token, user_id, or set all=true'
+        });
+      }
+      revokeData.token = tokenToRevoke;
     }
+
+    // Support both JSON and form-urlencoded (WakaTime supports both)
+    const contentType = req.headers['content-type'] || 'application/json';
+    const useFormUrlEncoded = contentType.includes('application/x-www-form-urlencoded');
 
     const response = await fetch(WAKATIME_REVOKE_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': useFormUrlEncoded ? 'application/x-www-form-urlencoded' : 'application/json',
       },
-      body: JSON.stringify({
-        client_id: WAKATIME_CLIENT_ID,
-        client_secret: WAKATIME_CLIENT_SECRET,
-        token: tokenToRevoke
-      })
+      body: useFormUrlEncoded 
+        ? new URLSearchParams(revokeData).toString()
+        : JSON.stringify(revokeData)
     });
 
+    // WakaTime returns 200 success even if token is already revoked/expired
     if (response.ok) {
-      // Clear tokens
-      wakatimeAccessToken = null;
-      wakatimeRefreshToken = null;
-      wakatimeTokenExpiresAt = null;
+      // Clear local tokens if we revoked current tokens
+      if (!user_id && !all && (!token || token === wakatimeAccessToken || token === wakatimeRefreshToken)) {
+        wakatimeAccessToken = null;
+        wakatimeRefreshToken = null;
+        wakatimeTokenExpiresAt = null;
+      }
 
       res.json({
         success: true,
         message: 'Tokens revoked successfully'
       });
     } else {
-      const errorData = await response.json().catch(() => ({}));
+      const errorText = await response.text().catch(() => 'Unknown error');
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error_description: errorText };
+      }
+      
       res.status(response.status).json({
         error: 'Failed to revoke tokens',
-        message: errorData.error_description || 'Unknown error'
+        message: errorData.error_description || errorData.error || 'Unknown error'
       });
     }
 

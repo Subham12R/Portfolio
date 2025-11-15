@@ -2,12 +2,26 @@ const express = require('express');
 const router = express.Router();
 
 const WAKATIME_API_URL = 'https://api.wakatime.com/api/v1';
+const FETCH_TIMEOUT = 30000; // 30 seconds timeout
 
 // Import OAuth token management
 const { getValidAccessToken } = require('./wakatime-oauth');
 
 // Fallback to API key if OAuth not configured (for backward compatibility)
 const WAKATIME_API_KEY = process.env.WAKATIME_API_KEY;
+
+// Helper function to create fetch with timeout
+function fetchWithTimeout(url, options = {}, timeout = FETCH_TIMEOUT) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  return fetch(url, {
+    ...options,
+    signal: controller.signal
+  }).finally(() => {
+    clearTimeout(timeoutId);
+  });
+}
 
 // Helper to get authentication header (OAuth Bearer token or API key fallback)
 async function getAuthHeader() {
@@ -85,7 +99,7 @@ router.get('/status', async (req, res) => {
     // Get authentication header (OAuth Bearer token or API key fallback)
     const authHeader = await getAuthHeader();
 
-    const response = await fetch(`${WAKATIME_API_URL}/users/current/status`, {
+    const response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/status`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
@@ -143,12 +157,30 @@ router.get('/status', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('WakaTime status API error:', error);
+    // Handle network/timeout errors gracefully
+    if (error.name === 'AbortError' || error.code === 'UND_ERR_CONNECT_TIMEOUT' || error.message?.includes('timeout')) {
+      // Don't spam console with timeout errors - they're expected when network is slow
+      if (Math.random() < 0.1) { // Only log 10% of timeout errors to reduce spam
+        console.warn('WakaTime API timeout - network may be slow or API unavailable');
+      }
+      return res.json({
+        success: false,
+        error: 'WakaTime API timeout',
+        details: 'Request timed out. The WakaTime API may be slow or unavailable. Please try again later.',
+        statusCode: 408
+      });
+    }
+    
+    // Only log unexpected errors
+    if (!error.message?.includes('timeout') && !error.message?.includes('ECONNREFUSED') && !error.message?.includes('ENOTFOUND')) {
+      console.error('WakaTime status API error:', error.message);
+    }
+    
     // Return 200 with error info instead of 500 to prevent breaking frontend
     res.json({
       success: false,
       error: 'Failed to fetch WakaTime status',
-      details: error.message
+      details: error.message || 'Network error occurred'
     });
   }
 });
@@ -172,7 +204,7 @@ router.get('/status-bar', async (req, res) => {
     const authHeader = await getAuthHeader();
 
     // First check current status to see if actively coding right now
-    let currentStatusResponse = await fetch(`${WAKATIME_API_URL}/users/current/status`, {
+    let currentStatusResponse = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/status`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
@@ -203,7 +235,7 @@ router.get('/status-bar', async (req, res) => {
     }
 
     // Get status bar for today
-    let response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/today`, {
+    let response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/status_bar/today`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
@@ -236,7 +268,7 @@ router.get('/status-bar', async (req, res) => {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-    response = await fetch(`${WAKATIME_API_URL}/users/current/status_bar/${yesterdayStr}`, {
+    response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/status_bar/${yesterdayStr}`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
@@ -299,7 +331,7 @@ router.get('/all-time-since-today', async (req, res) => {
     // Get authentication header
     const authHeader = await getAuthHeader();
 
-    const response = await fetch(`${WAKATIME_API_URL}/users/current/all_time_since_today`, {
+    const response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/all_time_since_today`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
@@ -352,7 +384,7 @@ router.get('/durations', async (req, res) => {
     // Get authentication header
     const authHeader = await getAuthHeader();
 
-    const response = await fetch(`${WAKATIME_API_URL}/users/current/durations${dateParam}`, {
+    const response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/durations${dateParam}`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
@@ -408,15 +440,23 @@ router.get('/durations', async (req, res) => {
 });
 
 // Get heartbeats for current user (for real-time tracking)
+// date parameter is required - format: YYYY-MM-DD
 router.get('/heartbeats', async (req, res) => {
   try {
     const { date } = req.query;
-    const dateParam = date ? `?date=${date}` : '';
+    
+    if (!date) {
+      return res.status(400).json({
+        success: false,
+        error: 'Date parameter is required',
+        details: 'Please provide a date in YYYY-MM-DD format'
+      });
+    }
     
     // Get authentication header
     const authHeader = await getAuthHeader();
 
-    const response = await fetch(`${WAKATIME_API_URL}/users/current/heartbeats${dateParam}`, {
+    const response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/heartbeats?date=${date}`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
@@ -466,6 +506,407 @@ router.get('/heartbeats', async (req, res) => {
     res.json({
       success: false,
       error: 'Failed to fetch WakaTime heartbeats',
+      details: error.message
+    });
+  }
+});
+
+// Create a single heartbeat
+router.post('/heartbeats', async (req, res) => {
+  try {
+    // Check if we should back off due to rate limiting
+    if (shouldBackOff()) {
+      const backoffMinutes = Math.ceil((rateLimitState.backoffUntil - new Date()) / (1000 * 60));
+      return res.json({
+        success: false,
+        error: 'WakaTime API rate limited',
+        details: `Rate limit backoff active. Please wait ${backoffMinutes} minute(s) before retrying.`,
+        statusCode: 429,
+        retryAfter: rateLimitState.backoffUntil
+      });
+    }
+
+    // Get authentication header
+    const authHeader = await getAuthHeader();
+
+    const response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/heartbeats`, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(req.body)
+    });
+
+    if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
+      
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`WakaTime API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
+    
+    res.status(202).json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    if (!error.message?.includes('429')) {
+      console.error('WakaTime create heartbeat API error:', error);
+    }
+    res.json({
+      success: false,
+      error: 'Failed to create WakaTime heartbeat',
+      details: error.message
+    });
+  }
+});
+
+// Create multiple heartbeats (bulk) - limited to 25 per request
+router.post('/heartbeats.bulk', async (req, res) => {
+  try {
+    // Check if we should back off due to rate limiting
+    if (shouldBackOff()) {
+      const backoffMinutes = Math.ceil((rateLimitState.backoffUntil - new Date()) / (1000 * 60));
+      return res.json({
+        success: false,
+        error: 'WakaTime API rate limited',
+        details: `Rate limit backoff active. Please wait ${backoffMinutes} minute(s) before retrying.`,
+        statusCode: 429,
+        retryAfter: rateLimitState.backoffUntil
+      });
+    }
+
+    // Validate bulk data
+    if (!Array.isArray(req.body) || req.body.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid request body',
+        details: 'Expected an array of heartbeats'
+      });
+    }
+
+    if (req.body.length > 25) {
+      return res.status(400).json({
+        success: false,
+        error: 'Too many heartbeats',
+        details: 'Bulk endpoint is limited to 25 heartbeats per request'
+      });
+    }
+
+    // Get authentication header
+    const authHeader = await getAuthHeader();
+
+    const response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/heartbeats.bulk`, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(req.body)
+    });
+
+    if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
+      
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`WakaTime API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
+    
+    res.status(202).json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    if (!error.message?.includes('429')) {
+      console.error('WakaTime bulk create heartbeats API error:', error);
+    }
+    res.json({
+      success: false,
+      error: 'Failed to create WakaTime heartbeats',
+      details: error.message
+    });
+  }
+});
+
+// Delete heartbeats (bulk)
+router.delete('/heartbeats.bulk', async (req, res) => {
+  try {
+    // Check if we should back off due to rate limiting
+    if (shouldBackOff()) {
+      const backoffMinutes = Math.ceil((rateLimitState.backoffUntil - new Date()) / (1000 * 60));
+      return res.json({
+        success: false,
+        error: 'WakaTime API rate limited',
+        details: `Rate limit backoff active. Please wait ${backoffMinutes} minute(s) before retrying.`,
+        statusCode: 429,
+        retryAfter: rateLimitState.backoffUntil
+      });
+    }
+
+    // Validate request body
+    if (!req.body || !req.body.date || !Array.isArray(req.body.ids)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid request body',
+        details: 'Expected { date: "YYYY-MM-DD", ids: [...] }'
+      });
+    }
+
+    // Get authentication header
+    const authHeader = await getAuthHeader();
+
+    const response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/heartbeats.bulk`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(req.body)
+    });
+
+    if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
+      
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`WakaTime API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    if (!error.message?.includes('429')) {
+      console.error('WakaTime delete heartbeats API error:', error);
+    }
+    res.json({
+      success: false,
+      error: 'Failed to delete WakaTime heartbeats',
+      details: error.message
+    });
+  }
+});
+
+// Get commits for a project
+router.get('/projects/:project/commits', async (req, res) => {
+  try {
+    const { project } = req.params;
+    const { author, branch, page } = req.query;
+    
+    // Check if we should back off due to rate limiting
+    if (shouldBackOff()) {
+      const backoffMinutes = Math.ceil((rateLimitState.backoffUntil - new Date()) / (1000 * 60));
+      return res.json({
+        success: false,
+        error: 'WakaTime API rate limited',
+        details: `Rate limit backoff active. Please wait ${backoffMinutes} minute(s) before retrying.`,
+        statusCode: 429,
+        retryAfter: rateLimitState.backoffUntil
+      });
+    }
+
+    // Get authentication header
+    const authHeader = await getAuthHeader();
+
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+    if (author) queryParams.append('author', author);
+    if (branch) queryParams.append('branch', branch);
+    if (page) queryParams.append('page', page);
+    
+    const queryString = queryParams.toString();
+    const url = `${WAKATIME_API_URL}/users/current/projects/${encodeURIComponent(project)}/commits${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetchWithTimeout(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
+      
+      // 404 errors are expected when project doesn't exist or has no commits
+      if (response.status === 404) {
+        resetRateLimit();
+        return res.json({
+          success: true,
+          data: {
+            commits: [],
+            total: 0,
+            page: 1,
+            total_pages: 0
+          },
+          message: 'No commits found for this project'
+        });
+      }
+      
+      // 403 errors mean commits aren't available (project might not have commits enabled or no permission)
+      if (response.status === 403) {
+        resetRateLimit();
+        return res.json({
+          success: true,
+          data: {
+            commits: [],
+            total: 0,
+            page: 1,
+            total_pages: 0
+          },
+          message: 'Commits not available for this project'
+        });
+      }
+      
+      throw new Error(`WakaTime API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    // Don't log 404, 403, or 429 errors as critical - they're expected
+    if (!error.message?.includes('404') && !error.message?.includes('403') && !error.message?.includes('429')) {
+      console.error('WakaTime commits API error:', error);
+    }
+    res.json({
+      success: false,
+      error: 'Failed to fetch WakaTime commits',
+      details: error.message
+    });
+  }
+});
+
+// Get editors (IDEs) used by the user
+router.get('/editors', async (req, res) => {
+  try {
+    // Check if we should back off due to rate limiting
+    if (shouldBackOff()) {
+      const backoffMinutes = Math.ceil((rateLimitState.backoffUntil - new Date()) / (1000 * 60));
+      return res.json({
+        success: false,
+        error: 'WakaTime API rate limited',
+        details: `Rate limit backoff active. Please wait ${backoffMinutes} minute(s) before retrying.`,
+        statusCode: 429,
+        retryAfter: rateLimitState.backoffUntil
+      });
+    }
+
+    // Get authentication header
+    const authHeader = await getAuthHeader();
+
+    const response = await fetchWithTimeout(`${WAKATIME_API_URL}/users/current/editors`, {
+      method: 'GET',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      // Handle rate limiting
+      if (response.status === 429) {
+        handleRateLimit();
+        return res.json({
+          success: false,
+          error: 'WakaTime API rate limited',
+          details: 'Too many requests. Please try again later.',
+          statusCode: 429
+        });
+      }
+      
+      // 404 errors are expected when no editor data exists
+      if (response.status === 404) {
+        resetRateLimit();
+        return res.json({
+          success: true,
+          data: {
+            data: []
+          },
+          message: 'No editor data available'
+        });
+      }
+      throw new Error(`WakaTime API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Reset rate limit counter on successful request
+    resetRateLimit();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    if (!error.message?.includes('404') && !error.message?.includes('429')) {
+      console.error('WakaTime editors API error:', error);
+    }
+    res.json({
+      success: false,
+      error: 'Failed to fetch WakaTime editors',
       details: error.message
     });
   }

@@ -434,9 +434,62 @@ class ApiService {
     });
   }
 
-  async getWakaTimeHeartbeats(date = null) {
-    const query = date ? `?date=${date}` : '';
-    return await this.request(`/api/wakatime/heartbeats${query}`, {
+  async getWakaTimeHeartbeats(date) {
+    if (!date) {
+      throw new Error('Date parameter is required (format: YYYY-MM-DD)');
+    }
+    return await this.request(`/api/wakatime/heartbeats?date=${date}`, {
+      requireAuth: false,
+    });
+  }
+
+  async createWakaTimeHeartbeat(heartbeatData) {
+    return await this.request('/api/wakatime/heartbeats', {
+      method: 'POST',
+      requireAuth: false,
+      body: JSON.stringify(heartbeatData),
+    });
+  }
+
+  async createWakaTimeHeartbeatsBulk(heartbeatsArray) {
+    if (!Array.isArray(heartbeatsArray) || heartbeatsArray.length === 0) {
+      throw new Error('Expected a non-empty array of heartbeats');
+    }
+    if (heartbeatsArray.length > 25) {
+      throw new Error('Bulk endpoint is limited to 25 heartbeats per request');
+    }
+    return await this.request('/api/wakatime/heartbeats.bulk', {
+      method: 'POST',
+      requireAuth: false,
+      body: JSON.stringify(heartbeatsArray),
+    });
+  }
+
+  async deleteWakaTimeHeartbeatsBulk(date, ids) {
+    if (!date || !Array.isArray(ids)) {
+      throw new Error('Expected date (YYYY-MM-DD) and array of heartbeat IDs');
+    }
+    return await this.request('/api/wakatime/heartbeats.bulk', {
+      method: 'DELETE',
+      requireAuth: false,
+      body: JSON.stringify({ date, ids }),
+    });
+  }
+
+  async getWakaTimeProjectCommits(project, options = {}) {
+    const { author, branch, page } = options;
+    const queryParams = new URLSearchParams();
+    if (author) queryParams.append('author', author);
+    if (branch) queryParams.append('branch', branch);
+    if (page) queryParams.append('page', page);
+    const query = queryParams.toString();
+    return await this.request(`/api/wakatime/projects/${encodeURIComponent(project)}/commits${query ? `?${query}` : ''}`, {
+      requireAuth: false,
+    });
+  }
+
+  async getWakaTimeEditors() {
+    return await this.request('/api/wakatime/editors', {
       requireAuth: false,
     });
   }

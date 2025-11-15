@@ -46,6 +46,10 @@ const AboutMe = () => {
   const [currentEditor, setCurrentEditor] = useState(null)
   const [sessionTime, setSessionTime] = useState(0)
   const [sessionStartTime, setSessionStartTime] = useState(null)
+  const [totalTimeToday, setTotalTimeToday] = useState(null) // Total time coded today (text)
+  const [allTimeData, setAllTimeData] = useState(null) // Full all_time_since_today data
+  const [todayHeartbeats, setTodayHeartbeats] = useState(null) // Today's heartbeats data
+  const [totalCommits, setTotalCommits] = useState(null) // Total commits across all projects
   const lastResponseTimeRef = useRef(null)
   const lastSessionStartRef = useRef(null) // Track last session start time for resuming
   
@@ -178,6 +182,8 @@ const AboutMe = () => {
             }
             setIsActive(true)
             setCurrentEditor(editor)
+            // Clear total time when active (we show live timer instead)
+            setTotalTimeToday(null)
           } else {
             // No recent activity - stop timer but keep session start for potential resume
             setIsActive(false)
@@ -195,6 +201,27 @@ const AboutMe = () => {
                 setSessionTime(0)
               }
             }
+            
+            // Fetch total time today and heartbeats when no live activity
+            // Note: We check isActive state here, but don't add it to deps to avoid infinite loops
+            // The effect runs on statusResponse changes, which is sufficient
+            try {
+              const allTimeResponse = await apiService.getWakaTimeAllTimeSinceToday()
+              if (allTimeResponse.success && allTimeResponse.data?.data) {
+                const allTimeData = allTimeResponse.data.data
+                setAllTimeData(allTimeData)
+                setTotalTimeToday(allTimeData.text || null)
+              }
+              
+              // Fetch today's heartbeats for more detailed activity info
+              const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+              const heartbeatsResponse = await apiService.getWakaTimeHeartbeats(today).catch(() => ({ success: false }))
+              if (heartbeatsResponse.success && heartbeatsResponse.data?.data) {
+                setTodayHeartbeats(heartbeatsResponse.data.data)
+              }
+            } catch (error) {
+              console.error('Failed to fetch total time today:', error)
+            }
           }
           
           setWakatimeData({
@@ -203,8 +230,14 @@ const AboutMe = () => {
             lastHeartbeat: lastHeartbeat,
             hasEntity: hasEntity
           })
+          // Always set editor and last heartbeat if available (even if old)
+          if (editor) {
+            setCurrentEditor(editor)
+          }
           setWakatimeLoading(false)
         } else {
+          // No data available
+          setWakatimeLoading(false)
           // Check if we haven't had a response for more than 1 hour
           if (lastResponseTimeRef.current) {
             const timeSinceLastResponse = new Date() - lastResponseTimeRef.current
@@ -221,7 +254,10 @@ const AboutMe = () => {
           setWakatimeLoading(false)
         }
       } catch (error) {
-        console.error('Failed to fetch WakaTime data:', error)
+        // Only log unexpected errors (not timeouts/network issues)
+        if (!error.message?.includes('timeout') && !error.message?.includes('Failed to fetch')) {
+          console.error('Failed to fetch WakaTime data:', error)
+        }
         // Check if we haven't had a response for more than 1 hour
         if (lastResponseTimeRef.current) {
           const timeSinceLastResponse = new Date() - lastResponseTimeRef.current
@@ -249,6 +285,42 @@ const AboutMe = () => {
       if (pollIntervalId) clearInterval(pollIntervalId)
     }
   }, [sessionStartTime])
+
+  // Fetch total commits from all projects
+  useEffect(() => {
+    const fetchCommits = async () => {
+      try {
+        // First, we need to get the list of projects
+        // For now, we'll try to fetch commits from common project names
+        // In a real scenario, you'd want to fetch the projects list first
+        // For simplicity, we'll aggregate commits from multiple projects
+        const commonProjects = ['portfolio', 'Portfolio', 'portfolio-frontend', 'portfolio-backend']
+        let totalCommitsCount = 0
+        
+        // Try to fetch commits from each project
+        for (const project of commonProjects) {
+          try {
+            const commitsResponse = await apiService.getWakaTimeProjectCommits(project)
+            if (commitsResponse.success && commitsResponse.data?.data?.total) {
+              totalCommitsCount += commitsResponse.data.data.total
+            }
+          } catch {
+            // Project might not exist, continue to next
+            continue
+          }
+        }
+        
+        if (totalCommitsCount > 0) {
+          setTotalCommits(totalCommitsCount)
+        }
+      } catch (error) {
+        console.error('Failed to fetch commits:', error)
+      }
+    }
+
+    // Fetch commits once on mount
+    fetchCommits()
+  }, [])
   
   // Use backend data instead of hardcoded data
   const aboutMeData = data?.aboutMe || {
@@ -340,9 +412,117 @@ const AboutMe = () => {
                       return diffMinutes < 60 ? `${diffMinutes}m ago` : `${Math.floor(diffMinutes / 60)}h ago`
                     })()}
                   </span>
+                  {allTimeData && (
+                    <>
+                      <span>•</span>
+                      <span className='font-semibold'>Total: {allTimeData.text || totalTimeToday}</span>
+                      {allTimeData.daily_average && (
+                        <>
+                          <span>•</span>
+                          <span className='opacity-75 text-sm'>
+                            Avg: {(() => {
+                              const avgHours = Math.floor(allTimeData.daily_average / 3600);
+                              const avgMins = Math.floor((allTimeData.daily_average % 3600) / 60);
+                              return `${avgHours}h ${avgMins}m`;
+                            })()}
+                          </span>
+                        </>
+                      )}
+                    </>
+                  )}
+                </span>
+              ) : currentEditor && wakatimeData?.lastHeartbeat ? (
+                <span className='inline-flex items-center gap-1 flex-wrap'>
+                  {getEditorIcon(currentEditor)}
+                  <span className='font-semibold'>{currentEditor}</span>
+                  <span>:</span>
+                  <span className='opacity-75'>
+                    Last active {(() => {
+                      const lastHeartbeat = new Date(wakatimeData.lastHeartbeat)
+                      const now = new Date()
+                      const diffMinutes = Math.floor((now - lastHeartbeat) / (1000 * 60))
+                      const diffHours = Math.floor(diffMinutes / 60)
+                      const diffDays = Math.floor(diffHours / 24)
+                      
+                      if (diffDays > 0) {
+                        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+                      } else if (diffHours > 0) {
+                        return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+                      } else if (diffMinutes > 0) {
+                        return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`
+                      } else {
+                        return 'just now'
+                      }
+                    })()}
+                  </span>
+                  {allTimeData && (
+                    <>
+                      <span>•</span>
+                      <span className='font-semibold'>Total: {allTimeData.text || totalTimeToday}</span>
+                      {allTimeData.daily_average && (
+                        <>
+                          <span>•</span>
+                          <span className='opacity-75 text-sm'>
+                            Avg: {(() => {
+                              const avgHours = Math.floor(allTimeData.daily_average / 3600);
+                              const avgMins = Math.floor((allTimeData.daily_average % 3600) / 60);
+                              return `${avgHours}h ${avgMins}m`;
+                            })()}
+                          </span>
+                        </>
+                      )}
+                    </>
+                  )}
                 </span>
               ) : (
-                'No recent coding activity - check out my GitHub activity below!'
+                <span className='inline-flex items-center gap-1 flex-wrap'>
+                  {allTimeData ? (
+                    <>
+                      <span className='font-semibold'>Total: {allTimeData.text || totalTimeToday}</span>
+                      {allTimeData.daily_average && (
+                        <>
+                          <span>•</span>
+                          <span className='opacity-75 text-sm'>
+                            Daily avg: {(() => {
+                              const avgHours = Math.floor(allTimeData.daily_average / 3600);
+                              const avgMins = Math.floor((allTimeData.daily_average % 3600) / 60);
+                              return `${avgHours}h ${avgMins}m`;
+                            })()}
+                          </span>
+                        </>
+                      )}
+                      {todayHeartbeats?.data && todayHeartbeats.data.length > 0 && (
+                        <>
+                          <span>•</span>
+                          <span className='opacity-75 text-sm'>
+                            {(() => {
+                              // Get unique projects and languages from heartbeats
+                              const projects = new Set();
+                              const languages = new Set();
+                              todayHeartbeats.data.forEach(hb => {
+                                if (hb.project) projects.add(hb.project);
+                                if (hb.language) languages.add(hb.language);
+                              });
+                              const projectCount = projects.size;
+                              const languageCount = languages.size;
+                              return `${projectCount} project${projectCount !== 1 ? 's' : ''}, ${languageCount} language${languageCount !== 1 ? 's' : ''}`;
+                            })()}
+                          </span>
+                        </>
+                      )}
+                      {totalCommits && (
+                        <>
+                          <span>•</span>
+                          <span className='font-semibold'>{totalCommits} commits</span>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span className='opacity-75'>Check out my GitHub activity below!</span>
+                    </>
+                  )}
+                </span>
               )}
             </p>
         </div>
