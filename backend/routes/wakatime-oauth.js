@@ -6,6 +6,12 @@ const crypto = require('crypto');
 const WAKATIME_CLIENT_ID = process.env.WAKATIME_CLIENT_ID;
 const WAKATIME_CLIENT_SECRET = process.env.WAKATIME_CLIENT_SECRET;
 const WAKATIME_REDIRECT_URI = process.env.WAKATIME_REDIRECT_URI || `${process.env.FRONTEND_URL || 'http://localhost:3000'}/wakatime/callback`;
+
+// Ensure redirect URI matches the route
+if (!process.env.WAKATIME_REDIRECT_URI) {
+  console.warn('WAKATIME_REDIRECT_URI not set. Using default:', WAKATIME_REDIRECT_URI);
+  console.warn('Make sure this matches your WakaTime app settings and frontend route!');
+}
 const WAKATIME_AUTHORIZE_URL = 'https://wakatime.com/oauth/authorize';
 const WAKATIME_TOKEN_URL = 'https://wakatime.com/oauth/token';
 const WAKATIME_REVOKE_URL = 'https://wakatime.com/oauth/revoke';
