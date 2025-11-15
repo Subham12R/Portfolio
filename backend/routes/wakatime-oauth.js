@@ -16,26 +16,23 @@ const WAKATIME_AUTHORIZE_URL = 'https://wakatime.com/oauth/authorize';
 const WAKATIME_TOKEN_URL = 'https://wakatime.com/oauth/token';
 const WAKATIME_REVOKE_URL = 'https://wakatime.com/oauth/revoke';
 
-// In-memory token storage (in production, use database)
-// Format: { access_token, refresh_token, expires_at, token_type }
-let wakatimeTokens = {
-  access_token: process.env.WAKATIME_ACCESS_TOKEN || null,
-  refresh_token: process.env.WAKATIME_REFRESH_TOKEN || null,
-  expires_at: process.env.WAKATIME_TOKEN_EXPIRES_AT ? parseInt(process.env.WAKATIME_TOKEN_EXPIRES_AT) : null,
-  token_type: 'Bearer'
-};
+// WakaTime tokens - read from .env file (like Spotify)
+// After OAuth callback, add these to your .env file
+let wakatimeAccessToken = process.env.WAKATIME_ACCESS_TOKEN;
+let wakatimeRefreshToken = process.env.WAKATIME_REFRESH_TOKEN;
+let wakatimeTokenExpiresAt = process.env.WAKATIME_TOKEN_EXPIRES_AT ? parseInt(process.env.WAKATIME_TOKEN_EXPIRES_AT) : null;
 
-// Helper to check if token needs refresh
+// Helper function to check if token needs refresh
 function needsRefresh() {
-  if (!wakatimeTokens.expires_at) return true;
-  const buffer = 5 * 60 * 1000; // 5 minutes buffer
-  return Date.now() >= wakatimeTokens.expires_at - buffer;
+  if (!wakatimeTokenExpiresAt) return true;
+  const buffer = 300000; // 5 minutes
+  return Date.now() >= wakatimeTokenExpiresAt - buffer;
 }
 
-// Refresh access token using refresh token
-async function refreshAccessToken() {
-  if (!wakatimeTokens.refresh_token) {
-    throw new Error('No refresh token available. Please re-authorize WakaTime.');
+// Refresh WakaTime access token when needed
+async function refreshWakaTimeToken() {
+  if (!wakatimeRefreshToken) {
+    throw new Error('No refresh token available. Please update your .env file.');
   }
 
   if (!WAKATIME_CLIENT_ID || !WAKATIME_CLIENT_SECRET) {
@@ -52,30 +49,39 @@ async function refreshAccessToken() {
         grant_type: 'refresh_token',
         client_id: WAKATIME_CLIENT_ID,
         client_secret: WAKATIME_CLIENT_SECRET,
-        refresh_token: wakatimeTokens.refresh_token,
+        refresh_token: wakatimeRefreshToken,
         redirect_uri: WAKATIME_REDIRECT_URI
       })
     });
 
-    const data = await response.json();
+    // Handle response (can be JSON or form-urlencoded)
+    let data;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      try {
+        data = Object.fromEntries(new URLSearchParams(text));
+      } catch {
+        data = JSON.parse(text);
+      }
+    }
 
     if (data.error) {
       throw new Error(data.error_description || data.error || 'Failed to refresh token');
     }
 
     // Update tokens
-    wakatimeTokens.access_token = data.access_token;
+    wakatimeAccessToken = data.access_token;
     if (data.refresh_token) {
-      wakatimeTokens.refresh_token = data.refresh_token;
+      wakatimeRefreshToken = data.refresh_token;
     }
-    // OAuth tokens using response_type=code expire after 365 days
-    // Calculate expires_at based on expires_in (default to 365 days if not provided)
-    const expiresIn = data.expires_in || (365 * 24 * 60 * 60); // 365 days in seconds
-    wakatimeTokens.expires_at = Date.now() + (expiresIn * 1000);
-    wakatimeTokens.token_type = data.token_type || 'Bearer';
+    const expiresIn = data.expires_in || (365 * 24 * 60 * 60); // 365 days default
+    wakatimeTokenExpiresAt = Date.now() + (expiresIn * 1000);
 
     console.log('WakaTime token refreshed successfully');
-    return wakatimeTokens.access_token;
+    return data.access_token;
 
   } catch (error) {
     console.error('WakaTime token refresh error:', error);
@@ -85,22 +91,21 @@ async function refreshAccessToken() {
 
 // Get valid access token (refresh if needed)
 async function getValidAccessToken() {
-  if (!wakatimeTokens.access_token) {
-    throw new Error('No WakaTime access token found. Please authorize WakaTime first.');
+  if (!wakatimeAccessToken) {
+    throw new Error('No WakaTime access token found. Please set WAKATIME_ACCESS_TOKEN in your .env file.');
   }
 
   // Check if token is expired (with 5 minute buffer)
   if (needsRefresh()) {
     console.log('WakaTime token expired, refreshing...');
-    return await refreshAccessToken();
+    return await refreshWakaTimeToken();
   }
 
-  return wakatimeTokens.access_token;
+  return wakatimeAccessToken;
 }
 
 // Export the getValidAccessToken function for use in wakatime.js
 module.exports.getValidAccessToken = getValidAccessToken;
-module.exports.wakatimeTokens = wakatimeTokens;
 
 // Step 1: Initiate OAuth authorization
 router.get('/authorize', (req, res) => {
@@ -134,19 +139,19 @@ router.get('/authorize', (req, res) => {
 // Step 2: Handle OAuth callback and exchange code for token
 router.post('/callback', async (req, res) => {
   try {
-    const { code, state } = req.body;
+    const { code } = req.body;
 
     if (!code) {
       return res.status(400).json({
-        error: 'Authorization code missing',
-        message: 'No authorization code provided'
+        success: false,
+        error: 'Authorization code missing'
       });
     }
 
     if (!WAKATIME_CLIENT_ID || !WAKATIME_CLIENT_SECRET) {
       return res.status(500).json({
-        error: 'OAuth credentials not configured',
-        message: 'WAKATIME_CLIENT_ID and WAKATIME_CLIENT_SECRET must be set'
+        success: false,
+        error: 'OAuth not configured'
       });
     }
 
@@ -165,34 +170,57 @@ router.post('/callback', async (req, res) => {
       })
     });
 
-    const data = await response.json();
+    // Handle response (can be JSON or form-urlencoded)
+    let data;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      try {
+        data = Object.fromEntries(new URLSearchParams(text));
+      } catch {
+        data = JSON.parse(text);
+      }
+    }
 
-    if (data.error) {
+    if (!response.ok || data.error) {
       return res.status(400).json({
-        error: data.error,
-        message: data.error_description || 'Failed to exchange authorization code for token'
+        success: false,
+        error: data.error || 'Token exchange failed',
+        message: data.error_description || 'Failed to get tokens'
       });
     }
 
-    // Store tokens
-    wakatimeTokens.access_token = data.access_token;
-    wakatimeTokens.refresh_token = data.refresh_token;
-    const expiresIn = data.expires_in || (365 * 24 * 60 * 60); // 365 days default
-    wakatimeTokens.expires_at = Date.now() + (expiresIn * 1000);
-    wakatimeTokens.token_type = data.token_type || 'Bearer';
+    // Store tokens in memory (user should add to .env for persistence)
+    wakatimeAccessToken = data.access_token;
+    wakatimeRefreshToken = data.refresh_token;
+    const expiresIn = data.expires_in || (365 * 24 * 60 * 60);
+    wakatimeTokenExpiresAt = Date.now() + (expiresIn * 1000);
 
-    console.log('WakaTime OAuth authorization successful');
+    console.log('✅ WakaTime OAuth connected - real-time data fetching active');
+    console.log('📝 Add these to your backend/.env file for persistence:');
+    console.log(`WAKATIME_ACCESS_TOKEN=${data.access_token}`);
+    console.log(`WAKATIME_REFRESH_TOKEN=${data.refresh_token}`);
+    console.log(`WAKATIME_TOKEN_EXPIRES_AT=${wakatimeTokenExpiresAt}`);
 
     res.json({
       success: true,
-      message: 'WakaTime authorization successful',
-      expires_at: wakatimeTokens.expires_at
+      message: 'Connected successfully',
+      expires_at: wakatimeTokenExpiresAt,
+      // Include tokens in response so user can add to .env
+      tokens: {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: wakatimeTokenExpiresAt
+      }
     });
 
   } catch (error) {
-    console.error('WakaTime OAuth callback error:', error);
+    console.error('WakaTime OAuth error:', error);
     res.status(500).json({
-      error: 'OAuth callback failed',
+      success: false,
+      error: 'Connection failed',
       message: error.message
     });
   }
@@ -200,14 +228,14 @@ router.post('/callback', async (req, res) => {
 
 // Get current token status
 router.get('/status', (req, res) => {
-  const hasToken = !!wakatimeTokens.access_token;
+  const hasToken = !!wakatimeAccessToken;
   const isExpired = needsRefresh();
   
   res.json({
     authorized: hasToken,
-    expires_at: wakatimeTokens.expires_at,
+    expires_at: wakatimeTokenExpiresAt,
     isExpired: isExpired,
-    needsRefresh: isExpired && !!wakatimeTokens.refresh_token
+    needsRefresh: isExpired && !!wakatimeRefreshToken
   });
 });
 
@@ -220,7 +248,7 @@ router.post('/revoke', async (req, res) => {
       });
     }
 
-    const tokenToRevoke = req.body.token || wakatimeTokens.access_token || wakatimeTokens.refresh_token;
+    const tokenToRevoke = req.body.token || wakatimeAccessToken || wakatimeRefreshToken;
 
     if (!tokenToRevoke) {
       return res.status(400).json({
@@ -242,12 +270,9 @@ router.post('/revoke', async (req, res) => {
 
     if (response.ok) {
       // Clear tokens
-      wakatimeTokens = {
-        access_token: null,
-        refresh_token: null,
-        expires_at: null,
-        token_type: 'Bearer'
-      };
+      wakatimeAccessToken = null;
+      wakatimeRefreshToken = null;
+      wakatimeTokenExpiresAt = null;
 
       res.json({
         success: true,
@@ -273,11 +298,11 @@ router.post('/revoke', async (req, res) => {
 // Manual refresh endpoint (for testing)
 router.post('/refresh', async (req, res) => {
   try {
-    const newToken = await refreshAccessToken();
+    const newToken = await refreshWakaTimeToken();
     res.json({
       success: true,
       message: 'Token refreshed successfully',
-      expires_at: wakatimeTokens.expires_at
+      expires_at: wakatimeTokenExpiresAt
     });
   } catch (error) {
     res.status(500).json({

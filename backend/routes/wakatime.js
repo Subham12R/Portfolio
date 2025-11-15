@@ -12,15 +12,17 @@ const WAKATIME_API_KEY = process.env.WAKATIME_API_KEY;
 // Helper to get authentication header (OAuth Bearer token or API key fallback)
 async function getAuthHeader() {
   try {
-    // Try to use OAuth token first
+    // Try to use OAuth token first (automatic refresh if needed)
     const accessToken = await getValidAccessToken();
     return `Bearer ${accessToken}`;
   } catch (error) {
     // Fallback to API key if OAuth not configured
     if (WAKATIME_API_KEY) {
+      console.warn('Using WAKATIME_API_KEY fallback. Consider setting up OAuth for better security.');
       return `Basic ${Buffer.from(`${WAKATIME_API_KEY}:`).toString('base64')}`;
     }
-    throw new Error('No WakaTime authentication configured. Please set up OAuth or WAKATIME_API_KEY.');
+    // Return error info but don't throw - let the API endpoint handle it
+    throw new Error('WakaTime not connected. Please authorize at /api/wakatime/oauth/authorize');
   }
 }
 
