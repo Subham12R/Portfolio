@@ -81,6 +81,30 @@ const resetRateLimit = () => {
   rateLimitState.backoffUntil = null;
 };
 
+// Root endpoint - list available WakaTime endpoints
+router.get('/', (req, res) => {
+  res.json({
+    message: 'WakaTime API endpoints',
+    endpoints: {
+      status: '/api/wakatime/status',
+      statusBar: '/api/wakatime/status-bar',
+      allTimeSinceToday: '/api/wakatime/all-time-since-today',
+      durations: '/api/wakatime/durations?date=YYYY-MM-DD',
+      heartbeats: '/api/wakatime/heartbeats?date=YYYY-MM-DD',
+      projectCommits: '/api/wakatime/projects/:project/commits',
+      editors: '/api/wakatime/editors',
+      oauth: {
+        authorize: '/api/wakatime/oauth/authorize',
+        callback: '/api/wakatime/oauth/callback',
+        status: '/api/wakatime/oauth/status',
+        refresh: '/api/wakatime/oauth/refresh',
+        revoke: '/api/wakatime/oauth/revoke'
+      }
+    },
+    note: 'All endpoints require OAuth authentication or WAKATIME_API_KEY'
+  });
+});
+
 // Get current status (what you're coding now)
 router.get('/status', async (req, res) => {
   try {

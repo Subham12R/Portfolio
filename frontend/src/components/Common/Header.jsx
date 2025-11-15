@@ -466,7 +466,7 @@ const Header = () => {
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          
+          <span className="text-gray-500 dark:text-gray-400">Offline</span>
         </div>
         {allTimeData && (
           <div className="text-sm border-t pt-2 space-y-1" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
