@@ -126,8 +126,8 @@ const AboutMe = () => {
           return { success: false, data: null, error: error?.message || 'Unknown error' };
         });
         
-        // Log status response for debugging (but suppress 404 and 429 errors as they're expected)
-        if (!statusResponse.success && statusResponse.statusCode !== 404 && statusResponse.statusCode !== 429) {
+        // Log status response for debugging
+        if (!statusResponse.success) {
           console.warn('WakaTime status response failed:', statusResponse.error || statusResponse.details);
         }
         
@@ -456,7 +456,7 @@ const AboutMe = () => {
                 <span className='inline-flex items-center gap-1 flex-wrap'>
                   {allTimeData ? (
                     <>
-                      <span className='font-semibold'>Total: {allTimeData.text || totalTimeToday}</span>
+                      <span className='font-semibold'>Total: {totalTimeToday}</span>
                       {allTimeData.daily_average && (
                         <>
                           <span>•</span>
@@ -469,14 +469,7 @@ const AboutMe = () => {
                           </span>
                         </>
                       )}
-                      {allTimeData.range?.start_text && (
-                        <>
-                          <span>•</span>
-                          <span className='opacity-60 text-xs'>
-                            Since {allTimeData.range.start_text}
-                          </span>
-                        </>
-                      )}
+        
                     </>
                   ) : (
                     <>

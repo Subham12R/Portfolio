@@ -110,6 +110,9 @@ const Header = () => {
   const [sessionStartTime, setSessionStartTime] = useState(null); // When current session started
   const [lastCodingTime, setLastCodingTime] = useState(null); // Last coding time from durations (text format)
   const [lastCodingDate, setLastCodingDate] = useState(null); // Date of last coding time
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false); // Spotify music playing state
+  const [musicStartTime, setMusicStartTime] = useState(null); // When music started playing
+  const [musicTime, setMusicTime] = useState(0); // Time music has been playing in seconds
   const lastResponseTimeRef = useRef(null); // Track when we last got a successful response 
   const lastSessionStartRef = useRef(null); // Track last session start time for resuming
   const lastHeartbeatTimeRef = useRef(null); // Track last heartbeat time
@@ -178,6 +181,33 @@ const Header = () => {
       if (timerIntervalId) clearInterval(timerIntervalId);
     };
   }, [sessionStartTime, isActive]);
+
+  // Timer for music playing
+  useEffect(() => {
+    let musicTimerIntervalId = null;
+    
+    if (musicStartTime && isMusicPlaying) {
+      // Start/continue music timer that increments every second
+      musicTimerIntervalId = setInterval(() => {
+        setMusicTime(prev => {
+          // Recalculate from start time to keep it accurate
+          if (musicStartTime) {
+            const now = new Date();
+            const start = new Date(musicStartTime);
+            return Math.floor((now - start) / 1000);
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } else {
+      // Reset timer when not playing
+      setMusicTime(0);
+    }
+    
+    return () => {
+      if (musicTimerIntervalId) clearInterval(musicTimerIntervalId);
+    };
+  }, [musicStartTime, isMusicPlaying]);
 
   // Fetch WakaTime data and manage timer
   useEffect(() => {
@@ -508,10 +538,38 @@ const Header = () => {
       }
     };
 
+    // Fetch Spotify currently playing status
+    const fetchSpotifyStatus = async () => {
+      try {
+        const spotifyResponse = await apiService.getSpotifyCurrentlyPlaying().catch(() => ({ success: false }));
+        
+        if (spotifyResponse.success && spotifyResponse.isPlaying) {
+          // Music is playing
+          if (!isMusicPlaying) {
+            // Music just started - set start time
+            setMusicStartTime(new Date());
+          }
+          setIsMusicPlaying(true);
+        } else {
+          // Music stopped or not playing
+          if (isMusicPlaying) {
+            // Music just stopped - clear start time
+            setMusicStartTime(null);
+            setMusicTime(0);
+          }
+          setIsMusicPlaying(false);
+        }
+      } catch {
+        // Silently fail - Spotify status is optional
+        setIsMusicPlaying(false);
+      }
+    };
+
     // Initial fetch
     fetchWakatime();
     fetchHeartbeats(); // Initial heartbeat fetch
     fetchLastCodingTime(); // Fetch last coding time when not active
+    fetchSpotifyStatus(); // Check Spotify status
     
     // Poll status every 30 seconds
     pollIntervalId = setInterval(fetchWakatime, POLL_INTERVAL);
@@ -519,15 +577,31 @@ const Header = () => {
     // Poll heartbeats every 5 minutes
     heartbeatPollIntervalId = setInterval(fetchHeartbeats, HEARTBEAT_POLL_INTERVAL);
     
+    // Poll Spotify every 30 seconds
+    const spotifyPollIntervalId = setInterval(fetchSpotifyStatus, 30000);
+    
     return () => {
       if (pollIntervalId) clearInterval(pollIntervalId);
       if (heartbeatPollIntervalId) clearInterval(heartbeatPollIntervalId);
+      if (spotifyPollIntervalId) clearInterval(spotifyPollIntervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionStartTime]); // isActive is intentionally excluded to avoid infinite loops
 
   // Format custom tooltip content for WakaTime activity
   const getActivityTooltipContent = () => {
+    // If music is playing, show "Working...." with timer (priority over coding)
+    if (isMusicPlaying) {
+      const musicTimeDisplay = formatTime(musicTime);
+      return (
+        <div className="space-y-2">
+          <div className="text-sm " style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
+            <span className="font-semibold">Vibing for: {musicTimeDisplay}</span>
+          </div>
+        </div>
+      );
+    }
+    
     // If currently active, show timer and editor (even if no editor, show timer)
     if (isActive) {
       const editorIcon = getEditorIcon(currentEditor);
@@ -671,13 +745,15 @@ const Header = () => {
                                         >
                                           <span 
                                             className={`absolute bottom-1 right-3 inline-block w-2 h-2 rounded-full ring-2 ring-offset-2 dark:ring-offset-zinc-600 z-10 transition-all duration-300 cursor-pointer ${
-                                              isActive 
-                                                ? 'bg-green-500 ring-green-200 dark:ring-green-700 animate-pulse' 
+                                              isMusicPlaying
+                                                ? 'bg-green-500 ring-green-200 dark:ring-green-700 '
+                                                : isActive 
+                                                ? 'bg-green-500 ring-green-200 dark:ring-green-700 ' 
                                                 : wakatimeData?.lastHeartbeat || lastCodingTime
                                                 ? 'bg-green-400 ring-green-200 dark:ring-green-600'
                                                 : 'bg-gray-400 ring-gray-300 dark:ring-gray-600'
                                             }`}
-                                          ></span>
+                                          />
                                         </CustomWakaTip>
                                     </div>
 
