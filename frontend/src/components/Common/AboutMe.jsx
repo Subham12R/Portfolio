@@ -48,8 +48,6 @@ const AboutMe = () => {
   const [sessionStartTime, setSessionStartTime] = useState(null)
   const [totalTimeToday, setTotalTimeToday] = useState(null) // Total time coded today (text)
   const [allTimeData, setAllTimeData] = useState(null) // Full all_time_since_today data
-  const [todayHeartbeats, setTodayHeartbeats] = useState(null) // Today's heartbeats data
-  const [totalCommits, setTotalCommits] = useState(null) // Total commits across all projects
   const lastResponseTimeRef = useRef(null)
   const lastSessionStartRef = useRef(null) // Track last session start time for resuming
   
@@ -123,7 +121,15 @@ const AboutMe = () => {
     const fetchWakatime = async () => {
       try {
         // Fetch current status
-        const statusResponse = await apiService.getWakaTimeStatus().catch(() => ({ success: false, data: null }))
+        const statusResponse = await apiService.getWakaTimeStatus().catch((error) => {
+          console.warn('WakaTime status fetch failed:', error);
+          return { success: false, data: null, error: error?.message || 'Unknown error' };
+        });
+        
+        // Log status response for debugging (but suppress 404 and 429 errors as they're expected)
+        if (!statusResponse.success && statusResponse.statusCode !== 404 && statusResponse.statusCode !== 429) {
+          console.warn('WakaTime status response failed:', statusResponse.error || statusResponse.details);
+        }
         
         if (statusResponse.success && statusResponse.data?.data) {
           const statusData = statusResponse.data.data
@@ -212,13 +218,6 @@ const AboutMe = () => {
                 setAllTimeData(allTimeData)
                 setTotalTimeToday(allTimeData.text || null)
               }
-              
-              // Fetch today's heartbeats for more detailed activity info
-              const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
-              const heartbeatsResponse = await apiService.getWakaTimeHeartbeats(today).catch(() => ({ success: false }))
-              if (heartbeatsResponse.success && heartbeatsResponse.data?.data) {
-                setTodayHeartbeats(heartbeatsResponse.data.data)
-              }
             } catch (error) {
               console.error('Failed to fetch total time today:', error)
             }
@@ -236,8 +235,21 @@ const AboutMe = () => {
           }
           setWakatimeLoading(false)
         } else {
-          // No data available
+          // No data available - try to fetch all-time data anyway
           setWakatimeLoading(false)
+          
+          // Even if status fails, try to fetch all-time data
+          try {
+            const allTimeResponse = await apiService.getWakaTimeAllTimeSinceToday()
+            if (allTimeResponse.success && allTimeResponse.data?.data) {
+              const allTimeData = allTimeResponse.data.data
+              setAllTimeData(allTimeData)
+              setTotalTimeToday(allTimeData.text || null)
+            }
+          } catch (error) {
+            console.error('Failed to fetch total time today:', error)
+          }
+          
           // Check if we haven't had a response for more than 1 hour
           if (lastResponseTimeRef.current) {
             const timeSinceLastResponse = new Date() - lastResponseTimeRef.current
@@ -286,41 +298,7 @@ const AboutMe = () => {
     }
   }, [sessionStartTime])
 
-  // Fetch total commits from all projects
-  useEffect(() => {
-    const fetchCommits = async () => {
-      try {
-        // First, we need to get the list of projects
-        // For now, we'll try to fetch commits from common project names
-        // In a real scenario, you'd want to fetch the projects list first
-        // For simplicity, we'll aggregate commits from multiple projects
-        const commonProjects = ['portfolio', 'Portfolio', 'portfolio-frontend', 'portfolio-backend']
-        let totalCommitsCount = 0
-        
-        // Try to fetch commits from each project
-        for (const project of commonProjects) {
-          try {
-            const commitsResponse = await apiService.getWakaTimeProjectCommits(project)
-            if (commitsResponse.success && commitsResponse.data?.data?.total) {
-              totalCommitsCount += commitsResponse.data.data.total
-            }
-          } catch {
-            // Project might not exist, continue to next
-            continue
-          }
-        }
-        
-        if (totalCommitsCount > 0) {
-          setTotalCommits(totalCommitsCount)
-        }
-      } catch (error) {
-        console.error('Failed to fetch commits:', error)
-      }
-    }
-
-    // Fetch commits once on mount
-    fetchCommits()
-  }, [])
+  // Note: Commits fetching removed - focusing on all-time-since-today data for now
   
   // Use backend data instead of hardcoded data
   const aboutMeData = data?.aboutMe || {
@@ -491,29 +469,12 @@ const AboutMe = () => {
                           </span>
                         </>
                       )}
-                      {todayHeartbeats?.data && todayHeartbeats.data.length > 0 && (
+                      {allTimeData.range?.start_text && (
                         <>
                           <span>•</span>
-                          <span className='opacity-75 text-sm'>
-                            {(() => {
-                              // Get unique projects and languages from heartbeats
-                              const projects = new Set();
-                              const languages = new Set();
-                              todayHeartbeats.data.forEach(hb => {
-                                if (hb.project) projects.add(hb.project);
-                                if (hb.language) languages.add(hb.language);
-                              });
-                              const projectCount = projects.size;
-                              const languageCount = languages.size;
-                              return `${projectCount} project${projectCount !== 1 ? 's' : ''}, ${languageCount} language${languageCount !== 1 ? 's' : ''}`;
-                            })()}
+                          <span className='opacity-60 text-xs'>
+                            Since {allTimeData.range.start_text}
                           </span>
-                        </>
-                      )}
-                      {totalCommits && (
-                        <>
-                          <span>•</span>
-                          <span className='font-semibold'>{totalCommits} commits</span>
                         </>
                       )}
                     </>

@@ -108,11 +108,11 @@ const Header = () => {
   const [currentEditor, setCurrentEditor] = useState(null);
   const [sessionTime, setSessionTime] = useState(0); // Time in seconds
   const [sessionStartTime, setSessionStartTime] = useState(null); // When current session started
-  const [totalTimeToday, setTotalTimeToday] = useState(null); // Total time coded today (text)
-  const [allTimeData, setAllTimeData] = useState(null); // Full all_time_since_today data
-  const [todayHeartbeats, setTodayHeartbeats] = useState(null); // Today's heartbeats data
+  const [lastCodingTime, setLastCodingTime] = useState(null); // Last coding time from durations (text format)
+  const [lastCodingDate, setLastCodingDate] = useState(null); // Date of last coding time
   const lastResponseTimeRef = useRef(null); // Track when we last got a successful response 
   const lastSessionStartRef = useRef(null); // Track last session start time for resuming
+  const lastHeartbeatTimeRef = useRef(null); // Track last heartbeat time
   
   // Helper to get/set last session start from localStorage
   const getLastSessionStart = () => {
@@ -182,13 +182,23 @@ const Header = () => {
   // Fetch WakaTime data and manage timer
   useEffect(() => {
     let pollIntervalId = null;
-    const POLL_INTERVAL = 30000; // Poll every 30 seconds
+    let heartbeatPollIntervalId = null;
+    const POLL_INTERVAL = 30000; // Poll status every 30 seconds
+    const HEARTBEAT_POLL_INTERVAL = 2 * 60 * 1000; // Poll heartbeats every 2 minutes for better responsiveness
     const NO_RESPONSE_THRESHOLD = 60 * 60 * 1000; // 1 hour in milliseconds
 
     const fetchWakatime = async () => {
       try {
         // Fetch current status
-        const statusResponse = await apiService.getWakaTimeStatus().catch(() => ({ success: false, data: null }));
+        const statusResponse = await apiService.getWakaTimeStatus().catch((error) => {
+          console.warn('WakaTime status fetch failed:', error);
+          return { success: false, data: null, error: error?.message || 'Unknown error' };
+        });
+        
+        // Log status response for debugging (but suppress 404 and 429 errors as they're expected)
+        if (!statusResponse.success && statusResponse.statusCode !== 404 && statusResponse.statusCode !== 429) {
+          console.warn('WakaTime status response failed:', statusResponse.error || statusResponse.details);
+        }
         
         if (statusResponse.success && statusResponse.data?.data) {
           const statusData = statusResponse.data.data;
@@ -252,8 +262,6 @@ const Header = () => {
             }
             setIsActive(true);
             setCurrentEditor(editor);
-            // Clear total time when active (we show live timer instead)
-            setTotalTimeToday(null);
           } else {
             // No recent activity - stop timer but keep session start for potential resume
             setIsActive(false);
@@ -275,23 +283,7 @@ const Header = () => {
             // Fetch total time today and heartbeats when no live activity
             // Note: We check isActive state here, but don't add it to deps to avoid infinite loops
             // The effect runs on statusResponse changes, which is sufficient
-            try {
-              const allTimeResponse = await apiService.getWakaTimeAllTimeSinceToday();
-              if (allTimeResponse.success && allTimeResponse.data?.data) {
-                const allTimeData = allTimeResponse.data.data;
-                setAllTimeData(allTimeData);
-                setTotalTimeToday(allTimeData.text || null);
-              }
-              
-              // Fetch today's heartbeats for more detailed activity info
-              const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-              const heartbeatsResponse = await apiService.getWakaTimeHeartbeats(today).catch(() => ({ success: false }));
-              if (heartbeatsResponse.success && heartbeatsResponse.data?.data) {
-                setTodayHeartbeats(heartbeatsResponse.data.data);
-              }
-            } catch (error) {
-              console.error('Failed to fetch total time today:', error);
-            }
+            // Note: Removed all-time data fetching as it's no longer displayed
           }
           
           setWakatimeData({
@@ -301,7 +293,11 @@ const Header = () => {
             hasEntity: hasEntity
           });
         } else {
-          // No data available - keep existing data if any
+          // No data available - fetch last coding time from durations
+          if (!isActive) {
+            fetchLastCodingTime();
+          }
+          
           // Check if we haven't had a response for more than 1 hour
           if (lastResponseTimeRef.current) {
             const timeSinceLastResponse = new Date() - lastResponseTimeRef.current;
@@ -337,21 +333,203 @@ const Header = () => {
       }
     };
 
+    // Fetch last coding time from durations (yesterday or today)
+    const fetchLastCodingTime = async () => {
+      try {
+        // Try today first
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        
+        let durationsResponse = await apiService.getWakaTimeDurations(todayStr).catch(() => ({ success: false }));
+        
+        // If today has no data, try yesterday
+        if (!durationsResponse.success || !durationsResponse.data?.data?.data || durationsResponse.data.data.data.length === 0) {
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+          durationsResponse = await apiService.getWakaTimeDurations(yesterdayStr).catch(() => ({ success: false }));
+        }
+        
+        if (durationsResponse.success && durationsResponse.data?.data?.data) {
+          const durations = durationsResponse.data.data.data;
+          
+          // Calculate total coding time from durations
+          let totalSeconds = 0;
+          durations.forEach(duration => {
+            totalSeconds += duration.duration || 0;
+          });
+          
+          if (totalSeconds > 0) {
+            // Format time
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const timeText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+            
+            // Determine date
+            const dateStr = durationsResponse.data.data.start || durationsResponse.data.data.end;
+            const date = dateStr ? new Date(dateStr) : new Date();
+            const isToday = date.toDateString() === today.toDateString();
+            const isYesterday = date.toDateString() === new Date(today.getTime() - 24 * 60 * 60 * 1000).toDateString();
+            
+            let dateLabel = '';
+            if (isToday) {
+              dateLabel = 'Today';
+            } else if (isYesterday) {
+              dateLabel = 'Yesterday';
+            } else {
+              const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              dateLabel = `${monthNames[date.getMonth()]} ${date.getDate()}`;
+            }
+            
+            setLastCodingTime(timeText);
+            setLastCodingDate(dateLabel);
+          }
+        }
+      } catch (error) {
+        // Silently fail - durations are optional
+        console.warn('Failed to fetch last coding time:', error);
+      }
+    };
+
+    // Fetch heartbeats every 5 minutes to check for activity
+    const fetchHeartbeats = async () => {
+      try {
+        const heartbeatsResponse = await apiService.getWakaTimeHeartbeats().catch((error) => {
+          // Only log non-rate-limit errors
+          if (!error?.message?.includes('rate limited') && !error?.message?.includes('429')) {
+            console.warn('WakaTime heartbeats fetch failed:', error);
+          }
+          return { success: false, data: null };
+        });
+        
+        if (heartbeatsResponse.success && heartbeatsResponse.data?.data?.data) {
+          const heartbeats = heartbeatsResponse.data.data.data;
+          console.log(`Fetched ${heartbeats.length} heartbeats for today`);
+          
+          // Get the most recent heartbeat
+          if (heartbeats.length > 0) {
+            // Sort by time (most recent first)
+            const sortedHeartbeats = [...heartbeats].sort((a, b) => b.time - a.time);
+            const latestHeartbeat = sortedHeartbeats[0];
+            const heartbeatTime = new Date(latestHeartbeat.time * 1000); // Convert Unix timestamp to Date
+            lastHeartbeatTimeRef.current = heartbeatTime;
+            
+            // Check if heartbeat is within last hour
+            const now = new Date();
+            const diffMinutes = (now - heartbeatTime) / (1000 * 60);
+            
+            // Check if it's a coding heartbeat (category is 'coding' or missing, which usually means coding)
+            const isCodingHeartbeat = !latestHeartbeat.category || latestHeartbeat.category === 'coding';
+            
+            if (diffMinutes > 60) {
+              // No heartbeat for more than 1 hour - stop timer
+              setIsActive(false);
+              setSessionStartTime(null);
+              lastSessionStartRef.current = null;
+              setLastSessionStart(null);
+              setSessionTime(0);
+              console.log('No heartbeat for over 1 hour - timer stopped');
+            } else if (diffMinutes <= 10 && isCodingHeartbeat) {
+              // Recent coding activity (within 10 minutes) - ensure timer is running
+              console.log(`Recent heartbeat detected: ${diffMinutes.toFixed(1)} minutes ago, category: ${latestHeartbeat.category || 'coding'}`);
+              
+              if (!isActive) {
+                // Start or resume session
+                if (!sessionStartTime) {
+                  // Start new session from heartbeat time
+                  setSessionStartTime(heartbeatTime);
+                  lastSessionStartRef.current = heartbeatTime;
+                  setLastSessionStart(heartbeatTime);
+                  setSessionTime(0);
+                  console.log('Starting new coding session from heartbeat');
+                } else {
+                  // Resume existing session if within 1 hour
+                  const lastSessionStart = getLastSessionStart();
+                  if (lastSessionStart) {
+                    const timeSinceLastSession = heartbeatTime - lastSessionStart;
+                    if (timeSinceLastSession < 60 * 60 * 1000) {
+                      // Within 1 hour, resume
+                      setSessionStartTime(lastSessionStart);
+                      lastSessionStartRef.current = lastSessionStart;
+                      console.log('Resuming existing coding session');
+                    } else {
+                      // More than 1 hour, start new
+                      setSessionStartTime(heartbeatTime);
+                      lastSessionStartRef.current = heartbeatTime;
+                      setLastSessionStart(heartbeatTime);
+                      setSessionTime(0);
+                      console.log('Starting new coding session (previous session too old)');
+                    }
+                  }
+                }
+                setIsActive(true);
+              }
+              
+              // Update editor if available
+              if (latestHeartbeat.language) {
+                setCurrentEditor(latestHeartbeat.language);
+              } else if (latestHeartbeat.entity) {
+                // Try to extract editor from entity path
+                const entityPath = latestHeartbeat.entity;
+                if (entityPath.includes('.')) {
+                  const ext = entityPath.split('.').pop().toLowerCase();
+                  const languageMap = {
+                    'js': 'JavaScript', 'jsx': 'React', 'ts': 'TypeScript', 'tsx': 'React TS',
+                    'py': 'Python', 'java': 'Java', 'cpp': 'C++', 'c': 'C',
+                    'html': 'HTML', 'css': 'CSS', 'scss': 'SCSS', 'json': 'JSON'
+                  };
+                  if (languageMap[ext]) {
+                    setCurrentEditor(languageMap[ext]);
+                  }
+                }
+              }
+            } else if (diffMinutes <= 10) {
+              // Recent heartbeat but not coding - keep timer running if already active, but don't start new
+              console.log(`Recent non-coding heartbeat: ${diffMinutes.toFixed(1)} minutes ago, category: ${latestHeartbeat.category}`);
+            }
+          } else {
+            // No heartbeats - check if we should stop timer
+            if (lastHeartbeatTimeRef.current) {
+              const now = new Date();
+              const diffMinutes = (now - lastHeartbeatTimeRef.current) / (1000 * 60);
+              if (diffMinutes > 60) {
+                setIsActive(false);
+                setSessionStartTime(null);
+                lastSessionStartRef.current = null;
+                setLastSessionStart(null);
+                setSessionTime(0);
+                console.log('No heartbeat for over 1 hour - timer stopped');
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch heartbeats:', error);
+      }
+    };
+
     // Initial fetch
     fetchWakatime();
+    fetchHeartbeats(); // Initial heartbeat fetch
+    fetchLastCodingTime(); // Fetch last coding time when not active
     
-    // Poll every 30 seconds
+    // Poll status every 30 seconds
     pollIntervalId = setInterval(fetchWakatime, POLL_INTERVAL);
+    
+    // Poll heartbeats every 5 minutes
+    heartbeatPollIntervalId = setInterval(fetchHeartbeats, HEARTBEAT_POLL_INTERVAL);
     
     return () => {
       if (pollIntervalId) clearInterval(pollIntervalId);
+      if (heartbeatPollIntervalId) clearInterval(heartbeatPollIntervalId);
     };
-  }, [sessionStartTime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionStartTime]); // isActive is intentionally excluded to avoid infinite loops
 
   // Format custom tooltip content for WakaTime activity
   const getActivityTooltipContent = () => {
-    // If currently active, show timer and editor
-    if (isActive && currentEditor) {
+    // If currently active, show timer and editor (even if no editor, show timer)
+    if (isActive) {
       const editorIcon = getEditorIcon(currentEditor);
       const timeDisplay = formatTime(sessionTime);
       
@@ -359,13 +537,14 @@ const Header = () => {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span className="font-semibold">Currently Coding</span>
+            <span className="font-semibold">Currently coding for: {timeDisplay}</span>
           </div>
-          <div className="flex items-center gap-2 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
-            {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />}
-            <span className="font-semibold">{currentEditor}</span>
-            <span className="font-semibold">• {timeDisplay}</span>
-          </div>
+          {currentEditor && (
+            <div className="flex items-center gap-2 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
+              {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />}
+              <span className="font-semibold">{currentEditor}</span>
+            </div>
+          )}
           <div className="text-xs opacity-75 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
             🔄 Timer updates in real-time
           </div>
@@ -374,31 +553,6 @@ const Header = () => {
     }
     
     // If we have editor info but not active
-    if (currentEditor && wakatimeData?.lastHeartbeat) {
-      const editorIcon = getEditorIcon(currentEditor);
-      const lastHeartbeat = new Date(wakatimeData.lastHeartbeat);
-      const now = new Date();
-      const diffMinutes = Math.floor((now - lastHeartbeat) / (1000 * 60));
-      
-      return (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            {editorIcon || <img src={cursorIcon} alt="cursor icon" className="inline-block mr-1.5" style={{ width: '18px', height: '18px' }} />}
-            <span className="font-semibold">{currentEditor}</span>
-          </div>
-          <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
-            Last activity {diffMinutes < 60 ? `${diffMinutes}m ago` : `${Math.floor(diffMinutes / 60)}h ago`}
-          </div>
-          {totalTimeToday && (
-            <div className="text-sm font-semibold border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
-              Total today: {totalTimeToday}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Default: show last activity from WakaTime if available
     if (currentEditor && wakatimeData?.lastHeartbeat) {
       const lastHeartbeat = new Date(wakatimeData.lastHeartbeat);
       const now = new Date();
@@ -428,76 +582,55 @@ const Header = () => {
           <div className="text-sm opacity-90 border-t pt-2" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
             Last active: {timeAgo}
           </div>
-          {allTimeData && (
-            <div className="text-sm border-t pt-2 space-y-1" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
-              <div className="font-semibold">Total: {allTimeData.text || totalTimeToday}</div>
-              {allTimeData.daily_average && (
-                <div className="text-xs opacity-75">
-                  Daily avg: {(() => {
-                    const avgHours = Math.floor(allTimeData.daily_average / 3600);
-                    const avgMins = Math.floor((allTimeData.daily_average % 3600) / 60);
-                    return `${avgHours}h ${avgMins}m`;
-                  })()}
-                </div>
-              )}
-              {todayHeartbeats?.data && todayHeartbeats.data.length > 0 && (
-                <div className="text-xs opacity-60 border-t pt-1 mt-1" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}}>
-                  {(() => {
-                    // Get unique projects and languages from heartbeats
-                    const projects = new Set();
-                    const languages = new Set();
-                    todayHeartbeats.data.forEach(hb => {
-                      if (hb.project) projects.add(hb.project);
-                      if (hb.language) languages.add(hb.language);
-                    });
-                    const projectCount = projects.size;
-                    const languageCount = languages.size;
-                    return `${projectCount} project${projectCount !== 1 ? 's' : ''}, ${languageCount} language${languageCount !== 1 ? 's' : ''}`;
-                  })()}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       );
     }
     
-    // If no WakaTime data, show minimal fallback
+    // If we have last heartbeat but no editor, show just the time
+    if (wakatimeData?.lastHeartbeat) {
+      const lastHeartbeat = new Date(wakatimeData.lastHeartbeat);
+      const now = new Date();
+      const diffMinutes = Math.floor((now - lastHeartbeat) / (1000 * 60));
+      const diffHours = Math.floor(diffMinutes / 60);
+      const diffDays = Math.floor(diffHours / 24);
+      
+      let timeAgo = '';
+      if (diffDays > 0) {
+        timeAgo = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      } else if (diffHours > 0) {
+        timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      } else if (diffMinutes > 0) {
+        timeAgo = `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+      } else {
+        timeAgo = 'Just now';
+      }
+      
+      return (
+        <div className="space-y-2">
+          <div className="text-sm">
+            Last active: {timeAgo}
+          </div>
+        </div>
+      );
+    }
+    
+    // If we have last coding time from durations, show that
+    if (lastCodingTime && lastCodingDate) {
+      return (
+        <div className="space-y-2">
+          <div className="text-sm">
+            {lastCodingDate}: {lastCodingTime}
+          </div>
+        </div>
+      );
+    }
+    
+    // If no WakaTime data at all, show minimal fallback
     return (
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-500 dark:text-gray-400">Offline</span>
+        <div className="text-sm opacity-75">
+          No recent activity
         </div>
-        {allTimeData && (
-          <div className="text-sm border-t pt-2 space-y-1" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'}}>
-            <div className="font-semibold">Total: {allTimeData.text || totalTimeToday}</div>
-            {allTimeData.daily_average && (
-              <div className="text-xs opacity-75">
-                Daily avg: {(() => {
-                  const avgHours = Math.floor(allTimeData.daily_average / 3600);
-                  const avgMins = Math.floor((allTimeData.daily_average % 3600) / 60);
-                  return `${avgHours}h ${avgMins}m`;
-                })()}
-              </div>
-            )}
-            {todayHeartbeats?.data && todayHeartbeats.data.length > 0 && (
-              <div className="text-xs opacity-60 border-t pt-1 mt-1" style={{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}}>
-                {(() => {
-                  // Get unique projects and languages from heartbeats
-                  const projects = new Set();
-                  const languages = new Set();
-                  todayHeartbeats.data.forEach(hb => {
-                    if (hb.project) projects.add(hb.project);
-                    if (hb.language) languages.add(hb.language);
-                  });
-                  const projectCount = projects.size;
-                  const languageCount = languages.size;
-                  return `${projectCount} project${projectCount !== 1 ? 's' : ''}, ${languageCount} language${languageCount !== 1 ? 's' : ''}`;
-                })()}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     );
   };
@@ -533,12 +666,14 @@ const Header = () => {
                                           placement="right" 
                                           arrow 
                                           isDark={isDark}
+                                          enterDelay={200}
+                                          leaveDelay={100}
                                         >
                                           <span 
-                                            className={`absolute bottom-1 right-3 inline-block w-2 h-2 rounded-full ring-2 ring-offset-2 dark:ring-offset-zinc-600 z-10 transition-all duration-300 ${
+                                            className={`absolute bottom-1 right-3 inline-block w-2 h-2 rounded-full ring-2 ring-offset-2 dark:ring-offset-zinc-600 z-10 transition-all duration-300 cursor-pointer ${
                                               isActive 
                                                 ? 'bg-green-500 ring-green-200 dark:ring-green-700 animate-pulse' 
-                                                : wakatimeData?.lastHeartbeat
+                                                : wakatimeData?.lastHeartbeat || lastCodingTime
                                                 ? 'bg-green-400 ring-green-200 dark:ring-green-600'
                                                 : 'bg-gray-400 ring-gray-300 dark:ring-gray-600'
                                             }`}

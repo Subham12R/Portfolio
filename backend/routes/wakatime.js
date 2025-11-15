@@ -195,16 +195,28 @@ router.get('/status', async (req, res) => {
       });
     }
     
+    // Log authentication errors more clearly
+    if (error.message?.includes('WakaTime not connected') || error.message?.includes('No WakaTime access token')) {
+      console.error('WakaTime authentication error:', error.message);
+      return res.json({
+        success: false,
+        error: 'WakaTime not authenticated',
+        details: error.message || 'Please authorize at /api/wakatime/oauth/authorize',
+        statusCode: 401
+      });
+    }
+    
     // Only log unexpected errors
     if (!error.message?.includes('timeout') && !error.message?.includes('ECONNREFUSED') && !error.message?.includes('ENOTFOUND')) {
-      console.error('WakaTime status API error:', error.message);
+      console.error('WakaTime status API error:', error.message, error.stack);
     }
     
     // Return 200 with error info instead of 500 to prevent breaking frontend
     res.json({
       success: false,
       error: 'Failed to fetch WakaTime status',
-      details: error.message || 'Network error occurred'
+      details: error.message || 'Network error occurred',
+      statusCode: 500
     });
   }
 });
@@ -464,16 +476,43 @@ router.get('/durations', async (req, res) => {
 });
 
 // Get heartbeats for current user (for real-time tracking)
-// date parameter is required - format: YYYY-MM-DD
+// date parameter is optional - defaults to today if not provided (format: YYYY-MM-DD)
 router.get('/heartbeats', async (req, res) => {
   try {
-    const { date } = req.query;
+    let { date } = req.query;
     
+    // If no date provided, default to today (in UTC to avoid timezone issues)
     if (!date) {
+      const today = new Date();
+      const year = today.getUTCFullYear();
+      const month = String(today.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(today.getUTCDate()).padStart(2, '0');
+      date = `${year}-${month}-${day}`;
+    }
+    
+    // Validate date format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
       return res.status(400).json({
         success: false,
-        error: 'Date parameter is required',
-        details: 'Please provide a date in YYYY-MM-DD format'
+        error: 'Invalid date format',
+        details: 'Date must be in YYYY-MM-DD format (e.g., 2025-11-16)'
+      });
+    }
+    
+    // Validate date is not in the future (compare dates, not times)
+    const requestedDate = new Date(date + 'T00:00:00Z');
+    const today = new Date();
+    const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+    const requestedDateUTC = new Date(Date.UTC(requestedDate.getUTCFullYear(), requestedDate.getUTCMonth(), requestedDate.getUTCDate()));
+    
+    // Only reject if the date is clearly in the future (more than 1 day ahead)
+    // This accounts for timezone differences
+    if (requestedDateUTC > todayUTC) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid date',
+        details: `Date cannot be in the future. Requested: ${date}, Today (UTC): ${todayUTC.toISOString().split('T')[0]}`
       });
     }
     
@@ -489,6 +528,13 @@ router.get('/heartbeats', async (req, res) => {
     });
 
     if (!response.ok) {
+      let errorText = 'Unknown error';
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        // If we can't read the error, just use status
+      }
+      
       // Handle rate limiting
       if (response.status === 429) {
         handleRateLimit();
@@ -497,6 +543,28 @@ router.get('/heartbeats', async (req, res) => {
           error: 'WakaTime API rate limited',
           details: 'Too many requests. Please try again later.',
           statusCode: 429
+        });
+      }
+      
+      // 400 errors - show more details
+      if (response.status === 400) {
+        console.error(`WakaTime heartbeats API 400 error for date ${date}:`, errorText);
+        // Try to parse error as JSON for better error messages
+        let errorDetails = errorText;
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.error || errorJson.message) {
+            errorDetails = errorJson.error || errorJson.message;
+          }
+        } catch (e) {
+          // Not JSON, use as-is
+        }
+        return res.json({
+          success: false,
+          error: 'WakaTime API bad request',
+          details: errorDetails || `Invalid request for date: ${date}. Please check the date format (YYYY-MM-DD) and ensure it's not in the future.`,
+          statusCode: 400,
+          date: date
         });
       }
       
@@ -509,7 +577,7 @@ router.get('/heartbeats', async (req, res) => {
           message: 'No heartbeats data available'
         });
       }
-      throw new Error(`WakaTime API error: ${response.status}`);
+      throw new Error(`WakaTime API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();

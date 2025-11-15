@@ -434,11 +434,10 @@ class ApiService {
     });
   }
 
-  async getWakaTimeHeartbeats(date) {
-    if (!date) {
-      throw new Error('Date parameter is required (format: YYYY-MM-DD)');
-    }
-    return await this.request(`/api/wakatime/heartbeats?date=${date}`, {
+  async getWakaTimeHeartbeats(date = null) {
+    // Date is optional - if not provided, backend will default to today
+    const query = date ? `?date=${date}` : '';
+    return await this.request(`/api/wakatime/heartbeats${query}`, {
       requireAuth: false,
     });
   }
