@@ -156,6 +156,11 @@ router.post('/callback', async (req, res) => {
     }
 
     // Exchange code for access token
+    // Allow redirect_uri to be overridden in request for flexibility
+    const redirectUri = req.body.redirect_uri || WAKATIME_REDIRECT_URI;
+    
+    console.log('Exchanging WakaTime code with redirect_uri:', redirectUri);
+    
     const response = await fetch(WAKATIME_TOKEN_URL, {
       method: 'POST',
       headers: {
@@ -166,29 +171,40 @@ router.post('/callback', async (req, res) => {
         client_id: WAKATIME_CLIENT_ID,
         client_secret: WAKATIME_CLIENT_SECRET,
         code: code,
-        redirect_uri: WAKATIME_REDIRECT_URI
+        redirect_uri: redirectUri
       })
     });
 
     // Handle response (can be JSON or form-urlencoded)
     let data;
     const contentType = response.headers.get('content-type');
+    const responseText = await response.text();
+    
+    console.log('WakaTime token response status:', response.status);
+    console.log('WakaTime token response content-type:', contentType);
+    console.log('WakaTime token response body:', responseText.substring(0, 200));
+    
     if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
+      data = JSON.parse(responseText);
     } else {
-      const text = await response.text();
       try {
-        data = Object.fromEntries(new URLSearchParams(text));
+        data = Object.fromEntries(new URLSearchParams(responseText));
       } catch {
-        data = JSON.parse(text);
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          data = { error: 'parse_error', error_description: responseText };
+        }
       }
     }
 
     if (!response.ok || data.error) {
+      console.error('WakaTime token exchange error:', data);
       return res.status(400).json({
         success: false,
         error: data.error || 'Token exchange failed',
-        message: data.error_description || 'Failed to get tokens'
+        message: data.error_description || data.error || 'Failed to get tokens',
+        details: data
       });
     }
 

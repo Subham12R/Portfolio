@@ -28,7 +28,9 @@ const WakaTimeCallback = () => {
       }
 
       try {
-        const response = await apiService.exchangeWakaTimeCode(code)
+        // Use the exact redirect_uri that was used in authorization
+        const redirectUri = `${window.location.origin}${window.location.pathname}`;
+        const response = await apiService.exchangeWakaTimeCode(code, redirectUri)
         
         if (response.success) {
           setStatus('success')

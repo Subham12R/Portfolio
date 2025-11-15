@@ -448,11 +448,16 @@ class ApiService {
     });
   }
 
-  async exchangeWakaTimeCode(code) {
+  async exchangeWakaTimeCode(code, redirectUri = null) {
+    // Use the current origin + /callback as default redirect_uri
+    const defaultRedirectUri = redirectUri || `${window.location.origin}/callback`;
     return await this.request('/api/wakatime/oauth/callback', {
       method: 'POST',
       requireAuth: false,
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ 
+        code,
+        redirect_uri: defaultRedirectUri
+      }),
     });
   }
 
