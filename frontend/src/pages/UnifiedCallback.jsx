@@ -7,14 +7,34 @@ import WakaTimeCallback from './WakaTimeCallback'
 const UnifiedCallback = () => {
   const [searchParams] = useSearchParams()
   
-  // Check if this is a WakaTime callback
-  // WakaTime typically includes state parameter and specific scopes
   const state = searchParams.get('state')
   const code = searchParams.get('code')
+  const service = searchParams.get('service') // Optional service parameter
   
-  // If state is present and looks like a WakaTime state (long hex string), it's likely WakaTime
-  // Otherwise, default to Spotify
-  const isWakaTime = state && state.length > 40 // WakaTime states are 64-char hex strings
+  // Check referrer to detect source
+  const referrer = document.referrer || ''
+  const isFromSpotify = referrer.includes('accounts.spotify.com') || referrer.includes('spotify.com')
+  const isFromWakaTime = referrer.includes('wakatime.com')
+  
+  // WakaTime states are long hex strings (64 chars), Spotify doesn't use state
+  const hasWakaTimeState = state && state.length > 40
+  
+  // Determine service
+  let isWakaTime = false
+  
+  if (service === 'wakatime') {
+    isWakaTime = true
+  } else if (service === 'spotify') {
+    isWakaTime = false
+  } else if (hasWakaTimeState || isFromWakaTime) {
+    isWakaTime = true
+  } else if (isFromSpotify) {
+    isWakaTime = false
+  } else if (code && !state) {
+    // If we have a code but no state, default to WakaTime (auto-exchanges)
+    // User can manually visit /callback?service=spotify if needed
+    isWakaTime = true
+  }
   
   if (isWakaTime) {
     return <WakaTimeCallback />
