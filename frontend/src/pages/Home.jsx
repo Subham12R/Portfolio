@@ -92,7 +92,7 @@ const Home = () => {
   const [expandedExperience, setExpandedExperience] = useState(0);
   const [expandedProjects, setExpandedProjects] = useState({});
   const [randomQuote, setRandomQuote] = useState(null);
-  const { data, isLoading, error } = usePortfolio();
+  const { data } = usePortfolio();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -245,34 +245,16 @@ const Home = () => {
   console.log('Home page data:', data)
   console.log('Projects data:', projectData)
 
-  if (isLoading) {
     return (
-      <div className='bg-white w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Loading portfolio data...</div>
-        </div>
+     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
+       <div id="home">
+        <Header />
+        <Spotify />
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className='bg-white w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-red-500">Error loading portfolio data: {error}</div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
-      <Header />
-      <Spotify />
   
 
       {/* Work */}
-      <div className='mt-8 mb-8'>
+      <div id="experience" className='mt-8 mb-8'>
         <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
       </div>
@@ -334,7 +316,7 @@ const Home = () => {
                           </button>
                         </div>
                       </div>
-                        <h4 className="text-gray-600 dark:text-gray-400 text-sm font-medium break-words">{exp.role}</h4>
+                        <h4 className="text-gray-600 dark:text-gray-400 text-sm font-medium wrap-break-word">{exp.role}</h4>
                     </div>
                     
                     {/* Date and Location */}
@@ -393,7 +375,7 @@ const Home = () => {
       </div>
 
     {/* Project */}
-    <div>
+    <div id="projects">
 
      <div className='mt-8 mb-8'>
         <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
@@ -487,13 +469,13 @@ const Home = () => {
     </div>
 
 
-    <div className='mt-8 mb-8'>
+    <div id="about" className='mt-8 mb-8'>
         <p className='text-gray-400 dark:text-gray-500'>About</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Me</h1>
       </div>
       <AboutMe />
 
-      <div className='mt-8 mb-8'>
+      <div id="certificates" className='mt-8 mb-8'>
         <p className='text-gray-400 dark:text-gray-500'>Certificates</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Certificates</h1>
       </div>
@@ -513,7 +495,7 @@ const Home = () => {
         </div>
       </div>
 
-      <div className='mt-8 mb-8'>
+      <div id="setup" className='mt-8 mb-8'>
       <p className='text-gray-400 dark:text-gray-500'>Setup</p>
       <h1 className='text-black dark:text-white font-bold text-3xl'>Development</h1>
         <Link to="/gears">
@@ -553,7 +535,7 @@ const Home = () => {
       
       {/* Random Quote Section */}
       {randomQuote && (
-        <div className='mt-8 mb-8 relative'>
+        <div id="contact" className='mt-8 mb-8 relative'>
           <div className='relative p-8 bg-gray-50 dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-700'>
             {/* Large quotation mark background */}
             <div className='absolute top-5 left-12 text-8xl text-gray-300 dark:text-zinc-700 font-serif opacity-30 select-none pointer-events-none'>

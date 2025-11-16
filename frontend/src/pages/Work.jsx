@@ -123,7 +123,7 @@ const Tip = styled(({ className, ...props }) => (
 ] */
 
 const Work = () => {
-  const { data, isLoading, error } = usePortfolio()
+  const { data } = usePortfolio()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const [expandedExperience, setExpandedExperience] = useState(0)
@@ -183,29 +183,6 @@ const Work = () => {
       default:
         return <FaReact className="text-gray-500" />
     }
-  }
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-zinc-100 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-zinc-400">Loading work experience...</p>
-        </div>
-      </section>
-    )
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
-        <div className="text-center">
-          <p className="text-red-600">Error loading work experience: {error}</p>
-        </div>
-      </section>
-    )
   }
 
   return (

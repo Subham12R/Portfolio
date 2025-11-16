@@ -279,6 +279,21 @@ span{
   animation: word-change 0.3s ease-in-out;
 }
 
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
 /* Dark mode styles */
 .dark {
   color-scheme: dark;

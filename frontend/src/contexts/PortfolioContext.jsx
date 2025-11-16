@@ -3,6 +3,7 @@ import apiService from '../services/api'
 
 const PortfolioContext = createContext()
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const usePortfolio = () => {
   const context = useContext(PortfolioContext)
   if (!context) {
@@ -246,34 +247,46 @@ export const PortfolioProvider = ({ children }) => {
     setError(null)
     
     try {
-      const [projects, workExperience, certificates, gears, aboutMe, blogsResponse] = await Promise.all([
+      // Try to fetch each endpoint individually with fallbacks
+      const results = await Promise.allSettled([
         apiService.getProjects(),
         apiService.getWorkExperience(),
         apiService.getCertificates(),
         apiService.getGears(),
         apiService.getAboutMe(),
-        apiService.getBlogs().catch(() => ({ blogs: [] })) // Don't fail if blogs endpoint doesn't exist yet
+        apiService.getBlogs()
       ])
 
+      // Extract data with fallbacks for each endpoint
+      const [projectsRes, workRes, certsRes, gearsRes, aboutRes, blogsRes] = results
+
       setData({
-        projects: projects || [],
-        workExperience: workExperience || [],
-        certificates: certificates || [],
-        gears: gears || { devices: [], extensions: [] },
-        aboutMe: aboutMe || defaultData.aboutMe,
-        blogs: blogsResponse?.blogs || []
+        projects: projectsRes.status === 'fulfilled' && projectsRes.value ? projectsRes.value : defaultData.projects,
+        workExperience: workRes.status === 'fulfilled' && workRes.value ? workRes.value : defaultData.workExperience,
+        certificates: certsRes.status === 'fulfilled' && certsRes.value ? certsRes.value : defaultData.certificates,
+        gears: gearsRes.status === 'fulfilled' && gearsRes.value ? gearsRes.value : defaultData.gears,
+        aboutMe: aboutRes.status === 'fulfilled' && aboutRes.value ? aboutRes.value : defaultData.aboutMe,
+        blogs: blogsRes.status === 'fulfilled' && blogsRes.value?.blogs ? blogsRes.value.blogs : defaultData.blogs
       })
-    } catch (error) {
-      console.error('Error loading portfolio data:', error)
-      
-      // Check if it's a network error (backend not running)
-      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-        setError('Backend server is not running. Please start the backend server and refresh the page.')
+
+      // Check if all requests failed (backend completely down)
+      const allFailed = results.every(r => r.status === 'rejected')
+      if (allFailed) {
+        console.warn('Backend server is not responding. Using default data.')
+        // Don't set error state - just log it
+        // The app will work with default data
       } else {
-        setError('Failed to load portfolio data: ' + error.message)
+        // Log individual failures without breaking the app
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            const endpoints = ['projects', 'work', 'certificates', 'gears', 'about', 'blogs']
+            console.warn(`Failed to load ${endpoints[index]}:`, result.reason?.message)
+          }
+        })
       }
-      
-      // Fallback to default data
+    } catch (error) {
+      console.error('Unexpected error loading portfolio data:', error)
+      // Still use default data - don't break the app
       setData(defaultData)
     } finally {
       setIsLoading(false)

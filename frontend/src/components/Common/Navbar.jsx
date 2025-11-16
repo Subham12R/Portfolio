@@ -49,7 +49,7 @@ const Navbar = () => {
                     <NavLink 
                         to="/" 
                         className={({ isActive }) => 
-                            `px-1 py-2 cursor-pointer ${isActive ? 'text-blue-900 dark:text-blue-400 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
+                            `px-1 py-2 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
                         }
                     >
                         Home
