@@ -587,6 +587,15 @@ class ApiService {
       requireAuth: false,
     });
   }
+
+  // Assistant API methods
+  async sendAssistantMessage(message, conversationHistory = []) {
+    return await this.request('/api/assistant/chat', {
+      method: 'POST',
+      requireAuth: false,
+      body: JSON.stringify({ message, conversationHistory }),
+    });
+  }
 }
 
 // Create and export a singleton instance

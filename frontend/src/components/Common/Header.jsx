@@ -717,14 +717,15 @@ const Header = () => {
   };
 
   return (
-    <header className="border-gray-200 overflow-x-hidden">
+    <header className="border-gray-200">
         {/* Banner Section with Profile Picture Overlay - Full width, no padding */}
-        <div className='relative w-screen h-32 lg:h-48 -ml-4 lg:ml-[calc((100vw-896px)/2*-1)] lg:mr-[calc((100vw-896px)/2*-1)]'>
-          {/* Banner Image */}
-          <img src={bannerImage} alt="banner image" className='w-full h-full object-cover' />
-          
-          {/* Profile Picture Overlay - positioned at bottom center */}
-          <div className="absolute -bottom-12 left-18 transform -translate-x-1/2">
+        <div className='banner-wrapper -mx-4 lg:mx-0'>
+          <div className='banner-image relative w-full h-32 lg:h-48'>
+            {/* Banner Image */}
+            <img src={bannerImage} alt="banner image" className='w-full h-full object-cover' />
+            
+            {/* Profile Picture Overlay - positioned at bottom center */}
+            <div className="absolute -bottom-12 left-15 transform -translate-x-1/2">
             <div className="relative">
               <img 
                 src={profileImage} 
@@ -754,6 +755,7 @@ const Header = () => {
               </CustomWakaTip>
             </div>
           </div>
+        </div>
         </div>
 
         {/* Profile Content */}

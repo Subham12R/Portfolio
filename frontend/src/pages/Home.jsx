@@ -555,7 +555,7 @@ const Home = () => {
           </div>
         </div>
       )}
-    {/* <Assistant /> */}
+    <Assistant />
     <ScrollProgress />
     </div>
   )

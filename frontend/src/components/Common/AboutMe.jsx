@@ -363,11 +363,16 @@ const AboutMe = () => {
             </div>
             </div>
         </div>
+        {/* GitHub Activity Section */}
         <div className='mt-8'>
-            <h1 className='text-2xl font-bold dark:text-white'>Github Activity</h1>
-            <div className='w-full flex justify-between items-center'>
-            <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'><span className='font-bold tracking-tighter'>Subham12R's</span> journey over the years. </p>
-            <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'>
+            <h1 className='text-2xl font-bold dark:text-white mb-1'>GitHub Activity</h1>
+            <p className='text-gray-600 dark:text-zinc-400 text-sm mb-4'>
+              <span className='font-semibold'>@Subham12R</span> • Coding journey over the years
+            </p>
+            
+            {/* Stats Bar */}
+            <div className='mb-4 p-3 rounded-lg bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800'>
+              <div className='text-sm text-gray-700 dark:text-zinc-300'>
               {wakatimeLoading ? (
                 'Loading coding stats...'
               ) : isActive && currentEditor ? (
@@ -479,27 +484,26 @@ const AboutMe = () => {
                   )}
                 </span>
               )}
-            </p>
+              </div>
             </div>
-        </div>
-        <div className='mt-2'>
-            <div className='w-full h-full border border-gray-200 dark:border-zinc-700 border-dashed rounded-md github-calendar-container'>
+            
+            {/* Calendar Container */}
+            <div className='w-full rounded-lg border border-dashed border-gray-200 dark:border-zinc-800 bg-transparent dark:bg-zinc-950 p-8 shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.08)] dark:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] flex justify-center items-center'>
+              <div className='w-full max-w-full overflow-x-auto flex justify-center'>
                 <GitHubCalendar 
                   username="subham12r" 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%'
-                  }}
-                  showWeekdayLabels={true}
+                  showWeekdayLabels={false}
+                  hideTotalCount={true}
                   fontSize={12}
                   blockSize={12}
                   blockMargin={3}
                   colorScheme={theme}
                   theme={{
-                    light: ['#f1f5f9', '#dcfce7', '#86efac', '#22c55e', '#15803d'],
+                    light: ['#e2e8f0', '#bbf7d0', '#86efac', '#22c55e', '#15803d'],
                     dark: ['#1e293b', '#1e3a8a', '#2563eb', '#3b82f6', '#60a5fa']
                   }}
                 />
+              </div>
             </div>
         </div>
     </div>

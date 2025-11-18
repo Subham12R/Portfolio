@@ -220,48 +220,40 @@ const Spotify = () => {
     }
   }
 
-  if (!isOnline) {
+  // Show offline state if network is down or no track is currently playing
+  if (!isOnline || !currentTrack) {
     return (
-      <div className='w-full h-full bg-transparent  border shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4'>
-        <div className='flex items-center gap-2 bg-green-500 p-2 rounded-md'>
-          <div className='flex items-center gap-2'>
-            <FaSpotify className='text-green-500 bg-green-500 p-2 rounded-md' size={30}/>
-            <p className='text-gray-500 dark:text-gray-400 text-sm mb-1'>Offline</p>
+      <div className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-sm'>
+        <div className='flex items-center gap-3'>
+          <div className='h-16 w-16 rounded bg-gradient-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0'>
+            <FaSpotify className='text-green-500' size={32} />
           </div>
-          <div>
-            <p className='text-gray-700 dark:text-gray-300 text-sm'>Unable to fetch music data</p>
+          <div className='flex-1 min-w-0'>
+            <div className='flex items-center gap-2 mb-1'>
+              <span className='text-gray-500 dark:text-gray-400 text-xs font-medium'>
+                Offline
+              </span>
+            </div>
+            <p className='text-gray-600 dark:text-gray-400 text-sm'>Not currently playing</p>
           </div>
         </div>
       </div>
     )
   }
 
-  if (!currentTrack) {
-    return (
-      <div className='w-full h-full bg-green-900/10  border border-green-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] rounded-md p-4'>
-        <div className='flex items-center gap-2'>
-          <FaSpotify className='text-green-500 bg-green-500/10 p-2 rounded-md' size={50} />
-          <div>
-            <p className='text-gray-500 dark:text-gray-400 text-sm mb-1'>Offline</p>
-            <p className='text-gray-400 dark:text-gray-500 text-sm'>Not currently playing</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+  // Show Now Playing state
   return (
-    <div className='w-full h-full bg-transparent border-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 rounded-md p-4 flex justify-between  gap-2'>
+    <div className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-sm'>
       <div className='flex items-center gap-3'>
         <img 
           src={currentTrack.album?.images[2]?.url || currentTrack.album?.images[0]?.url || 'https://picsum.photos/200'} 
           alt={currentTrack.name}
-          className='h-16 w-16 rounded object-cover'
+          className='h-16 w-16 rounded object-cover shrink-0'
         />
         
         <div className='flex-1 min-w-0'>
           <div className='flex items-center gap-2 mb-1'>
-            <FaSpotify className='text-green-500 animate-pulse' />
+            <FaSpotify className='text-green-500 animate-pulse' size={14} />
             <span className='text-green-500 text-xs font-semibold'>
               Now Playing
             </span>
@@ -271,21 +263,6 @@ const Spotify = () => {
             {currentTrack.artists?.map(a => a.name).join(', ')}
           </p>
         </div>
-      </div>
-
-      <div className='flex items-center gap-2'>
-        {/* <button 
-          onClick={handlePlayPause}
-          disabled={!currentTrack?.preview_url}
-          className='border px-2 py-2 rounded-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] border-gray-200 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed'
-          title={currentTrack?.preview_url ? (isPlaying ? 'Pause preview' : 'Play preview') : 'No preview available'}
-        >
-          {isPlaying ? (
-            <FaPauseCircle className='text-gray-500 dark:text-gray-400' />
-          ) : (
-            <FaPlay className='text-gray-500 dark:text-gray-400' />
-          )}
-        </button> */}
       </div>
     </div>
   )

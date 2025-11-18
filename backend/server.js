@@ -16,6 +16,7 @@ const wakatimeRoutes = require('./routes/wakatime');
 const wakatimeOAuthRoutes = require('./routes/wakatime-oauth').router;
 const blogRoutes = require('./routes/blog');
 const blogsRoutes = require('./routes/blogs');
+const assistantRoutes = require('./routes/assistant');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -75,7 +76,8 @@ app.get('/', (req, res) => {
       wakatime: '/api/wakatime',
       wakatimeOAuth: '/api/wakatime/oauth',
       blog: '/api/blog',
-      blogs: '/api/blogs'
+      blogs: '/api/blogs',
+      assistant: '/api/assistant'
     }
   });
 });
@@ -103,6 +105,7 @@ app.use('/api/wakatime', wakatimeRoutes);
 app.use('/api/wakatime/oauth', wakatimeOAuthRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/blogs', blogsRoutes);
+app.use('/api/assistant', assistantRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
