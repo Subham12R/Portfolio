@@ -247,7 +247,7 @@ const Home = () => {
   console.log('Projects data:', projectData)
 
     return (
-     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto  mb-2'>
+     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 lg:px-0 mb-2'>
        <div id="home">
         <Header />
         <Spotify />
