@@ -333,11 +333,11 @@ const AboutMe = () => {
   return (
     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto  py-2 mb-2'>
     <div className='flex lg:flex-row flex-col justify-start items-start gap-2'>
-        <div className='lg:w-full w-full flex justify-start items-start'>
+        <div className='w-[450px] flex justify-start items-start'>
             <img src={profileImage} alt="profile image" className='w-64 h-64 rounded object-cover shadow-md ' />
         </div>
 
-        <div className='flex flex-col justify-start items-start gap-4'>
+        <div className=' w-full flex flex-col justify-start items-start gap-4'>
             <h1 className='text-3xl font-bold dark:text-white'>{aboutMeData.name}</h1>
             <p className='text-gray-600 dark:text-zinc-400 text-md '>{aboutMeData.bio}</p>
 
@@ -365,6 +365,7 @@ const AboutMe = () => {
         </div>
         <div className='mt-8'>
             <h1 className='text-2xl font-bold dark:text-white'>Github Activity</h1>
+            <div className='w-full flex justify-between items-center'>
             <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'><span className='font-bold tracking-tighter'>Subham12R's</span> journey over the years. </p>
             <p className='text-gray-600 dark:text-zinc-400 text-sm tracking-tighter'>
               {wakatimeLoading ? (
@@ -479,6 +480,7 @@ const AboutMe = () => {
                 </span>
               )}
             </p>
+            </div>
         </div>
         <div className='mt-2'>
             <div className='w-full h-full border border-gray-200 dark:border-zinc-700 border-dashed rounded-md github-calendar-container'>
