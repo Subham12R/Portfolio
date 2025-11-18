@@ -54,15 +54,15 @@ span{
 
 /* GitHub Calendar Styles */
 .github-calendar-container {
-  overflow: auto !important;
-  max-height: 400px;
+  overflow: hidden !important;
+  max-height: 250px;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   background: #f8fafc;
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   transition: all 0.3s ease;
 }
 
@@ -73,6 +73,8 @@ span{
   -ms-user-select: none !important;
   pointer-events: auto !important;
   border-radius: 8px;
+  max-width: 100% !important;
+  height: auto !important;
 }
 
 /* Light theme GitHub calendar colors */
@@ -192,16 +194,16 @@ span{
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .github-calendar-container {
-    padding: 12px;
-    max-height: 300px;
+    padding: 8px;
+    max-height: 200px;
   }
   
   .github-calendar-container .react-calendar-heatmap text {
-    font-size: 8px !important;
+    font-size: 7px !important;
   }
   
   .github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-month-label {
-    font-size: 9px !important;
+    font-size: 8px !important;
   }
   
   .github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-weekday-label {

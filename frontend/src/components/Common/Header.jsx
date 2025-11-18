@@ -21,6 +21,7 @@ import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
 import TechBadge from './TechBadge';
 import apiService from '../../services/api';
+import bannerImage from '../../assets/banner.gif';
 
 
 const Tip = styled(({ className, ...props }) => (
@@ -434,7 +435,6 @@ const Header = () => {
         
         if (heartbeatsResponse.success && heartbeatsResponse.data?.data?.data) {
           const heartbeats = heartbeatsResponse.data.data.data;
-          console.log(`Fetched ${heartbeats.length} heartbeats for today`);
           
           // Get the most recent heartbeat
           if (heartbeats.length > 0) {
@@ -458,10 +458,8 @@ const Header = () => {
               lastSessionStartRef.current = null;
               setLastSessionStart(null);
               setSessionTime(0);
-              console.log('No heartbeat for over 1 hour - timer stopped');
             } else if (diffMinutes <= 10 && isCodingHeartbeat) {
               // Recent coding activity (within 10 minutes) - ensure timer is running
-              console.log(`Recent heartbeat detected: ${diffMinutes.toFixed(1)} minutes ago, category: ${latestHeartbeat.category || 'coding'}`);
               
               if (!isActive) {
                 // Start or resume session
@@ -471,7 +469,6 @@ const Header = () => {
                   lastSessionStartRef.current = heartbeatTime;
                   setLastSessionStart(heartbeatTime);
                   setSessionTime(0);
-                  console.log('Starting new coding session from heartbeat');
                 } else {
                   // Resume existing session if within 1 hour
                   const lastSessionStart = getLastSessionStart();
@@ -481,14 +478,12 @@ const Header = () => {
                       // Within 1 hour, resume
                       setSessionStartTime(lastSessionStart);
                       lastSessionStartRef.current = lastSessionStart;
-                      console.log('Resuming existing coding session');
                     } else {
                       // More than 1 hour, start new
                       setSessionStartTime(heartbeatTime);
                       lastSessionStartRef.current = heartbeatTime;
                       setLastSessionStart(heartbeatTime);
                       setSessionTime(0);
-                      console.log('Starting new coding session (previous session too old)');
                     }
                   }
                 }
@@ -513,9 +508,6 @@ const Header = () => {
                   }
                 }
               }
-            } else if (diffMinutes <= 10) {
-              // Recent heartbeat but not coding - keep timer running if already active, but don't start new
-              console.log(`Recent non-coding heartbeat: ${diffMinutes.toFixed(1)} minutes ago, category: ${latestHeartbeat.category}`);
             }
           } else {
             // No heartbeats - check if we should stop timer
@@ -528,7 +520,6 @@ const Header = () => {
                 lastSessionStartRef.current = null;
                 setLastSessionStart(null);
                 setSessionTime(0);
-                console.log('No heartbeat for over 1 hour - timer stopped');
               }
             }
           }
@@ -727,37 +718,46 @@ const Header = () => {
 
   return (
     <header className="border-gray-200">
-
+        {/* Banner Section with Profile Picture Overlay */}
+        <div className='relative w-full h-64 lg:h-48'>
+          {/* Banner Image */}
+          <img src={bannerImage} alt="banner image" className='w-full h-full object-cover shadow-md' />
+          
+          {/* Profile Picture Overlay - positioned at bottom center */}
+          <div className="absolute -bottom-12 left-15 transform -translate-x-1/2">
+            <div className="relative">
+              <img 
+                src={profileImage} 
+                alt="profile image" 
+                className='w-24 h-24 rounded-full object-cover shadow-lg border-4 border-white dark:border-zinc-950' 
+              />
+              
+              <CustomWakaTip 
+                title={getActivityTooltipContent()} 
+                placement="right" 
+                arrow 
+                isDark={isDark}
+                enterDelay={200}
+                leaveDelay={100}
+              >
+                <span 
+                  className={`absolute bottom-1 right-3 inline-block w-2 h-2 rounded-full ring-2 ring-offset-2 dark:ring-offset-zinc-600 z-10 transition-all duration-300 cursor-pointer ${
+                    isMusicPlaying
+                      ? 'bg-green-500 ring-green-200 dark:ring-green-700 '
+                      : isActive 
+                      ? 'bg-green-500 ring-green-200 dark:ring-green-700 ' 
+                      : wakatimeData?.lastHeartbeat || lastCodingTime
+                      ? 'bg-green-400 ring-green-200 dark:ring-green-600'
+                      : 'bg-gray-400 ring-gray-300 dark:ring-gray-600'
+                  }`}
+                />
+              </CustomWakaTip>
+            </div>
+          </div>
+        </div>
 
         {/* Profile Content */}
-        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-4 mb-2'>
-                    <div className='w-full flex justify-between items-start mb-10 mt-6'>
-                                    <div className="relative">
-                                        <img src={profileImage} alt="profile image" className='w-24 h-24 rounded-full object-cover shadow-md ' />
-
-                                        <CustomWakaTip 
-                                          title={getActivityTooltipContent()} 
-                                          placement="right" 
-                                          arrow 
-                                          isDark={isDark}
-                                          enterDelay={200}
-                                          leaveDelay={100}
-                                        >
-                                          <span 
-                                            className={`absolute bottom-1 right-3 inline-block w-2 h-2 rounded-full ring-2 ring-offset-2 dark:ring-offset-zinc-600 z-10 transition-all duration-300 cursor-pointer ${
-                                              isMusicPlaying
-                                                ? 'bg-green-500 ring-green-200 dark:ring-green-700 '
-                                                : isActive 
-                                                ? 'bg-green-500 ring-green-200 dark:ring-green-700 ' 
-                                                : wakatimeData?.lastHeartbeat || lastCodingTime
-                                                ? 'bg-green-400 ring-green-200 dark:ring-green-600'
-                                                : 'bg-gray-400 ring-gray-300 dark:ring-gray-600'
-                                            }`}
-                                          />
-                                        </CustomWakaTip>
-                                    </div>
-
-                            </div>
+        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-4 mb-2 mt-16'>
                  <div className='w-full inline-flex flex-col justify-center items-start space-y-2'>
                     <div className='mb-2'>
                         

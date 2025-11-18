@@ -26,7 +26,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-gray-200/50 dark:border-zinc-800/50 w-full lg:max-w-2xl mx-auto flex justify-between items-center px-4 py-4">
+      <nav className="sticky top-0 z-50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-sm border-b border-gray-200/50 dark:border-zinc-800/50 w-full lg:max-w-2xl mx-auto flex justify-between items-center px-4 py-2">
         <div className='flex items-center justify-center py-2'>
             {/* Mobile Menu Button */}
             <button

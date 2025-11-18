@@ -12,6 +12,7 @@ import { GoGear } from "react-icons/go";
 import { usePortfolio } from '../contexts/PortfolioContext';
 import Header from '../components/Common/Header'
 import { ProjectMediaPlayer } from '../components/Common/VideoPlayer'
+import ScrollProgress from '../components/Common/ScrollProgress'
 
 import Tooltip from '@mui/material/Tooltip';
 
@@ -246,7 +247,7 @@ const Home = () => {
   console.log('Projects data:', projectData)
 
     return (
-     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
+     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto  mb-2'>
        <div id="home">
         <Header />
         <Spotify />
@@ -555,7 +556,7 @@ const Home = () => {
         </div>
       )}
     {/* <Assistant /> */}
-
+    <ScrollProgress />
     </div>
   )
 }
