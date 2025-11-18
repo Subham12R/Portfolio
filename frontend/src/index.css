@@ -23,6 +23,10 @@ textarea,
   user-select: text;
 }
 
+body {
+  overflow-x: hidden;
+}
+
 #root {
   font-family: "Open Sans", sans-serif;
   font-optical-sizing: auto;
