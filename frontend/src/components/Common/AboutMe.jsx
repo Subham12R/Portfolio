@@ -333,7 +333,7 @@ const AboutMe = () => {
   return (
     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto  py-2 mb-2'>
     <div className='flex lg:flex-row flex-col justify-start items-start gap-2'>
-        <div className='w-full'>
+        <div className='lg:w-full w-full flex justify-start items-start'>
             <img src={profileImage} alt="profile image" className='w-64 h-64 rounded object-cover shadow-md ' />
         </div>
 

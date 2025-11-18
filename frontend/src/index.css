@@ -55,14 +55,14 @@ span{
 /* GitHub Calendar Styles */
 .github-calendar-container {
   overflow: hidden !important;
-  max-height: 250px;
+  max-height: 200px;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   background: #f8fafc;
   border-radius: 12px;
-  padding: 12px;
+  padding: 20px;
   transition: all 0.3s ease;
 }
 
@@ -72,9 +72,12 @@ span{
   -moz-user-select: none !important;
   -ms-user-select: none !important;
   pointer-events: auto !important;
-  border-radius: 8px;
-  max-width: 100% !important;
-  height: auto !important;
+  border-radius: 4px;
+  max-width: 90% !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height:100% !important;
+  margin: auto !important;
 }
 
 /* Light theme GitHub calendar colors */
