@@ -271,6 +271,64 @@ router.get('/player-status', async (req, res) => {
   }
 });
 
+// Get track details by ID (to fetch preview URL if missing)
+router.get('/track/:trackId', async (req, res) => {
+  try {
+    const accessToken = await getValidAccessToken();
+    const { trackId } = req.params;
+
+    const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (response.status === 401) {
+      try {
+        const newToken = await refreshPersonalToken();
+        const retryResponse = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+          headers: {
+            'Authorization': `Bearer ${newToken}`
+          }
+        });
+        
+        if (!retryResponse.ok) {
+          throw new Error(`HTTP error! status: ${retryResponse.status}`);
+        }
+        
+        const retryData = await retryResponse.json();
+        return res.json({
+          success: true,
+          track: retryData
+        });
+      } catch (refreshError) {
+        return res.status(500).json({
+          error: 'Spotify authentication failed',
+          details: refreshError.message
+        });
+      }
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      success: true,
+      track: data
+    });
+
+  } catch (error) {
+    console.error('Track details error:', error);
+    res.status(500).json({
+      error: 'Failed to get track details',
+      details: error.message
+    });
+  }
+});
+
 // Health check endpoint
 router.get('/status', (req, res) => {
   res.json({ 

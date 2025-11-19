@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { FaPlay, FaPause, FaSpotify } from 'react-icons/fa'
+import { FaPlay, FaPause, FaSpotify, FaExternalLinkAlt } from 'react-icons/fa'
+import gsap from 'gsap'
 
 // API Base URL - Use production URL by default
 // For local development, set VITE_API_URL in .env file
@@ -40,6 +41,8 @@ const Spotify = () => {
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef(null);
   const progressIntervalRef = useRef(null);
+  const playerControlsRef = useRef(null);
+  const isExpandedRef = useRef(false);
 
   // Load cached data from localStorage
   const loadCachedData = useCallback(() => {
@@ -229,6 +232,31 @@ const Spotify = () => {
     };
   }, [fetchPlayerStatus, checkNetworkStatus, loadCachedData]);
 
+  // Try to fetch track details to get preview URL if missing
+  const fetchTrackDetails = useCallback(async (trackId) => {
+    if (!trackId) return null;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/spotify/track/${trackId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors'
+      });
+      
+      if (!response.ok) {
+        return null;
+      }
+      
+      const data = await response.json();
+      return data.track;
+    } catch (error) {
+      console.error('Error fetching track details:', error);
+      return null;
+    }
+  }, []);
+
   // Initialize audio when track changes
   useEffect(() => {
     // Store references to event handlers for cleanup
@@ -253,8 +281,12 @@ const Spotify = () => {
     setDuration(0);
 
     const track = playerStatus?.displayTrack;
-    if (track?.preview_url) {
-      const audio = new Audio(track.preview_url);
+    
+    // Try to get preview URL - first from track, then try fetching track details
+    const initializeAudio = async (previewUrl) => {
+      if (!previewUrl) return;
+      
+      const audio = new Audio(previewUrl);
       audio.volume = 0.5; // Set to 50% volume
       audio.preload = 'auto';
       
@@ -285,29 +317,55 @@ const Spotify = () => {
       audio.addEventListener('error', handleErrorHandler);
 
       audioRef.current = audio;
+    };
 
-      return () => {
-        if (audio) {
-          audio.pause();
-          if (updateProgressHandler) {
-            audio.removeEventListener('timeupdate', updateProgressHandler);
+    if (track) {
+      if (track.preview_url) {
+        // Has preview URL, initialize audio
+        initializeAudio(track.preview_url);
+      } else if (track.id) {
+        // No preview URL, try fetching track details
+        fetchTrackDetails(track.id).then((trackDetails) => {
+          if (trackDetails?.preview_url) {
+            // Update player status with the preview URL
+            setPlayerStatus(prev => {
+              if (prev?.displayTrack?.id === trackDetails.id) {
+                return {
+                  ...prev,
+                  displayTrack: {
+                    ...prev.displayTrack,
+                    preview_url: trackDetails.preview_url
+                  }
+                };
+              }
+              return prev;
+            });
+            initializeAudio(trackDetails.preview_url);
           }
-          if (handleLoadedMetadataHandler) {
-            audio.removeEventListener('loadedmetadata', handleLoadedMetadataHandler);
-          }
-          if (handleAudioEndedHandler) {
-            audio.removeEventListener('ended', handleAudioEndedHandler);
-          }
-          if (handleErrorHandler) {
-            audio.removeEventListener('error', handleErrorHandler);
-          }
-        }
-        if (audioRef.current) {
-          audioRef.current = null;
-        }
-      };
+        });
+      }
     }
-  }, [playerStatus]);
+
+    return () => {
+      if (audioRef.current) {
+        const audio = audioRef.current;
+        audio.pause();
+        if (updateProgressHandler) {
+          audio.removeEventListener('timeupdate', updateProgressHandler);
+        }
+        if (handleLoadedMetadataHandler) {
+          audio.removeEventListener('loadedmetadata', handleLoadedMetadataHandler);
+        }
+        if (handleAudioEndedHandler) {
+          audio.removeEventListener('ended', handleAudioEndedHandler);
+        }
+        if (handleErrorHandler) {
+          audio.removeEventListener('error', handleErrorHandler);
+        }
+        audioRef.current = null;
+      }
+    };
+  }, [playerStatus, fetchTrackDetails]);
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -322,10 +380,100 @@ const Spotify = () => {
     };
   }, []);
 
+  // Animate player controls sliding down when music plays
+  useEffect(() => {
+    if (!playerControlsRef.current) return;
+
+    const hasPreview = playerStatus?.displayTrack?.preview_url;
+    
+    if (isPlaying && hasPreview && !isExpandedRef.current) {
+      // Slide down when playing starts
+      isExpandedRef.current = true;
+      gsap.fromTo(
+        playerControlsRef.current,
+        {
+          height: 0,
+          opacity: 0,
+          y: -10,
+        },
+        {
+          height: 'auto',
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          ease: 'power2.out',
+        }
+      );
+    } else if (isPlaying && isExpandedRef.current) {
+      // Ensure full opacity when playing
+      gsap.to(playerControlsRef.current, {
+        opacity: 1,
+        duration: 0.2,
+      });
+    }
+    // Note: We keep controls expanded when paused so users can see progress
+  }, [isPlaying, playerStatus]);
+
+  // Initialize player controls visibility on track load
+  useEffect(() => {
+    if (!playerControlsRef.current) return;
+    
+    const hasPreview = playerStatus?.displayTrack?.preview_url;
+    if (hasPreview) {
+      // Start collapsed, will expand when play is clicked
+      gsap.set(playerControlsRef.current, {
+        height: 0,
+        opacity: 0,
+        y: -10,
+      });
+      isExpandedRef.current = false;
+    } else {
+      // Hide controls if no preview
+      gsap.set(playerControlsRef.current, {
+        height: 0,
+        opacity: 0,
+        y: -10,
+      });
+      isExpandedRef.current = false;
+    }
+  }, [playerStatus]);
+
   // Handle play/pause
   const handlePlayPause = () => {
-    if (!audioRef.current || !playerStatus?.displayTrack?.preview_url) {
+    const track = playerStatus?.displayTrack;
+    
+    if (!track?.preview_url) {
+      console.warn('No preview URL available for this track');
       return;
+    }
+
+    if (!audioRef.current) {
+      console.warn('Audio element not initialized yet');
+      // Try to initialize audio on the fly
+      const audio = new Audio(track.preview_url);
+      audio.volume = 0.5;
+      audio.preload = 'auto';
+      
+      audio.addEventListener('loadedmetadata', () => {
+        setDuration(audio.duration || 0);
+      });
+      
+      audio.addEventListener('timeupdate', () => {
+        setCurrentTime(audio.currentTime);
+        setDuration(audio.duration || 0);
+      });
+      
+      audio.addEventListener('ended', () => {
+        setIsPlaying(false);
+        setCurrentTime(0);
+      });
+      
+      audio.addEventListener('error', (e) => {
+        console.error('Audio playback error:', e);
+        setIsPlaying(false);
+      });
+      
+      audioRef.current = audio;
     }
 
     if (isPlaying) {
@@ -335,6 +483,10 @@ const Spotify = () => {
       audioRef.current.play().catch((error) => {
         console.error('Error playing audio:', error);
         setIsPlaying(false);
+        // Try to reload the audio
+        if (audioRef.current) {
+          audioRef.current.load();
+        }
       });
       setIsPlaying(true);
     }
@@ -425,25 +577,73 @@ const Spotify = () => {
         </div>
       </div>
 
-      {/* Bottom Section: Player Controls */}
-      <div className='space-y-2'>
-        {/* Track Title and Artist (duplicate for player section) */}
-        <div>
-          <p className='text-gray-800 dark:text-gray-200 text-sm font-semibold truncate'>{currentTrack.name}</p>
-          <p className='text-gray-500 dark:text-gray-400 text-xs truncate'>
-            {currentTrack.artists?.map(a => a.name).join(', ')}
-          </p>
-        </div>
+      {/* Play/Pause Button or Play on Spotify Button */}
+      <div className='flex justify-center mb-3'>
+        {currentTrack?.preview_url ? (
+          <button
+            onClick={handlePlayPause}
+            className='bg-transparent px-6 py-3 border border-zinc-900/20 dark:border-zinc-100/20 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-zinc-900/10 dark:hover:bg-zinc-100/10 transition-all ease-in-out duration-300 flex items-center justify-center gap-2'
+            title={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? (
+              <>
+                <FaPause className='text-zinc-900 dark:text-white' size={18} />
+                <span className='text-sm text-zinc-900 dark:text-white font-medium'>Pause</span>
+              </>
+            ) : (
+              <>
+                <FaPlay className='text-zinc-900 dark:text-white' size={18} />
+                <span className='text-sm text-zinc-900 dark:text-white font-medium'>Play</span>
+              </>
+            )}
+          </button>
+        ) : currentTrack?.external_urls?.spotify || currentTrack?.id ? (
+          <a
+            href={currentTrack?.external_urls?.spotify || `https://open.spotify.com/track/${currentTrack?.id}`}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='bg-transparent px-6 py-3 border border-green-500/50 dark:border-green-400/50 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-green-500/10 dark:hover:bg-green-400/10 transition-all ease-in-out duration-300 flex items-center justify-center gap-2'
+            title='Open in Spotify'
+          >
+            <FaSpotify className='text-green-500 dark:text-green-400' size={18} />
+            <span className='text-sm text-green-500 dark:text-green-400 font-medium'>Open in Spotify</span>
+            <FaExternalLinkAlt className='text-green-500 dark:text-green-400' size={14} />
+          </a>
+        ) : (
+          <button
+            disabled
+            className='bg-transparent px-6 py-3 border border-zinc-900/20 dark:border-zinc-100/20 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] opacity-50 cursor-not-allowed flex items-center justify-center gap-2'
+            title='Preview not available for this track'
+          >
+            <FaPlay className='text-zinc-900 dark:text-white' size={18} />
+            <span className='text-sm text-zinc-900 dark:text-white font-medium'>Play</span>
+          </button>
+        )}
+      </div>
 
-        {/* Progress Bar */}
-        {currentTrack.preview_url && (
-          <>
+      {/* Bottom Section: Player Controls - Slides down when music plays */}
+      {currentTrack.preview_url && (
+        <div 
+          ref={playerControlsRef}
+          className='overflow-hidden'
+          style={{ height: 0, opacity: 0 }}
+        >
+          <div className='space-y-3 pt-2'>
+            {/* Track Title and Artist (duplicate for player section) */}
+            <div>
+              <p className='text-gray-800 dark:text-gray-200 text-sm font-semibold truncate'>{currentTrack.name}</p>
+              <p className='text-gray-500 dark:text-gray-400 text-xs truncate'>
+                {currentTrack.artists?.map(a => a.name).join(', ')}
+              </p>
+            </div>
+
+            {/* Progress Bar */}
             <div className='flex items-center gap-2'>
               <span className='text-xs text-gray-500 dark:text-gray-400 min-w-10 text-right'>
                 {formatTime(currentTime)}
               </span>
               <div 
-                className='flex-1 h-1 bg-gray-200 dark:bg-zinc-700 rounded-full cursor-pointer relative group'
+                className='flex-1 h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full cursor-pointer relative group'
                 onClick={handleProgressClick}
               >
                 <div 
@@ -459,30 +659,25 @@ const Spotify = () => {
                 {formatTime(duration)}
               </span>
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Play/Pause Button */}
-            <div className='flex justify-center pt-2'>
-              <button
-                onClick={handlePlayPause}
-                disabled={!currentTrack.preview_url}
-                className='bg-transparent px-4 py-2 border border-zinc-900/20 dark:border-zinc-100/20 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-zinc-900/10 dark:hover:bg-zinc-100/10 transition-all ease-in-out duration-300 disabled:opacity-50 disabled:cursor-not-allowed'
-              >
-                {isPlaying ? (
-                  <FaPause className='text-zinc-900 dark:text-white' size={16} />
-                ) : (
-                  <FaPlay className='text-zinc-900 dark:text-white' size={16} />
-                )}
-              </button>
-            </div>
-          </>
-        )}
-
-        {!currentTrack.preview_url && (
-          <p className='text-xs text-gray-400 dark:text-gray-500 text-center py-2'>
+      {!currentTrack?.preview_url && currentTrack?.external_urls?.spotify && (
+        <div className='text-center py-2'>
+          <p className='text-xs text-gray-400 dark:text-gray-500'>
+            Click "Play on Spotify" to listen to this track
+          </p>
+        </div>
+      )}
+      
+      {!currentTrack?.preview_url && !currentTrack?.external_urls?.spotify && (
+        <div className='text-center py-2'>
+          <p className='text-xs text-gray-400 dark:text-gray-500'>
             Preview not available for this track
           </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
