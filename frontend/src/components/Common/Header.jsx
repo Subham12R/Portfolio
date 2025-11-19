@@ -809,7 +809,7 @@ const Header = () => {
                         </button>
                         <button 
                             onClick={() => navigate('/contact')}
-                            className='inline-flex justify-center items-center gap-2 bg-black dark:bg-white/80 border border-black/20 dark:border-white/30 backdrop-blur-sm text-white dark:text-zinc-900 shadow hover:bg-zinc-100 dark:hover:bg-white transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
+                            className='inline-flex justify-center items-center gap-2 bg-black dark:bg-white/80 border border-black/20 dark:border-white/30 backdrop-blur-sm text-white dark:text-zinc-900 shadow hover:bg-zinc-900 dark:hover:bg-white transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
                         >
                             <BiPaperPlane />Get in Touch
                         </button>              
