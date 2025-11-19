@@ -74,21 +74,21 @@ const Contact = () => {
   };
 
   return (
-    <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-4 mb-2'>
+    <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-6 mb-4'>
       {/* Header Section */}
-      <div className='mt-6 mb-6'>
-        <p className='text-gray-400 dark:text-gray-500 text-sm'>Get in Touch.</p>
-        <h1 className='text-black dark:text-white font-bold text-2xl'>Contact Me</h1>
-        <p className='text-gray-600 dark:text-gray-400 mt-1 text-sm'>
+      <div className='mt-8 mb-8'>
+        <p className='text-gray-400 dark:text-gray-500 text-sm mb-2'>Get in Touch.</p>
+        <h1 className='text-black dark:text-white font-bold text-2xl mb-2'>Contact Me</h1>
+        <p className='text-gray-600 dark:text-gray-400 mt-3 text-sm leading-relaxed'>
           I'd love to hear from you. Send me a message and I'll respond as soon as possible!
         </p>
       </div>
 
       {/* Contact Information */}
-      <div className='mb-6'>
-        <h2 className='text-black dark:text-white font-bold text-lg mb-4'>Contact Information</h2>
+      <div className='mb-8'>
+        <h2 className='text-black dark:text-white font-bold text-lg mb-5'>Contact Information</h2>
         
-        <div className="flex flex-row justify-start items-center gap-6">
+        <div className="flex flex-row justify-start items-center gap-8">
           <Tip title="Send me an email" placement="top" arrow isDark={isDark}>
             <a 
               href="mailto:rikk4335@gmail.com" 
@@ -117,9 +117,9 @@ const Contact = () => {
 
       {/* Social Links */}
       <div className='mb-6'>
-        <h2 className='text-black dark:text-white font-bold text-lg mb-4'>Follow Me</h2>
+        <h2 className='text-black dark:text-white font-bold text-lg mb-5'>Follow Me</h2>
         
-        <div className="flex flex-row justify-start items-center gap-6">
+        <div className="flex flex-row justify-start items-center gap-8">
           <Tip title="Connect on LinkedIn" placement="top" arrow isDark={isDark}>
             <a 
               href="https://www.linkedin.com/in/subham-karmakar-663b1031b/" 
@@ -156,10 +156,10 @@ const Contact = () => {
       </div>
 
       {/* Contact Form */}
-      <div className='mb-6'>
-        <h2 className='text-black dark:text-white font-bold text-lg mb-4'>Send me a Message</h2>
+      <div className='mb-8'>
+        <h2 className='text-black dark:text-white font-bold text-lg mb-5'>Send me a Message</h2>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

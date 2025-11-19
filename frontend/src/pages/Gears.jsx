@@ -131,22 +131,22 @@ const Gears = () => {
 
   return (
     <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
-      <div className="mb-8">
-        <h1 className="text-black dark:text-white font-bold text-4xl mb-2">Gears</h1>
-        <p className="text-gray-600 dark:text-zinc-400">
+      <div className="mb-12">
+        <h1 className="text-black dark:text-white font-bold text-4xl mb-3">Gears</h1>
+        <p className="text-gray-600 dark:text-zinc-400 leading-relaxed">
           My gears and tools I use to get my work done.
         </p>
       </div>
 
       {/* Devices Section */}
       {devices.length > 0 && (
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-black dark:text-white mb-4">Devices</h2>
-          <div className="space-y-3">
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-black dark:text-white mb-6">Devices</h2>
+          <div className="space-y-4">
             {devices.map((device, index) => (
               <div
                 key={index}
-                                 className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 p-4 flex items-center gap-4 hover:shadow-md transition-all duration-200"
+                                 className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 p-6 flex items-center gap-5 hover:shadow-md transition-all duration-200"
               >
                 <div className="flex-shrink-0">
                   {device.icon}
@@ -166,18 +166,18 @@ const Gears = () => {
       {/* Web Extensions Section */}
       {extensions.length > 0 && (
         <div>
-          <h2 className="text-2xl font-bold text-black dark:text-white mb-4 flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-black dark:text-white mb-6 flex items-center gap-2">
             <FaGripLinesVertical className="text-gray-400 dark:text-zinc-500" />
             <span>Web Extensions</span>
           </h2>
-          <ol className="space-y-3">
+          <ol className="space-y-4">
             {extensions.map((extension, index) => (
               <li key={index}>
                 <a
                   href={extension.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 p-4 flex items-center gap-3 hover:shadow-md hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 group"
+                  className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 p-6 flex items-center gap-4 hover:shadow-md hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 group"
                 >
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm">
                     {index + 1}

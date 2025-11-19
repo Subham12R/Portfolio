@@ -6,7 +6,13 @@ export default {
   ],
   darkMode: 'class', // Enable dark mode with class strategy
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'bricolage': ['"Bricolage Grotesque"', 'sans-serif'],
+        'montserrat': ['"Montserrat"', 'sans-serif'],
+        'sora': ['"Sora"', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }

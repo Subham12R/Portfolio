@@ -588,6 +588,12 @@ class ApiService {
     });
   }
 
+  async getSpotifyPlayerStatus() {
+    return await this.request('/api/spotify/player-status', {
+      requireAuth: false,
+    });
+  }
+
   // Assistant API methods
   async sendAssistantMessage(message, conversationHistory = []) {
     return await this.request('/api/assistant/chat', {

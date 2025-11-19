@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
-import logo from '../../assets/profile.png'
-import { FaTimes, FaBars } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
+import { FaBars } from 'react-icons/fa'
 import { ThemeToggleButton } from '../Layout/ThemeToggle'
+import gsap from "gsap";
+import { useEffect, useRef } from "react";
+import { RiSideBarFill } from "react-icons/ri";
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -16,170 +18,174 @@ const navLinks = [
 ]
 
 const Navbar = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
+  const dropdownRef = useRef(null);
+  const dropdownContentRef = useRef(null);
+  const iconRef = useRef(null);
+  const dropdownContainerRef = useRef(null);
+  const buttonRef = useRef(null);
+
+  useEffect(() => {
+    if (!dropdownRef.current || !dropdownContentRef.current) return;
+
+    if (isDropdownOpen) {
+      // Get the scroll height for smooth animation
+      const targetHeight = dropdownContentRef.current.scrollHeight;
+      
+      // Set initial state
+      gsap.set(dropdownRef.current, {
+        height: 0,
+        opacity: 0,
+        y: -20,
+      });
+
+      // Animate dropdown expanding downward with translateY effect
+      gsap.to(dropdownRef.current, {
+        height: targetHeight,
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power3.out",
+      });
+
+      // Animate content with stagger
+      gsap.fromTo(
+        dropdownContentRef.current.children,
+        {
+          y: -20,
+          opacity: 0,
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.05,
+          ease: "power2.out",
+          delay: 0.1,
+        }
+      );
+
+      // Animate icon fill increase
+      if (iconRef.current) {
+        gsap.to(iconRef.current, {
+          scale: 1.2,
+          opacity: 1,
+          duration: 0.4,
+          ease: "power2.out",
+        });
+      }
+    } else {
+      // Animate dropdown collapsing upward
+      gsap.to(dropdownRef.current, {
+        height: 0,
+        opacity: 0,
+        y: -20,
+        duration: 0.4,
+        ease: "power3.inOut",
+      });
+
+      // Animate icon fill decrease
+      if (iconRef.current) {
+        gsap.to(iconRef.current, {
+          scale: 1,
+          opacity: 0.7,
+          duration: 0.3,
+          ease: "power2.inOut",
+        });
+      }
+    }
+  }, [isDropdownOpen]);
+
+  // Outside click handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isDropdownOpen &&
+        dropdownContainerRef.current &&
+        buttonRef.current &&
+        !dropdownContainerRef.current.contains(event.target) &&
+        !buttonRef.current.contains(event.target)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
   const navigate = useNavigate()
 
   const handleLinkClick = (path) => {
     navigate(path)
-    setIsSidebarOpen(false)
+    setIsDropdownOpen(false)
   }
+
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-sm border-b border-gray-200/50 dark:border-zinc-800/50 w-full lg:max-w-2xl mx-auto flex justify-between items-center px-4 py-2">
-        <div className='flex items-center justify-center py-2'>
-            {/* Mobile Menu Button */}
+      <div className="sticky top-0 z-[100] w-full lg:max-w-2xl mx-auto ">
+        <nav className="bg-white  dark:bg-zinc-950 backdrop-blur-md border-b  border-gray-200/50 dark:border-zinc-800/50 w-full flex justify-between items-center px-2 relative">
+          <div className='flex items-center justify-center py-2'>
+            {/* Menu Button - Works for both mobile and desktop */}
             <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              ref={buttonRef}
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="font-sora"
             >
-              <FaBars className="text-xl text-gray-700 dark:text-zinc-300" />
+              <span  className="inline-block border border-gray-200 dark:border-zinc-800/50 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] p-2 rounded">
+                <RiSideBarFill 
+                  size={20} 
+                  className="text-xl text-gray-900 dark:text-zinc-100" 
+                />
+              </span>
             </button>
 
-            {/* Desktop Logo */}
-            <Link to='/' className='hidden md:flex items-center gap-2 font-semibold'>
-                <img src={logo} alt="" className='w-10 h-10 rounded object-cover shadow'/>
-            </Link>
-
-            
-
-            {/* Desktop Navigation */}
-            <ul className='hidden md:flex justify-center gap-1 md:gap-2 items-center md:text-md font-medium ml-2'>
-                <li>
-                    <NavLink 
-                        to="/" 
-                        className={({ isActive }) => 
-                            `px-1 py-2 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
-                        }
-                    >
-                        Home
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink 
-                        to="/projects" 
-                        className={({ isActive }) => 
-                            `px-1 py-3 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}` 
-                        }
-                    >
-                        Projects
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink 
-                        to="/certificates" 
-                        className={({ isActive }) => 
-                            `px-1 py-3 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
-                        }
-                    >
-                        Certificates
-                    </NavLink>
-                </li>
-                {/* <li>
-                    <NavLink 
-                        to="/contact" 
-                        className={({ isActive }) => 
-                            `px-1 py-3 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
-                        }
-                    >
-                        Contact
-                    </NavLink>
-                </li> */}
-                <li>
-                    <NavLink 
-                        to="/work" 
-                        className={({ isActive }) => 
-                            `px-1 py-3 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
-                        }
-                    >
-                        Work
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink 
-                        to="/gears" 
-                        className={({ isActive }) => 
-                            `px-1 py-3 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
-                        }
-                    >
-                        Gears
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink 
-                        to="/setup" 
-                        className={({ isActive }) => 
-                            `px-2 py-3 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
-                        }
-                    >
-                        Setup
-                    </NavLink>
-                </li>
-                <li>
-                    <NavLink 
-                        to="/blog" 
-                        className={({ isActive }) =>
-                            `px-2 py-3 cursor-pointer ${isActive ? 'text-zinc-800 dark:text-zinc-200 font-semibold' : 'hover:text-gray-600 dark:hover:text-zinc-300 text-gray-700 dark:text-zinc-300'}`
-                        }
-                    >
-                        Blog
-                    </NavLink>
-                </li>
-            </ul>
-        </div>
-
-        <div>
-            <div>
-                <ThemeToggleButton className="shadow-lg" blur={true} />
-            </div>
-        </div>
-      </nav>
-
-      {/* Mobile Sidebar */}
-      <>
-        {/* Overlay */}
-        <div
-          className={`fixed inset-0 bg-black/20 z-40 md:hidden transition-opacity duration-300 ease-in-out ${
-            isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-          onClick={() => setIsSidebarOpen(false)}
-        />
-        
-        {/* Sidebar */}
-        <div className={`fixed left-0 top-0 h-full w-64 bg-white dark:bg-zinc-950 shadow-2xl z-50 md:hidden transform transition-transform duration-300 ease-out ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
-            {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-800">
-              <div className="flex items-center gap-3">
-                
-                <span className="font-semibold text-lg text-gray-900 dark:text-zinc-100">Menu</span>
-              </div>
-              <button
-                onClick={() => setIsSidebarOpen(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-              >
-                <FaTimes className="text-xl text-gray-700 dark:text-zinc-300" />
-              </button>
-            </div>
-
-            {/* Sidebar Navigation */}
-            <nav className="p-4">
-              <ul className="space-y-2">
-                {navLinks.map((link) => (
-                  <li key={link.to}>
-                    <button
-                      onClick={() => handleLinkClick(link.to)}
-                      className="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors font-medium text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-zinc-100 flex items-center gap-3"
-                    >
-                      <span className="text-sm">{link.label}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
           </div>
-      </>
+
+  
+
+          <div>
+            <ThemeToggleButton className="border shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]" blur={true} />
+          </div>
+
+          {/* DROPDOWN PANEL - Absolutely positioned to overlay content */}
+          <div ref={dropdownContainerRef} className="absolute top-full left-0 right-0">
+            <div
+              ref={dropdownRef}
+              className="w-full overflow-hidden bg-white dark:bg-zinc-950 backdrop-blur-md border-b border-gray-200/50 dark:border-zinc-800/50 relative "
+              style={{ height: 0 }}
+            >
+              <div
+                ref={dropdownContentRef}
+                className="leading-tight px-4 py-6 mb-4 flex flex-col w-full relative z-10 items-center gap-3"
+              >
+                {navLinks.map((link, i) => {
+                  const index = String(i + 1).padStart(2, '0');
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => handleLinkClick(link.to)}
+                      className="group relative flex items-center justify-center text-base md:text-lg font-semibold dark:text-zinc-300 text-zinc-950 tracking-tighter leading-tight cursor-pointer font-sora before:pointer-events-none before:absolute before:bottom-0 before:left-0 before:h-[0.05em] before:w-full before:bg-current before:content-[''] before:origin-right before:scale-x-0 before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] hover:before:origin-left hover:before:scale-x-100"
+                    >
+                      <span className="relative tracking-tight">
+                        {link.label.toUpperCase()}
+                        <span className="absolute -top-1 -right-3 text-[9px] md:text-[10px] font-medium text-red-500/50 dark:text-red-400/50 tracking-tight">{index}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
     </>
   )
 }

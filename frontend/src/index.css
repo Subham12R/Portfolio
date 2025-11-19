@@ -27,31 +27,25 @@ body {
   overflow-x: hidden;
 }
 
-#root {
-  font-family: "Open Sans", sans-serif;
+/* Default body font - Montserrat */
+#root,
+body {
+  font-family: "Montserrat", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
 }
 
-h1{
-  font-family: "Open Sans", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
-
-p{
-  font-family: "Roboto", sans-serif;
+/* Headings - Bricolage Grotesque */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Bricolage Grotesque", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
-h2{
-  font-family: "Open Sans", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
-span{
-  font-family: "Roboto", sans-serif;
+/* Paragraphs and text - Montserrat */
+p, span, div, a, button, input, textarea, select, label {
+  font-family: "Montserrat", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
 }

@@ -277,18 +277,18 @@ const Projects = () => {
 
   return (
     <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
-      <div className="mb-8">
+      <div className="mb-12">
         <p className="text-gray-400 dark:text-gray-500 mb-2">Portfolio</p>
-        <h1 className="text-black dark:text-white font-bold text-3xl">My Projects</h1>
-        <p className="text-gray-600 dark:text-zinc-400 mt-2">
+        <h1 className="text-black dark:text-white font-bold text-3xl mb-2">My Projects</h1>
+        <p className="text-gray-600 dark:text-zinc-400 mt-3 leading-relaxed">
           A collection of web applications and projects I've built using modern technologies.
         </p>
-        <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-zinc-500 mt-2">
           Total Projects: {projectData.length}
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-6">
         {projectData.map((project, index) => {
           const isExpanded = expandedProject === index
           
@@ -299,7 +299,7 @@ const Projects = () => {
             >
               {/* Project Header */}
               <div
-                className="flex items-center justify-between p-4 cursor-pointer"
+                className="flex items-center justify-between p-6 cursor-pointer"
                 onClick={() => toggleProject(index)}
               >
                 <div className="flex-1">
@@ -350,9 +350,9 @@ const Projects = () => {
 
               {/* Expanded Content */}
               {isExpanded && (
-                <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-zinc-700">
+                <div className="px-6 pb-6 pt-4 border-t border-gray-100 dark:border-zinc-700">
                   {/* Project Media */}
-                  <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
+                  <div className="mb-6 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
                     <ProjectMediaPlayer
                       mediaUrl={project.image}
                       mediaType={project.mediaType || 'image'}
@@ -363,7 +363,7 @@ const Projects = () => {
                   </div>
 
                   {/* Links */}
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-5 mb-6">
                     <a
                       href={project.github}
                       target="_blank"
@@ -385,18 +385,18 @@ const Projects = () => {
                   </div>
 
                   {/* Description */}
-                  <div className="mb-4">
+                  <div className="mb-6">
                     <p className="text-sm text-gray-700 dark:text-zinc-400 leading-relaxed">
                       {project.description}
                     </p>
                   </div>
 
                   {/* Tech Stack */}
-                  <div className="mb-4">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
+                  <div className="mb-6">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-3">
                       Technologies & Tools
                     </p>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-4">
                       {project.tech.map((tech, i) => {
                         const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name
                         const techLabel = typeof tech === 'string' ? tech : tech.name || tech.icon
@@ -414,10 +414,10 @@ const Projects = () => {
 
                   {/* Features */}
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-3">
                       Key Features
                     </p>
-                    <ul className="list-disc pl-5 text-gray-600 dark:text-zinc-400 text-sm leading-relaxed space-y-1">
+                    <ul className="list-disc pl-5 text-gray-600 dark:text-zinc-400 text-sm leading-relaxed space-y-2">
                       {project.features.map((feature, i) => (
                         <li key={i}>{feature}</li>
                       ))}

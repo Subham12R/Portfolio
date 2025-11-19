@@ -10,8 +10,8 @@ import { FaLinkedin } from "react-icons/fa";
 import { FaGithub } from "react-icons/fa";
 import { FaSquareXTwitter, FaPinterestP } from "react-icons/fa6";
 import { FaEnvelope, FaBookOpen } from "react-icons/fa";
-import { RiClipboardFill, RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "react-icons/ri";
-
+import {RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "react-icons/ri";
+import { BsEnvelopePaper } from "react-icons/bs";
 import { BiLogoPostgresql, BiPaperPlane } from "react-icons/bi";
 import { DiVisualstudio } from "react-icons/di";
 import Tooltip from '@mui/material/Tooltip';
@@ -759,11 +759,11 @@ const Header = () => {
         </div>
 
         {/* Profile Content */}
-        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-4 mb-2 mt-16'>
-                 <div className='w-full inline-flex flex-col justify-center items-start space-y-2'>
-                    <div className='mb-2'>
+        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-6 mb-4 mt-20'>
+                 <div className='w-full inline-flex flex-col justify-center items-start space-y-4'>
+                    <div className='mb-1'>
                         
-                    <h1 className='text-3xl mb-2 dark:text-zinc-200 text-zinc-900 tracking-tight font-bold'><span className='font-bold text-zinc-800 dark:text-zinc-200'>Hi, I'm Subham</span> - <Text as='span' className='text-blue-500 font-bold'>A Full Stack Web Developer.</Text></h1>
+                    <h1 className='text-3xl  dark:text-zinc-200 text-zinc-900 tracking-tight font-bold leading-tight'><span className='font-bold text-zinc-800 dark:text-zinc-200'>Hi, I'm Subham</span> - <Text as='span' className='text-zinc-600 font-bold'>A Full Stack Web Developer.</Text></h1>
                     {/* <DecryptedText
                         text="A Full Stack Web Developer."
                         speed={100}
@@ -777,22 +777,22 @@ const Header = () => {
                     */}
                     </div> 
 
-                    <div className=' mt-2 w-full '>
-                    <p className='gap-1 inline-flex flex-wrap justify-start items-center text-md text-zinc-600 dark:text-zinc-400 font-medium '>I build interactive and responsive web apps using {" "}  
-                     <TechBadge icon={FaReact} iconClassName='text-blue-500'>React</TechBadge>
+                    <div className='mt-4 w-full'>
+                    <p className='gap-1 inline-flex flex-wrap justify-start items-center text-md text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed'>I build interactive and responsive web apps using {" "}  
+                     <a href="https://react.dev/" norelopener target="_blank"><TechBadge icon={FaReact} iconClassName='text-blue-500'>React</TechBadge></a>
                     <span>,</span>
-                    <TechBadge icon={RiNextjsFill} iconClassName='text-black dark:text-white'>NextJS</TechBadge>
+                    <a href="https://nextjs.org/" norelopener target="_blank"><TechBadge icon={RiNextjsFill} iconClassName='text-black dark:text-white'>NextJS</TechBadge></a>
                     <span>,</span>
-                    <TechBadge icon={RiTailwindCssFill} iconClassName='text-blue-800'>TailwindCSS</TechBadge>
+                    <a href="https://tailwindcss.com/" norelopener target="_blank"><TechBadge icon={RiTailwindCssFill} iconClassName='text-blue-800'>TailwindCSS</TechBadge></a>
                     <span>,</span>
-                    <TechBadge icon={RiNodejsFill} iconClassName='text-emerald-500'>NodeJs</TechBadge>
+                    <a href="https://nodejs.org/" norelopener target="_blank"><TechBadge icon={RiNodejsFill} iconClassName='text-emerald-500'>NodeJs</TechBadge></a>
                     <span>,</span>
                     <span> and </span>
-                    <TechBadge icon={BiLogoPostgresql} iconClassName='text-blue-800'>PostgreSQL</TechBadge>
+                    <a href="https://www.postgresql.org/" norelopener target="_blank"><TechBadge icon={BiLogoPostgresql} iconClassName='text-blue-800'>PostgreSQL</TechBadge></a>
                      <span>. Focusing on <Text as='span' className='dark:text-white text-black'> <strong>UI/UX Design</strong></Text> and learning <Text as='span' className='dark:text-white text-black'> <strong>Three JS</strong></Text>. Currently keeping a close eye on the latest technologies and trends in web development.</span>
                     
                     </p>
-                    <div className='text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-2'>
+                    <div className='text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-4'>
                         <FaBookOpen className='text-zinc-600 dark:text-zinc-400' />
                         <Text>B.Tech CSE Student at <em>Adamas University</em>, Kolkata, India.</Text>
                     </div>
@@ -800,26 +800,22 @@ const Header = () => {
 
 
 
-                    <div className='mb-6 w-full flex justify-start items-center gap-4'>
-                    <Tip title="Download Resume" placement="top" arrow isDark={isDark}>
+                    <div className='mb-8 w-full flex justify-start items-center gap-4'>
                         <button 
                             onClick={downloadResume}
-                            className='inline-flex justify-center items-center gap-2 bg-black/10 dark:bg-white/10 border border-black/20 dark:border-white/30 backdrop-blur-sm text-zinc-900 dark:text-white shadow hover:bg-zinc-100 dark:hover:bg-white/40 transition-all ease-in-out duration-300 py-1 px-2 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
+                            className='inline-flex justify-center items-center gap-2 bg-black/10 dark:bg-white/10 border border-black/20 dark:border-white/30 backdrop-blur-sm text-zinc-900 dark:text-white shadow hover:bg-zinc-100 dark:hover:bg-white/40 transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
                         >
-                            <RiClipboardFill/> Resume/CV
+                            <BsEnvelopePaper/> Resume/CV
                         </button>
-                    </Tip>
-                    <Tip title="Contact Me" placement="top" arrow isDark={isDark}>
                         <button 
                             onClick={() => navigate('/contact')}
-                            className='inline-flex justify-center items-center gap-2 bg-black/10 dark:bg-white/80 border border-black/20 dark:border-white/30 backdrop-blur-sm text-zinc-900 dark:text-black shadow hover:bg-zinc-100 dark:hover:bg-white transition-all ease-in-out duration-300 py-1 px-2 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
+                            className='inline-flex justify-center items-center gap-2 bg-black/10 dark:bg-white/80 border border-black/20 dark:border-white/30 backdrop-blur-sm text-zinc-900 dark:text-black shadow hover:bg-zinc-100 dark:hover:bg-white transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
                         >
                             <BiPaperPlane />Get in Touch
-                        </button>
-                     </Tip>               
+                        </button>              
                     </div>
 
-                     <div className='mb-2 flex flex-row justify-center items-center gap-4'>
+                     <div className='mb-4 flex flex-row justify-center items-center gap-5'>
                         <Tip title="Send me an email" placement="top" arrow isDark={isDark}>
                             <a 
                                 href="mailto:rikk4335@gmail.com" 

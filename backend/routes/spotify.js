@@ -193,6 +193,84 @@ router.get('/recently-played', async (req, res) => {
   }
 });
 
+// Get both currently playing and last played tracks (combined endpoint)
+router.get('/player-status', async (req, res) => {
+  try {
+    const accessToken = await getValidAccessToken();
+    let nowPlaying = null;
+    let isPlaying = false;
+    let lastPlayed = null;
+
+    // Fetch currently playing track
+    try {
+      const currentResponse = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (currentResponse.status === 200) {
+        const currentData = await currentResponse.json();
+        nowPlaying = currentData.item;
+        isPlaying = currentData.is_playing;
+      }
+    } catch (error) {
+      console.error('Error fetching currently playing:', error);
+    }
+
+    // Fetch last played track (always fetch as fallback)
+    try {
+      const recentResponse = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (recentResponse.status === 200) {
+        const recentData = await recentResponse.json();
+        lastPlayed = recentData.items[0]?.track || null;
+      }
+    } catch (error) {
+      console.error('Error fetching recently played:', error);
+    }
+
+    // If we have now playing, use it; otherwise use last played
+    const displayTrack = nowPlaying || lastPlayed;
+    const trackType = nowPlaying ? 'now_playing' : 'last_played';
+
+    res.json({
+      success: true,
+      nowPlaying: nowPlaying,
+      lastPlayed: lastPlayed,
+      isPlaying: isPlaying,
+      displayTrack: displayTrack,
+      trackType: trackType
+    });
+
+  } catch (error) {
+    console.error('Player status error:', error);
+    
+    // Try to refresh token and retry once
+    if (error.message.includes('401') || error.message.includes('token')) {
+      try {
+        const newToken = await refreshPersonalToken();
+        // Retry the requests with new token
+        // (For simplicity, we'll just return error and let client retry)
+      } catch (refreshError) {
+        return res.status(500).json({
+          error: 'Spotify authentication failed',
+          details: refreshError.message
+        });
+      }
+    }
+
+    res.status(500).json({
+      error: 'Failed to get player status',
+      details: error.message
+    });
+  }
+});
+
 // Health check endpoint
 router.get('/status', (req, res) => {
   res.json({ 

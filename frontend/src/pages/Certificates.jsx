@@ -81,18 +81,18 @@ const Certificates = () => {
 
   return (
     <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
-      <div className="mb-8">
+      <div className="mb-12">
         <p className="text-gray-400 dark:text-gray-500 mb-2">Certifications</p>
-        <h1 className="text-black dark:text-white font-bold text-3xl">My Certificates</h1>
-        <p className="text-gray-600 dark:text-zinc-400 mt-2">
+        <h1 className="text-black dark:text-white font-bold text-3xl mb-2">My Certificates</h1>
+        <p className="text-gray-600 dark:text-zinc-400 mt-3 leading-relaxed">
           Professional certifications and achievements in software development and cloud technologies.
         </p>
-        <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-zinc-500 mt-2">
           Total Certificates: {certificateData.length}
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-6">
         {certificateData.map((certificate, index) => {
           const isExpanded = expandedCertificate === index
           
@@ -103,7 +103,7 @@ const Certificates = () => {
             >
               {/* Certificate Header */}
               <div
-                className="flex items-center justify-between p-4 cursor-pointer"
+                className="flex items-center justify-between p-6 cursor-pointer"
                 onClick={() => toggleCertificate(index)}
               >
                 <div className="flex-1">
@@ -145,7 +145,7 @@ const Certificates = () => {
 
               {/* Expanded Content */}
               {isExpanded && (
-                <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-zinc-700">
+                <div className="px-6 pb-6 pt-4 border-t border-gray-100 dark:border-zinc-700">
                   {/* Certificate Image */}
                   {certificate.image && (
                     <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">

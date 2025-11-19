@@ -129,7 +129,7 @@ const Assistant = () => {
             style={{
               filter: "url(#SkiperGooeyFilter)",
             }}
-            className={`fixed md:bottom-24 md:right-20 bottom-20 right-4 w-[480px] max-w-[calc(100vw-2rem)] h-[600px] rounded-lg border  border-zinc-300 dark:border-zinc-700 shadow-sm flex flex-col overflow-hidden z-[100] ${
+            className={`fixed md:bottom-10 md:right-10 bottom-10 right-4 w-[480px] max-w-[calc(100vw-2rem)] h-[600px] rounded-lg border  border-zinc-300 dark:border-zinc-700 shadow-sm flex flex-col overflow-hidden z-[100] ${
               isDark 
                 ? 'bg-zinc-900 border-zinc-700 shadow-[0_20px_50px_rgba(0,0,0,0.5)]' 
                 : 'bg-white border-zinc-300 shadow-[0_20px_50px_rgba(0,0,0,0.15)]'

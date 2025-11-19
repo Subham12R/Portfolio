@@ -247,7 +247,7 @@ const Home = () => {
   console.log('Projects data:', projectData)
 
     return (
-     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 lg:px-0 mb-2 overflow-x-hidden'>
+     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 lg:px-0 mb-4 overflow-x-hidden'>
        <div id="home">
         <Header />
         <Spotify />
@@ -255,17 +255,17 @@ const Home = () => {
   
 
       {/* Work */}
-      <div id="experience" className='mt-8 mb-8'>
-        <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
+      <div id="experience" className='mt-16 mb-12'>
+        <p className='text-gray-400 dark:text-gray-500 mb-2'>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
       </div>
-      <div className="mb-4 space-y-4">
+      <div className="mb-8 space-y-6">
         {experienceData.map((exp, idx) => {
           const isExpanded = expandedExperience === idx;
           const isCurrentJob = exp.status === 'Working' || exp.status === 'Current';
           return (
             <div key={exp.id || idx} className="bg-white dark:bg-zinc-950">
-              <div className="flex items-start gap-4 py-4">
+              <div className="flex items-start gap-6 py-6">
                 {/* Company Logo */}
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0" 
                      style={{ backgroundColor: idx === 0 ? '#ffffff' : idx === 1 ? '#ffffff' : idx === 2 ? '#ffffff' : '#374151' }}>
@@ -329,11 +329,11 @@ const Home = () => {
                   
                   {/* Expanded Content */}
                   {isExpanded && (
-                    <div className="mt-4 space-y-4">
+                    <div className="mt-6 space-y-6">
                       {/* Technologies & Tools */}
                       <div>
-                        <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Technologies & Tools</h5>
-                        <div className="flex flex-wrap gap-3">
+                        <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm">Technologies & Tools</h5>
+                        <div className="flex flex-wrap gap-4">
                           {exp.tech?.map((tech, i) => {
                             const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name
                             const techLabel = typeof tech === 'string' ? tech : tech.name || tech.icon
@@ -353,7 +353,7 @@ const Home = () => {
                       
                       {/* Responsibilities */}
                       <div>
-                        <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
                           {exp.bullets?.map((bullet, i) => (
                             <li key={i} className="flex items-start">
                               <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full mt-2 mr-3 shrink-0"></span>
@@ -370,8 +370,8 @@ const Home = () => {
           );
         })}
         
-        <div className='w-full flex justify-center items-center mt-4'>
-            <Link to="/work" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Work Experiences </Link>
+        <div className='w-full flex justify-center items-center mt-8'>
+            <Link to="/work" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-6 py-3 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Work Experiences </Link>
         </div>
       </div>
 
@@ -401,7 +401,7 @@ const Home = () => {
         </div>
 
         {/* Project Info */}
-        <div className='p-4'>
+        <div className='p-6'>
           <div className='flex items-center justify-between'>
             <h2 className='font-semibold text-xl text-gray-900 dark:text-white'>{project.name}</h2>
                  {/* Links */}
@@ -420,8 +420,8 @@ const Home = () => {
            
           </div>
 
-          <div className='mt-1 mb-3'>
-            <p className='text-gray-600 dark:text-gray-400 text-md font-medium'>
+          <div className='mt-4 mb-4'>
+            <p className='text-gray-600 dark:text-gray-400 text-md font-medium leading-relaxed'>
               {expandedProjects[project.id] 
                 ? project.description 
                 : project.description?.length > 100 
@@ -440,8 +440,8 @@ const Home = () => {
           </div>
 
           {/* Tech Stack */}
-          <div className='flex flex-wrap gap-2 mb-4'>
-            <p className='text-gray-600 dark:text-gray-400 text-sm w-full'>Technologies &amp; Tools</p>
+          <div className='flex flex-wrap gap-3 mb-4'>
+            <p className='text-gray-600 dark:text-gray-400 text-sm w-full mb-2'>Technologies &amp; Tools</p>
             {project.tech?.map((tech, i) => {
               const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name
               const techLabel = typeof tech === 'string' ? tech : tech.name || tech.icon
@@ -464,29 +464,33 @@ const Home = () => {
       </div>
     ))}
   </div>
-          <div className='w-full flex justify-center items-center mt-4'>
-            <Link to="/projects" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Projects</Link>
+          <div className='w-full flex justify-center items-center mt-8'>
+            <Link to="/projects" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-6 py-3 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Projects</Link>
         </div>
     </div>
 
 
-    <div id="about" className='mt-8 mb-8'>
-        <p className='text-gray-400 dark:text-gray-500'>About</p>
+    <div id="about" className='mt-16 mb-12'>
+        <p className='text-gray-400 dark:text-gray-500 mb-2'>About</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Me</h1>
       </div>
-      <AboutMe />
+      <div className='mb-16'>
+        <AboutMe />
+      </div>
 
-      <div id="certificates" className='mt-8 mb-8'>
-        <p className='text-gray-400 dark:text-gray-500'>Certificates</p>
+      <div id="certificates" className='mt-16 mb-12'>
+        <p className='text-gray-400 dark:text-gray-500 mb-2'>Certificates</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Certificates</h1>
       </div>
-      <Certificates />
+      <div className='mb-16'>
+        <Certificates />
+      </div>
 
 
 
 
-      <div className='mt-8 mb-8'>
-        <div className='w-full flex flex-col justify-center items-center p-10 gap-2 border border-gray-200 dark:border-zinc-700 rounded-md border-dashed bg-white dark:bg-zinc-900'>
+      <div className='mt-16 mb-12'>
+        <div className='w-full flex flex-col justify-center items-center p-12 gap-4 border border-gray-200 dark:border-zinc-700 rounded-md border-dashed bg-white dark:bg-zinc-900'>
             <p className='text-black dark:text-zinc-200'>Hey Scrolled So Far? Lets Connect!</p>
             <Tip title="Checkout my Topmate profile" placement="top" arrow isDark={isDark}>
             <a href="https://topmate.io/subham12r" target="_blank" rel="noopener noreferrer" className='text-zinc-900 dark:text-zinc-200 border  px-4 py-1 border-dashed border-zinc-200 dark:border-zinc-700 rounded-md bg-gray-50 dark:bg-zinc-800 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100 cursor-pointer'>
@@ -496,12 +500,12 @@ const Home = () => {
         </div>
       </div>
 
-      <div id="setup" className='mt-8 mb-8'>
-      <p className='text-gray-400 dark:text-gray-500'>Setup</p>
+      <div id="setup" className='mt-16 mb-12'>
+      <p className='text-gray-400 dark:text-gray-500 mb-2'>Setup</p>
       <h1 className='text-black dark:text-white font-bold text-3xl'>Development</h1>
         <Link to="/gears">
-        <div className='flex justify-between items-start mt-6 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
-          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-4 rounded-md'>
+        <div className='flex justify-between items-start mt-8 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
+          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-6 rounded-md gap-4'>
             <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded'>
               <GoGear size={30} className='text-gray-900 dark:text-zinc-200'/>
             </div>
@@ -518,7 +522,7 @@ const Home = () => {
 
         <Link to="/setup">
         <div className='flex justify-between items-start mt-6 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
-          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-4 rounded-md'>
+          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-6 rounded-md gap-4'>
             <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded'>
               <img src={cursorIcon} alt="Cursor" className="w-8 h-8" />
             </div>

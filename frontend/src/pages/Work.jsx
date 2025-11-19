@@ -187,22 +187,22 @@ const Work = () => {
 
   return (
     <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
-      <div className="mb-8">
+      <div className="mb-12">
         <p className="text-gray-400 dark:text-gray-500 mb-2">Career</p>
-        <h1 className="text-black dark:text-white font-bold text-3xl">Work Experience</h1>
-        <p className="text-gray-600 dark:text-zinc-400 mt-2">
+        <h1 className="text-black dark:text-white font-bold text-3xl mb-2">Work Experience</h1>
+        <p className="text-gray-600 dark:text-zinc-400 mt-3 leading-relaxed">
           My professional journey and the companies I've had the privilege to work with.
         </p>
       </div>
 
       {/* Experience List */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {experienceData.map((exp, idx) => {
           const isExpanded = expandedExperience === idx;
           const isCurrentJob = exp.status === 'Working' || exp.status === 'Current';
           return (
             <div key={exp.id || idx} className="bg-white dark:bg-zinc-950">
-              <div className="flex items-start gap-4 py-4">
+              <div className="flex items-start gap-6 py-6">
                 {/* Company Logo */}
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0" 
                      style={{ backgroundColor: idx === 0 ? '#ffffff' : idx === 1 ? '#ffffff' : idx === 2 ? '#ffffff' : '#374151' }}>
@@ -266,11 +266,11 @@ const Work = () => {
                   
                   {/* Expanded Content */}
                   {isExpanded && (
-                    <div className="mt-4 space-y-4">
+                    <div className="mt-6 space-y-6">
                       {/* Technologies & Tools */}
                       <div>
-                        <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">Technologies & Tools</h5>
-                        <div className="flex flex-wrap gap-3">
+                        <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm">Technologies & Tools</h5>
+                        <div className="flex flex-wrap gap-4">
                           {exp.tech?.map((tech, i) => {
                             const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name
                             const techLabel = typeof tech === 'string' ? tech : tech.name || tech.icon
@@ -290,7 +290,7 @@ const Work = () => {
                       
                       {/* Responsibilities */}
                       <div>
-                        <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
                           {exp.bullets?.map((bullet, i) => (
                             <li key={i} className="flex items-start">
                               <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full mt-2 mr-3 shrink-0"></span>
