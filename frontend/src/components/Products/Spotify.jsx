@@ -757,9 +757,7 @@ const Spotify = () => {
           </div>
           <div className='flex-1 min-w-0'>
             <div className='flex items-center gap-2 mb-1'>
-              <span className='text-gray-500 dark:text-gray-400 text-xs font-medium'>
-                {!isOnline ? 'Offline' : 'No track available'}
-              </span>
+
             </div>
             <p className='text-gray-600 dark:text-gray-400 text-sm'>
               {!isOnline ? 'Showing cached data' : 'Not currently playing'}
