@@ -39,7 +39,6 @@ const Spotify = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [spotifyPlayer, setSpotifyPlayer] = useState(null);
   const [deviceId, setDeviceId] = useState(null);
   const [sdkReady, setSdkReady] = useState(false);
   const [playbackMethod, setPlaybackMethod] = useState('preview'); // 'sdk' or 'preview'
@@ -119,7 +118,6 @@ const Spotify = () => {
         player.addListener('ready', ({ device_id }) => {
           console.log('Spotify player ready with Device ID:', device_id);
           setDeviceId(device_id);
-          setSpotifyPlayer(player);
           setPlaybackMethod('sdk');
         });
 
@@ -160,7 +158,6 @@ const Spotify = () => {
 
         // Store player reference for cleanup
         spotifyPlayerRef.current = player;
-        setSpotifyPlayer(player);
       } catch (error) {
         console.error('Error initializing Spotify player:', error);
         setPlaybackMethod('preview');
@@ -174,7 +171,6 @@ const Spotify = () => {
       if (spotifyPlayerRef.current) {
         spotifyPlayerRef.current.disconnect();
         spotifyPlayerRef.current = null;
-        setSpotifyPlayer(null);
         setDeviceId(null);
       }
     };
