@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { FaPlay, FaPause, FaSpotify, FaExternalLinkAlt } from 'react-icons/fa'
+import { FaPlay, FaPause, FaSpotify } from 'react-icons/fa'
 import gsap from 'gsap'
 
 // API Base URL - Use production URL by default
@@ -738,9 +738,9 @@ const Spotify = () => {
   // Show loading or empty state
   if (isLoading && !playerStatus) {
     return (
-      <div className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
+      <div className='w-full h-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
         <div className='flex items-center gap-3'>
-            <div className='h-16 w-16 rounded bg-gradient-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0 animate-pulse'>
+            <div className='h-full w-full rounded bg-gradient-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0 animate-pulse'>
             <FaSpotify className='text-green-500' size={32} />
           </div>
           <div className='flex-1 min-w-0'>
@@ -778,7 +778,7 @@ const Spotify = () => {
   return (
     <div className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
       {/* Top Section: Album Art and Track Info */}
-      <div className='flex items-center gap-3 mb-4'>
+      <div className='flex items-center gap-3'>
         <img 
           src={currentTrack.album?.images[2]?.url || currentTrack.album?.images[0]?.url || 'https://picsum.photos/200'} 
           alt={currentTrack.name}
@@ -800,48 +800,25 @@ const Spotify = () => {
             {currentTrack.artists?.map(a => a.name).join(', ')}
           </p>
         </div>
-        <div className='flex justify-center mb-2'>
-        {(currentTrack?.preview_url || (playbackMethod === 'sdk' && currentTrack?.uri)) ? (
-          <button
-            onClick={handlePlayPause}
-            className='bg-transparent px-2 py-2 border border-zinc-900/20 dark:border-zinc-100/20 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-zinc-900/10 dark:hover:bg-zinc-100/10 transition-all ease-in-out duration-300 flex items-center justify-center gap-2'
-            title={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? (
-              <>
-                <FaPause className='text-zinc-900 dark:text-white' size={18} />
-                
-              </>
-            ) : (
-              <>
-                <FaPlay className='text-zinc-900 dark:text-white' size={18} />
-                
-              </>
-            )}
-          </button>
-        ) : currentTrack?.external_urls?.spotify || currentTrack?.id ? (
-          <a
-            href={currentTrack?.external_urls?.spotify || `https://open.spotify.com/track/${currentTrack?.id}`}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='bg-transparent px-2 py-2 border border-green-500/50 dark:border-green-400/50 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-green-500/10 dark:hover:bg-green-400/10 transition-all ease-in-out duration-300 flex items-center justify-center gap-2'
-            title='Open in Spotify'
-          >
-            <FaSpotify className='text-green-500 dark:text-green-400' size={18} />
-            
-          
-          </a>
-        ) : (
-          <button
-            disabled
-            className='bg-transparent px-6 py-3 border border-zinc-900/20 dark:border-zinc-100/20 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] opacity-50 cursor-not-allowed flex items-center justify-center gap-2'
-            title='Preview not available for this track'
-          >
-            <FaPlay className='text-zinc-900 dark:text-white' size={18} />
-            <span className='text-sm text-zinc-900 dark:text-white font-medium'>Play</span>
-          </button>
+        {(currentTrack?.preview_url || (playbackMethod === 'sdk' && currentTrack?.uri)) && (
+          <div className='flex justify-center mb-2'>
+            <button
+              onClick={handlePlayPause}
+              className='bg-transparent px-2 py-2 border border-zinc-900/20 dark:border-zinc-100/20 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-zinc-900/10 dark:hover:bg-zinc-100/10 transition-all ease-in-out duration-300 flex items-center justify-center gap-2'
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? (
+                <>
+                  <FaPause className='text-zinc-900 dark:text-white' size={18} />
+                </>
+              ) : (
+                <>
+                  <FaPlay className='text-zinc-900 dark:text-white' size={18} />
+                </>
+              )}
+            </button>
+          </div>
         )}
-      </div>
       </div>
 
  
