@@ -329,6 +329,30 @@ router.get('/track/:trackId', async (req, res) => {
   }
 });
 
+// Get user access token for Web Playback SDK (requires streaming scope)
+// Note: This endpoint returns the personal access token if it has streaming scope
+// For full Web Playback SDK support, users need to authenticate with streaming scope
+router.get('/user-token', async (req, res) => {
+  try {
+    // For now, return the personal access token
+    // In production, you'd want to implement proper user OAuth flow
+    // with scopes: user-read-playback-state, user-modify-playback-state, streaming
+    const accessToken = await getValidAccessToken();
+    
+    res.json({
+      success: true,
+      accessToken: accessToken,
+      note: 'This token may not have streaming scope. For full Web Playback SDK support, implement user OAuth with streaming scope.'
+    });
+  } catch (error) {
+    console.error('Error getting user token:', error);
+    res.status(500).json({
+      error: 'Failed to get access token',
+      details: error.message
+    });
+  }
+});
+
 // Health check endpoint
 router.get('/status', (req, res) => {
   res.json({ 

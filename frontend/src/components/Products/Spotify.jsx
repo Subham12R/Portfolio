@@ -39,10 +39,135 @@ const Spotify = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [spotifyPlayer, setSpotifyPlayer] = useState(null);
+  const [deviceId, setDeviceId] = useState(null);
+  const [sdkReady, setSdkReady] = useState(false);
+  const [playbackMethod, setPlaybackMethod] = useState('preview'); // 'sdk' or 'preview'
   const audioRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const playerControlsRef = useRef(null);
   const isExpandedRef = useRef(false);
+
+  // Load Spotify Web Playback SDK
+  useEffect(() => {
+    // Check if SDK is already loaded
+    if (window.Spotify) {
+      setSdkReady(true);
+      return;
+    }
+
+    // Load the SDK script
+    const script = document.createElement('script');
+    script.src = 'https://sdk.scdn.co/spotify-player.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    // Set up the ready callback
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      setSdkReady(true);
+      console.log('Spotify Web Playback SDK is ready');
+    };
+
+    return () => {
+      // Cleanup
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, []);
+
+  // Initialize Spotify Web Playback SDK player
+  useEffect(() => {
+    if (!sdkReady || !window.Spotify) return;
+
+    // Get access token from backend (needs streaming scope)
+    const initPlayer = async () => {
+      try {
+        // Try to get user access token with streaming scope
+        // For now, we'll use a fallback approach - try SDK, fall back to preview
+        const response = await fetch(`${API_BASE_URL}/api/spotify/user-token`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          mode: 'cors'
+        });
+
+        let accessToken = null;
+        if (response.ok) {
+          const data = await response.json();
+          accessToken = data.accessToken;
+        }
+
+        // If no user token, we'll use preview URL instead
+        if (!accessToken) {
+          console.log('No user access token available, will use preview URL');
+          setPlaybackMethod('preview');
+          return;
+        }
+
+        const player = new window.Spotify.Player({
+          name: 'Portfolio Web Player',
+          getOAuthToken: cb => {
+            cb(accessToken);
+          },
+          volume: 0.5,
+        });
+
+        // Ready event
+        player.addListener('ready', ({ device_id }) => {
+          console.log('Spotify player ready with Device ID:', device_id);
+          setDeviceId(device_id);
+          setSpotifyPlayer(player);
+          setPlaybackMethod('sdk');
+        });
+
+        // Not ready event
+        player.addListener('not_ready', ({ device_id }) => {
+          console.log('Device ID has gone offline', device_id);
+        });
+
+        // Player state changed
+        player.addListener('player_state_changed', (state) => {
+          if (!state) {
+            setIsPlaying(false);
+            return;
+          }
+
+          setIsPlaying(!state.paused);
+          setCurrentTime(state.position);
+          setDuration(state.duration);
+        });
+
+        // Error handling
+        player.addListener('authentication_error', ({ message }) => {
+          console.error('Failed to authenticate:', message);
+          setPlaybackMethod('preview');
+        });
+
+        player.addListener('account_error', ({ message }) => {
+          console.error('Failed to validate Spotify account:', message);
+          setPlaybackMethod('preview');
+        });
+
+        player.addListener('playback_error', ({ message }) => {
+          console.error('Playback error:', message);
+        });
+
+        // Connect to the player
+        player.connect();
+
+        return () => {
+          player.disconnect();
+        };
+      } catch (error) {
+        console.error('Error initializing Spotify player:', error);
+        setPlaybackMethod('preview');
+      }
+    };
+
+    initPlayer();
+  }, [sdkReady]);
 
   // Load cached data from localStorage
   const loadCachedData = useCallback(() => {
@@ -438,17 +563,88 @@ const Spotify = () => {
     }
   }, [playerStatus]);
 
+  // Play track using Spotify Web Playback SDK
+  const playTrackWithSDK = async (trackUri) => {
+    if (!spotifyPlayer || !deviceId) {
+      console.warn('Spotify player not ready');
+      return false;
+    }
+
+    try {
+      const accessToken = await fetch(`${API_BASE_URL}/api/spotify/user-token`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => data?.accessToken)
+        .catch(() => null);
+
+      if (!accessToken) {
+        console.warn('No access token available for SDK playback');
+        return false;
+      }
+
+      const response = await fetch(
+        `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            uris: [trackUri]
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        console.error('Failed to play track:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error playing track with SDK:', error);
+      return false;
+    }
+  };
+
   // Handle play/pause
-  const handlePlayPause = () => {
+  const handlePlayPause = async () => {
     const track = playerStatus?.displayTrack;
     
-    if (!track?.preview_url) {
+    if (!track) {
+      console.warn('No track available');
+      return;
+    }
+
+    // Try Web Playback SDK first if available
+    if (playbackMethod === 'sdk' && spotifyPlayer && deviceId && track.uri) {
+      if (isPlaying) {
+        // Pause
+        await spotifyPlayer.pause();
+        setIsPlaying(false);
+      } else {
+        // Play
+        const success = await playTrackWithSDK(track.uri);
+        if (success) {
+          setIsPlaying(true);
+        } else {
+          // Fallback to preview URL
+          console.log('SDK playback failed, falling back to preview URL');
+          setPlaybackMethod('preview');
+          handlePlayPause(); // Retry with preview
+        }
+      }
+      return;
+    }
+
+    // Fallback to preview URL playback
+    if (!track.preview_url) {
       console.warn('No preview URL available for this track');
       return;
     }
 
     if (!audioRef.current) {
-      console.warn('Audio element not initialized yet');
       // Try to initialize audio on the fly
       const audio = new Audio(track.preview_url);
       audio.volume = 0.5;
@@ -483,7 +679,6 @@ const Spotify = () => {
       audioRef.current.play().catch((error) => {
         console.error('Error playing audio:', error);
         setIsPlaying(false);
-        // Try to reload the audio
         if (audioRef.current) {
           audioRef.current.load();
         }
@@ -493,16 +688,30 @@ const Spotify = () => {
   };
 
   // Handle progress bar click
-  const handleProgressClick = (e) => {
-    if (!audioRef.current || !duration) return;
+  const handleProgressClick = async (e) => {
+    if (!duration) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = clickX / rect.width;
     const newTime = percentage * duration;
     
-    audioRef.current.currentTime = newTime;
-    setCurrentTime(newTime);
+    // If using SDK, seek using SDK
+    if (playbackMethod === 'sdk' && spotifyPlayer) {
+      try {
+        await spotifyPlayer.seek(newTime * 1000); // SDK uses milliseconds
+        setCurrentTime(newTime);
+      } catch (error) {
+        console.error('Error seeking with SDK:', error);
+      }
+      return;
+    }
+    
+    // Fallback to audio element
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
   };
 
   // Get the current track
@@ -575,25 +784,22 @@ const Spotify = () => {
             {currentTrack.artists?.map(a => a.name).join(', ')}
           </p>
         </div>
-      </div>
-
-      {/* Play/Pause Button or Play on Spotify Button */}
-      <div className='flex justify-center mb-3'>
-        {currentTrack?.preview_url ? (
+        <div className='flex justify-center mb-2'>
+        {(currentTrack?.preview_url || (playbackMethod === 'sdk' && currentTrack?.uri)) ? (
           <button
             onClick={handlePlayPause}
-            className='bg-transparent px-6 py-3 border border-zinc-900/20 dark:border-zinc-100/20 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-zinc-900/10 dark:hover:bg-zinc-100/10 transition-all ease-in-out duration-300 flex items-center justify-center gap-2'
+            className='bg-transparent px-2 py-2 border border-zinc-900/20 dark:border-zinc-100/20 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-zinc-900/10 dark:hover:bg-zinc-100/10 transition-all ease-in-out duration-300 flex items-center justify-center gap-2'
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
               <>
                 <FaPause className='text-zinc-900 dark:text-white' size={18} />
-                <span className='text-sm text-zinc-900 dark:text-white font-medium'>Pause</span>
+                
               </>
             ) : (
               <>
                 <FaPlay className='text-zinc-900 dark:text-white' size={18} />
-                <span className='text-sm text-zinc-900 dark:text-white font-medium'>Play</span>
+                
               </>
             )}
           </button>
@@ -602,12 +808,12 @@ const Spotify = () => {
             href={currentTrack?.external_urls?.spotify || `https://open.spotify.com/track/${currentTrack?.id}`}
             target='_blank'
             rel='noopener noreferrer'
-            className='bg-transparent px-6 py-3 border border-green-500/50 dark:border-green-400/50 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-green-500/10 dark:hover:bg-green-400/10 transition-all ease-in-out duration-300 flex items-center justify-center gap-2'
+            className='bg-transparent px-2 py-2 border border-green-500/50 dark:border-green-400/50 rounded-md shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-green-500/10 dark:hover:bg-green-400/10 transition-all ease-in-out duration-300 flex items-center justify-center gap-2'
             title='Open in Spotify'
           >
             <FaSpotify className='text-green-500 dark:text-green-400' size={18} />
-            <span className='text-sm text-green-500 dark:text-green-400 font-medium'>Open in Spotify</span>
-            <FaExternalLinkAlt className='text-green-500 dark:text-green-400' size={14} />
+            
+          
           </a>
         ) : (
           <button
@@ -620,9 +826,10 @@ const Spotify = () => {
           </button>
         )}
       </div>
+      </div>
 
-      {/* Bottom Section: Player Controls - Slides down when music plays */}
-      {currentTrack.preview_url && (
+ 
+      {(currentTrack.preview_url || (playbackMethod === 'sdk' && currentTrack.uri)) && (
         <div 
           ref={playerControlsRef}
           className='overflow-hidden'
@@ -663,21 +870,8 @@ const Spotify = () => {
         </div>
       )}
 
-      {!currentTrack?.preview_url && currentTrack?.external_urls?.spotify && (
-        <div className='text-center py-2'>
-          <p className='text-xs text-gray-400 dark:text-gray-500'>
-            Click "Play on Spotify" to listen to this track
-          </p>
-        </div>
-      )}
+
       
-      {!currentTrack?.preview_url && !currentTrack?.external_urls?.spotify && (
-        <div className='text-center py-2'>
-          <p className='text-xs text-gray-400 dark:text-gray-500'>
-            Preview not available for this track
-          </p>
-        </div>
-      )}
     </div>
   );
 };
