@@ -157,9 +157,8 @@ const Spotify = () => {
         // Connect to the player
         player.connect();
 
-        return () => {
-          player.disconnect();
-        };
+        // Store player reference for cleanup
+        setSpotifyPlayer(player);
       } catch (error) {
         console.error('Error initializing Spotify player:', error);
         setPlaybackMethod('preview');
@@ -167,6 +166,15 @@ const Spotify = () => {
     };
 
     initPlayer();
+    
+    return () => {
+      // Cleanup on unmount
+      if (spotifyPlayer) {
+        spotifyPlayer.disconnect();
+        setSpotifyPlayer(null);
+        setDeviceId(null);
+      }
+    };
   }, [sdkReady]);
 
   // Load cached data from localStorage
@@ -510,8 +518,10 @@ const Spotify = () => {
     if (!playerControlsRef.current) return;
 
     const hasPreview = playerStatus?.displayTrack?.preview_url;
+    const hasSDK = playbackMethod === 'sdk' && playerStatus?.displayTrack?.uri;
+    const canPlay = hasPreview || hasSDK;
     
-    if (isPlaying && hasPreview && !isExpandedRef.current) {
+    if (isPlaying && canPlay && !isExpandedRef.current) {
       // Slide down when playing starts
       isExpandedRef.current = true;
       gsap.fromTo(
@@ -537,14 +547,17 @@ const Spotify = () => {
       });
     }
     // Note: We keep controls expanded when paused so users can see progress
-  }, [isPlaying, playerStatus]);
+  }, [isPlaying, playerStatus, playbackMethod]);
 
   // Initialize player controls visibility on track load
   useEffect(() => {
     if (!playerControlsRef.current) return;
     
     const hasPreview = playerStatus?.displayTrack?.preview_url;
-    if (hasPreview) {
+    const hasSDK = playbackMethod === 'sdk' && playerStatus?.displayTrack?.uri;
+    const canPlay = hasPreview || hasSDK;
+    
+    if (canPlay) {
       // Start collapsed, will expand when play is clicked
       gsap.set(playerControlsRef.current, {
         height: 0,
@@ -553,7 +566,7 @@ const Spotify = () => {
       });
       isExpandedRef.current = false;
     } else {
-      // Hide controls if no preview
+      // Hide controls if no preview or SDK
       gsap.set(playerControlsRef.current, {
         height: 0,
         opacity: 0,
@@ -561,7 +574,7 @@ const Spotify = () => {
       });
       isExpandedRef.current = false;
     }
-  }, [playerStatus]);
+  }, [playerStatus, playbackMethod]);
 
   // Play track using Spotify Web Playback SDK
   const playTrackWithSDK = async (trackUri) => {
