@@ -47,6 +47,7 @@ const Spotify = () => {
   const progressIntervalRef = useRef(null);
   const playerControlsRef = useRef(null);
   const isExpandedRef = useRef(false);
+  const spotifyPlayerRef = useRef(null);
 
   // Load Spotify Web Playback SDK
   useEffect(() => {
@@ -158,6 +159,7 @@ const Spotify = () => {
         player.connect();
 
         // Store player reference for cleanup
+        spotifyPlayerRef.current = player;
         setSpotifyPlayer(player);
       } catch (error) {
         console.error('Error initializing Spotify player:', error);
@@ -169,8 +171,9 @@ const Spotify = () => {
     
     return () => {
       // Cleanup on unmount
-      if (spotifyPlayer) {
-        spotifyPlayer.disconnect();
+      if (spotifyPlayerRef.current) {
+        spotifyPlayerRef.current.disconnect();
+        spotifyPlayerRef.current = null;
         setSpotifyPlayer(null);
         setDeviceId(null);
       }
@@ -578,7 +581,7 @@ const Spotify = () => {
 
   // Play track using Spotify Web Playback SDK
   const playTrackWithSDK = async (trackUri) => {
-    if (!spotifyPlayer || !deviceId) {
+    if (!spotifyPlayerRef.current || !deviceId) {
       console.warn('Spotify player not ready');
       return false;
     }
@@ -631,10 +634,10 @@ const Spotify = () => {
     }
 
     // Try Web Playback SDK first if available
-    if (playbackMethod === 'sdk' && spotifyPlayer && deviceId && track.uri) {
+    if (playbackMethod === 'sdk' && spotifyPlayerRef.current && deviceId && track.uri) {
       if (isPlaying) {
         // Pause
-        await spotifyPlayer.pause();
+        await spotifyPlayerRef.current.pause();
         setIsPlaying(false);
       } else {
         // Play
@@ -710,9 +713,9 @@ const Spotify = () => {
     const newTime = percentage * duration;
     
     // If using SDK, seek using SDK
-    if (playbackMethod === 'sdk' && spotifyPlayer) {
+    if (playbackMethod === 'sdk' && spotifyPlayerRef.current) {
       try {
-        await spotifyPlayer.seek(newTime * 1000); // SDK uses milliseconds
+        await spotifyPlayerRef.current.seek(newTime * 1000); // SDK uses milliseconds
         setCurrentTime(newTime);
       } catch (error) {
         console.error('Error seeking with SDK:', error);
