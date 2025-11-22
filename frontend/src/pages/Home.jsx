@@ -255,7 +255,7 @@ const Home = () => {
   
 
       {/* Work */}
-      <div id="experience" className='mt-16 mb-12'>
+      <div id="experience" className='mt-8 mb-2'>
         <p className='text-gray-400 dark:text-gray-500 mb-2'>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
       </div>
@@ -378,7 +378,7 @@ const Home = () => {
     {/* Project */}
     <div id="projects">
 
-     <div className='mt-8 mb-8'>
+     <div className='mt-8 mb-2'>
         <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Projects</h1>
       </div>
@@ -470,7 +470,7 @@ const Home = () => {
     </div>
 
 
-    <div id="about" className='mt-16 mb-12'>
+    <div id="about" className='mt-8 mb-2'>
         <p className='text-gray-400 dark:text-gray-500 mb-2'>About</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Me</h1>
       </div>
@@ -489,7 +489,7 @@ const Home = () => {
 
 
 
-      <div className='mt-16 mb-12'>
+      <div className='mt-8 mb-2'>
         <div className='w-full flex flex-col justify-center items-center p-12 gap-4 border border-gray-200 dark:border-zinc-700 rounded-md border-dashed bg-white dark:bg-zinc-900'>
             <p className='text-black dark:text-zinc-200'>Hey Scrolled So Far? Lets Connect!</p>
             <Tip title="Checkout my Topmate profile" placement="top" arrow isDark={isDark}>
