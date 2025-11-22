@@ -1,5 +1,5 @@
 # Subham Portfolio  
-[subham12r.me](https://www.subham12r.me/)
+[subham12r.me]([https://www.subham12r.me/](http://subham12r.me/))
 
 Welcome! I’m **Subham**, a second-year B.Tech Computer Science student at Adamas University, passionate about web development using React, Next.js and Node.js. My portfolio site showcases my projects, skills, and the journey I’m on in tech.
 
