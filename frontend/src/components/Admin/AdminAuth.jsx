@@ -53,7 +53,7 @@ const AdminAuth = ({ onLogin }) => {
               name="email"
               value={credentials.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black dark:text-white"
+              className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter email"
               required
             />
@@ -70,7 +70,7 @@ const AdminAuth = ({ onLogin }) => {
                 name="password"
                 value={credentials.password}
                 onChange={handleChange}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black dark:text-white"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black "
                 placeholder="Enter password"
                 required
               />
