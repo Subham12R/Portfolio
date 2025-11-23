@@ -130,7 +130,7 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="sticky top-0 z-[100] w-full lg:max-w-2xl mx-auto ">
+      <div className="sticky top-0 z-100 w-full lg:max-w-2xl mx-auto ">
         <nav className="bg-white  dark:bg-zinc-950 backdrop-blur-md border-b  border-gray-200/50 dark:border-zinc-800/50 w-full flex justify-between items-center px-2 relative">
           <div className='flex items-center justify-center py-2'>
             {/* Menu Button - Works for both mobile and desktop */}
@@ -172,7 +172,7 @@ const Navbar = () => {
                     <button
                       key={i}
                       onClick={() => handleLinkClick(link.to)}
-                      className="group relative flex items-center justify-center text-base md:text-lg font-semibold dark:text-zinc-300 text-zinc-950 tracking-tighter leading-tight cursor-pointer font-sora before:pointer-events-none before:absolute before:bottom-0 before:left-0 before:h-[0.05em] before:w-full before:bg-current before:content-[''] before:origin-right before:scale-x-0 before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] hover:before:origin-left hover:before:scale-x-100"
+                      className="group relative flex items-center justify-center text-base md:text-lg font-semibold dark:text-zinc-300 text-zinc-950 tracking-tighter leading-tight cursor-pointer font-sora before:pointer-events-none before:absolute before:bottom-0 before:left-0 before:h-[0.05em] before:w-full before:bg-current before:content-[''] before:origin-right before:scale-x-0 before:transition-transform before:duration-300 before:ease-in-[cubic-bezier(0.4,0,0.2,1)] hover:before:origin-left hover:before:scale-x-100"
                     >
                       <span className="relative tracking-tight">
                         {link.label.toUpperCase()}

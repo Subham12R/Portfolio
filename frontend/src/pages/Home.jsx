@@ -251,7 +251,7 @@ const Home = () => {
        <div id="home">
         <Header />
         <Socials />
-        <Spotify />
+        {/* <Spotify /> */}
       </div>
 
 

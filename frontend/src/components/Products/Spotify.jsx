@@ -173,22 +173,6 @@ const Spotify = () => {
           console.error('❌ Spotify authentication error:', message);
           
           // Check if it's a scope issue
-          if (message && (message.includes('scope') || message.includes('Invalid token scopes'))) {
-            console.error('');
-            console.error('🔴 CRITICAL: Missing "streaming" scope!');
-            console.error('');
-            console.error('Your Spotify token is missing the required "streaming" scope.');
-            console.error('This scope is REQUIRED for Web Playback SDK.');
-            console.error('');
-            console.error('📋 To fix this:');
-            console.error('1. Re-authorize your Spotify app with ALL required scopes');
-            console.error('2. Use backend/spotify-auth.html to get new tokens');
-            console.error('3. Make sure "streaming" scope is included');
-            console.error('4. Update your backend .env with new tokens');
-            console.error('');
-            console.error('⚠️ Note: Refreshing tokens will NOT add missing scopes!');
-            console.error('You MUST re-authorize to get a token with streaming scope.');
-          }
           
           console.log('Falling back to preview URL playback');
           setPlaybackMethod('preview');
@@ -964,7 +948,7 @@ const Spotify = () => {
     return (
       <div className='w-full h-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
         <div className='flex items-center gap-3'>
-            <div className='h-full w-full rounded bg-gradient-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0 animate-pulse'>
+            <div className='h-full w-full rounded bg-linear-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0 animate-pulse'>
             <FaSpotify className='text-green-500' size={32} />
           </div>
           <div className='flex-1 min-w-0'>
@@ -980,7 +964,7 @@ const Spotify = () => {
     return (
       <div className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
         <div className='flex items-center gap-3'>
-          <div className='h-16 w-16 rounded bg-gradient-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0'>
+          <div className='h-16 w-16 rounded bg-linear-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0'>
             <FaSpotify className='text-green-500' size={32} />
           </div>
           <div className='flex-1 min-w-0'>
