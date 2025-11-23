@@ -67,8 +67,15 @@ async function getValidAccessToken() {
 
   // Check if token is expired (with 5 minute buffer)
   if (needsRefresh()) {
-    console.log('Token expired, refreshing...');
-    return await refreshPersonalToken();
+    console.log('Token expired or about to expire, refreshing...');
+    try {
+      const newToken = await refreshPersonalToken();
+      console.log('Token refreshed successfully');
+      return newToken;
+    } catch (error) {
+      console.error('Token refresh failed in getValidAccessToken:', error);
+      throw error;
+    }
   }
 
   return personalAccessToken;
@@ -354,14 +361,32 @@ router.get('/user-token', async (req, res) => {
 router.get('/device/:deviceId/available', async (req, res) => {
   try {
     const { deviceId } = req.params;
-    const accessToken = await getValidAccessToken();
+    let accessToken = await getValidAccessToken();
 
     // Check available devices
-    const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
+    let response = await fetch('https://api.spotify.com/v1/me/player/devices', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       }
     });
+
+    // Handle 401 - refresh token and retry
+    if (response.status === 401) {
+      try {
+        accessToken = await refreshPersonalToken();
+        response = await fetch('https://api.spotify.com/v1/me/player/devices', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          }
+        });
+      } catch (refreshError) {
+        console.error('Failed to refresh token for device check:', refreshError);
+        return res.status(401).json({
+          available: false,
+          error: 'Authentication failed'
+        });
+      }
+    }
 
     if (!response.ok) {
       return res.status(response.status).json({
@@ -402,11 +427,29 @@ router.put('/play', async (req, res) => {
 
     // First, verify device is available (with retry on first attempt)
     if (retryAttempt === 0) {
-      const deviceCheck = await fetch(`https://api.spotify.com/v1/me/player/devices`, {
+      let deviceCheck = await fetch(`https://api.spotify.com/v1/me/player/devices`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
         }
       });
+
+      // Handle 401 - refresh token and retry
+      if (deviceCheck.status === 401) {
+        try {
+          accessToken = await refreshPersonalToken();
+          deviceCheck = await fetch(`https://api.spotify.com/v1/me/player/devices`, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+            }
+          });
+        } catch (refreshError) {
+          console.error('Failed to refresh token for device check:', refreshError);
+          return res.status(401).json({
+            error: 'Authentication failed',
+            details: 'Token refresh failed'
+          });
+        }
+      }
 
       if (deviceCheck.ok) {
         const devicesData = await deviceCheck.json();
@@ -425,7 +468,7 @@ router.put('/play', async (req, res) => {
       }
     }
 
-    const response = await fetch(
+    let response = await fetch(
       `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
       {
         method: 'PUT',
@@ -438,6 +481,46 @@ router.put('/play', async (req, res) => {
         }),
       }
     );
+
+    // Handle 401 Unauthorized - token might be expired, try refreshing
+    if (response.status === 401) {
+      console.log('Got 401 on playback request, refreshing token and retrying...');
+      try {
+        const newAccessToken = await refreshPersonalToken();
+        console.log('Token refreshed, retrying playback request...');
+        
+        // Retry with new token
+        response = await fetch(
+          `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${newAccessToken}`,
+            },
+            body: JSON.stringify({
+              uris: [trackUri]
+            }),
+          }
+        );
+
+        // If still 401 after refresh, there might be a scope issue
+        if (response.status === 401) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Still 401 after token refresh. Error details:', errorData);
+          return res.status(401).json({
+            error: 'Authentication failed',
+            details: errorData.error_description || 'Token may not have required scopes (streaming, user-modify-playback-state)'
+          });
+        }
+      } catch (refreshError) {
+        console.error('Failed to refresh token:', refreshError);
+        return res.status(401).json({
+          error: 'Authentication failed',
+          details: `Token refresh failed: ${refreshError.message}. Please check your Spotify credentials and refresh token.`
+        });
+      }
+    }
 
     if (!response.ok) {
       // If 404 and this is first attempt, suggest retry
