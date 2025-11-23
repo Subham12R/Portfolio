@@ -170,13 +170,35 @@ const Spotify = () => {
 
         // Error handling - fall back to preview on auth errors
         player.addListener('authentication_error', ({ message }) => {
-          console.error('Spotify authentication error:', message);
+          console.error('❌ Spotify authentication error:', message);
+          
+          // Check if it's a scope issue
+          if (message && (message.includes('scope') || message.includes('Invalid token scopes'))) {
+            console.error('');
+            console.error('🔴 CRITICAL: Missing "streaming" scope!');
+            console.error('');
+            console.error('Your Spotify token is missing the required "streaming" scope.');
+            console.error('This scope is REQUIRED for Web Playback SDK.');
+            console.error('');
+            console.error('📋 To fix this:');
+            console.error('1. Re-authorize your Spotify app with ALL required scopes');
+            console.error('2. Use backend/spotify-auth.html to get new tokens');
+            console.error('3. Make sure "streaming" scope is included');
+            console.error('4. Update your backend .env with new tokens');
+            console.error('');
+            console.error('⚠️ Note: Refreshing tokens will NOT add missing scopes!');
+            console.error('You MUST re-authorize to get a token with streaming scope.');
+          }
+          
           console.log('Falling back to preview URL playback');
           setPlaybackMethod('preview');
         });
 
         player.addListener('account_error', ({ message }) => {
-          console.error('Spotify account error (Premium required for Web Playback SDK):', message);
+          console.error('Spotify account error:', message);
+          if (message && message.includes('Premium')) {
+            console.error('You need a Spotify Premium account for Web Playback SDK');
+          }
           console.log('Falling back to preview URL playback');
           setPlaybackMethod('preview');
         });
