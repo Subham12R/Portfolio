@@ -8,12 +8,10 @@ import { RiSideBarFill } from "react-icons/ri";
 
 const navLinks = [
   { to: '/', label: 'Home' },
+  { to: '/components', label: 'Components' },
   { to: '/projects', label: 'Projects' },
-  { to: '/certificates', label: 'Certificates' },
   { to: '/contact', label: 'Contact' },
   { to: '/work', label: 'Work' },
-  { to: '/gears', label: 'Gears' },
-  { to: '/setup', label: 'Setup' },
   { to: '/blog', label: 'Blog' },
 ]
 

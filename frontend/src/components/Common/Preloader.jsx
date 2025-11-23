@@ -18,7 +18,7 @@ const Preloader = ({ onComplete, showMessage = false }) => {
       // Simple fade out animation
       gsap.to(containerRef.current, {
         opacity: 0,
-        duration: 0.5,
+        duration: 0.1,
         ease: 'power2.inOut',
         onComplete: () => {
           setIsVisible(false)
