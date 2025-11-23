@@ -289,13 +289,13 @@ const Projects = () => {
       </div>
 
       <div className="space-y-6">
-        {projectData.map((project, index) => {
+        {projectData.map((project, index ) => {
           const isExpanded = expandedProject === index
           
           return (
             <div
               key={project.id}
-                                   className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+              className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
             >
               {/* Project Header */}
               <div

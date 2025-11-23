@@ -13,7 +13,7 @@ import { usePortfolio } from '../contexts/PortfolioContext';
 import Header from '../components/Common/Header'
 import { ProjectMediaPlayer } from '../components/Common/VideoPlayer'
 import ScrollProgress from '../components/Common/ScrollProgress'
-
+import Socials from '../components/Products/Socials'
 import Tooltip from '@mui/material/Tooltip';
 
 import { styled } from '@mui/material/styles';
@@ -240,7 +240,7 @@ const Home = () => {
 
   // Use backend data instead of dummy data
   const experienceData = data?.workExperience?.filter(exp => exp.featured) || [];
-  const projectData = data?.projects || []; // Show all projects for now
+  const projectData = (data?.projects || []).slice(0, 4); // Show only 4 projects on main page
   
   // Debug: Log data to see what we're receiving
   console.log('Home page data:', data)
@@ -250,13 +250,16 @@ const Home = () => {
      <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 lg:px-0 mb-4 overflow-x-hidden'>
        <div id="home">
         <Header />
+        <Socials />
         <Spotify />
       </div>
-  
+
+
+   
 
       {/* Work */}
       <div id="experience" className='mt-8 mb-2'>
-        <p className='text-gray-400 dark:text-gray-500 mb-2'>Featured.</p>
+        <p className='text-gray-400 dark:text-gray-500 '>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
       </div>
       <div className="mb-8 space-y-6">
@@ -378,7 +381,7 @@ const Home = () => {
     {/* Project */}
     <div id="projects">
 
-     <div className='mt-8 mb-2'>
+     <div className='mt-8 mb-8'>
         <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Projects</h1>
       </div>
@@ -470,16 +473,16 @@ const Home = () => {
     </div>
 
 
-    <div id="about" className='mt-8 mb-2'>
-        <p className='text-gray-400 dark:text-gray-500 mb-2'>About</p>
+    <div id="about" className='mt-8 mb-8'>
+        <p className='text-gray-400 dark:text-gray-500'>About</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Me</h1>
       </div>
-      <div className='mb-16'>
+      <div className='mb-8'>
         <AboutMe />
       </div>
 
-      <div id="certificates" className='mt-16 mb-12'>
-        <p className='text-gray-400 dark:text-gray-500 mb-2'>Certificates</p>
+      <div id="certificates" className='mt-16 mb-8'>
+        <p className='text-gray-400 dark:text-gray-500 '>Certificates</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Certificates</h1>
       </div>
       <div className='mb-16'>
@@ -500,8 +503,8 @@ const Home = () => {
         </div>
       </div>
 
-      <div id="setup" className='mt-16 mb-12'>
-      <p className='text-gray-400 dark:text-gray-500 mb-2'>Setup</p>
+      <div id="setup" className='mt-16 mb-8'>
+      <p className='text-gray-400 dark:text-gray-500'>Setup</p>
       <h1 className='text-black dark:text-white font-bold text-3xl'>Development</h1>
         <Link to="/gears">
         <div className='flex justify-between items-start mt-8 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>

@@ -1,121 +1,38 @@
 "use client";
 
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import { useTheme } from "../../contexts/ThemeContext";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { cn } from "../../lib/utils";
-
-export const useThemeToggle = ({
-  variant = "circle",
-  start = "center",
-  blur = false,
-  gifUrl = "",
-} = {}) => {
-  const { theme, setTheme } = useTheme();
-  const [isDark, setIsDark] = useState(theme === "dark");
-
-  // Sync isDark state with theme
-  useEffect(() => {
-    setIsDark(theme === "dark");
-  }, [theme]);
-
-  const styleId = "theme-transition-styles";
-
-  const updateStyles = useCallback((css, name) => {
-    if (typeof window === "undefined") return;
-
-    let styleElement = document.getElementById(styleId);
-
-    if (!styleElement) {
-      styleElement = document.createElement("style");
-      styleElement.id = styleId;
-      document.head.appendChild(styleElement);
-    }
-
-    styleElement.textContent = css;
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    const animation = createAnimation(variant, start, blur, gifUrl);
-    updateStyles(animation.css, animation.name);
-
-    if (typeof window === "undefined") return;
-
-    const newTheme = theme === "light" ? "dark" : "light";
-
-    const switchTheme = () => {
-      setTheme(newTheme);
-    };
-
-    if (!document.startViewTransition) {
-      switchTheme();
-      return;
-    }
-
-    document.startViewTransition(switchTheme);
-  }, [theme, setTheme, variant, start, blur, gifUrl, updateStyles]);
-
-  const setLightTheme = useCallback(() => {
-    setIsDark(false);
-    const animation = createAnimation(variant, start, blur, gifUrl);
-    updateStyles(animation.css, animation.name);
-
-    if (typeof window === "undefined") return;
-
-    const switchTheme = () => {
-      setTheme("light");
-    };
-
-    if (!document.startViewTransition) {
-      switchTheme();
-      return;
-    }
-
-    document.startViewTransition(switchTheme);
-  }, [setTheme, variant, start, blur, gifUrl, updateStyles]);
-
-  const setDarkTheme = useCallback(() => {
-    setIsDark(true);
-    const animation = createAnimation(variant, start, blur, gifUrl);
-    updateStyles(animation.css, animation.name);
-
-    if (typeof window === "undefined") return;
-
-    const switchTheme = () => {
-      setTheme("dark");
-    };
-
-    if (!document.startViewTransition) {
-      switchTheme();
-      return;
-    }
-
-    document.startViewTransition(switchTheme);
-  }, [setTheme, variant, start, blur, gifUrl, updateStyles]);
-
-  return {
-    isDark,
-    setIsDark,
-    toggleTheme,
-    setLightTheme,
-    setDarkTheme,
-  };
-};
+import clickSound from "../../assets/audio/click.mp3";
+import { useThemeToggle } from "./useThemeToggle";
 
 export const ThemeToggleButton = ({
   className = "",
-  variant = "circle",
-  start = "top-right",
-  blur = true,
-  gifUrl = "",
 }) => {
-  const { isDark, toggleTheme } = useThemeToggle({
-    variant,
-    start,
-    blur,
-    gifUrl,
-  });
+  const { isDark, toggleTheme } = useThemeToggle();
   const [rotation, setRotation] = React.useState(0);
+  const audioRef = useRef(null);
+
+  // Initialize audio
+  useEffect(() => {
+    audioRef.current = new Audio(clickSound);
+    audioRef.current.volume = 0.5; // Set volume to 50%
+  }, []);
+
+  // Handle click with sound
+  const handleToggle = () => {
+    // Play click sound
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0; // Reset to start
+      audioRef.current.play().catch(error => {
+        // Ignore errors (e.g., user hasn't interacted with page yet)
+        console.warn('Could not play click sound:', error);
+      });
+    }
+    // Toggle theme
+    toggleTheme();
+  };
 
   React.useEffect(() => {
     setRotation(prev => prev + 360);
@@ -129,7 +46,7 @@ export const ThemeToggleButton = ({
         isDark ? "bg-transparent text-white" : "bg-transparent text-black",
         className,
       )}
-      onClick={toggleTheme}
+      onClick={handleToggle}
       aria-label="Toggle theme"
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
@@ -200,201 +117,4 @@ export const ThemeToggleButton = ({
       </motion.svg>
     </motion.button>
   );
-};
-
-// Animation types
-const getPositionCoords = (position) => {
-  switch (position) {
-    case "top-left":
-      return { cx: "0", cy: "0" };
-    case "top-right":
-      return { cx: "40", cy: "0" };
-    case "bottom-left":
-      return { cx: "0", cy: "40" };
-    case "bottom-right":
-      return { cx: "40", cy: "40" };
-    case "top-center":
-      return { cx: "20", cy: "0" };
-    case "bottom-center":
-      return { cx: "20", cy: "40" };
-    case "bottom-up":
-    case "top-down":
-    case "left-right":
-    case "right-left":
-      return { cx: "20", cy: "20" };
-    default:
-      return { cx: "20", cy: "20" };
-  }
-};
-
-const generateSVG = (variant, start) => {
-  if (variant === "circle-blur") {
-    if (start === "center") {
-      return `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="blur"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="20" cy="20" r="18" fill="white" filter="url(%23blur)"/></svg>`;
-    }
-    const positionCoords = getPositionCoords(start);
-    const { cx, cy } = positionCoords;
-    return `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="blur"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="${cx}" cy="${cy}" r="18" fill="white" filter="url(%23blur)"/></svg>`;
-  }
-
-  if (start === "center") return "";
-  if (variant === "rectangle") return "";
-
-  const positionCoords = getPositionCoords(start);
-  const { cx, cy } = positionCoords;
-
-  if (variant === "circle") {
-    return `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="${cx}" cy="${cy}" r="20" fill="white"/></svg>`;
-  }
-
-  return "";
-};
-
-const getTransformOrigin = (start) => {
-  switch (start) {
-    case "top-left":
-      return "top left";
-    case "top-right":
-      return "top right";
-    case "bottom-left":
-      return "bottom left";
-    case "bottom-right":
-      return "bottom right";
-    case "top-center":
-      return "top center";
-    case "bottom-center":
-      return "bottom center";
-    case "bottom-up":
-    case "top-down":
-    case "left-right":
-    case "right-left":
-      return "center";
-    default:
-      return "center";
-  }
-};
-
-export const createAnimation = (
-  variant = "circle",
-  start = "center",
-  blur = false,
-  url = ""
-) => {
-  const svg = generateSVG(variant, start);
-  const transformOrigin = getTransformOrigin(start);
-
-  if (variant === "circle" && start === "center") {
-    return {
-      name: `${variant}-${start}${blur ? "-blur" : ""}`,
-      css: `
-       ::view-transition-group(root) {
-        animation-duration: 0.8s;
-        animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-      }
-            
-      ::view-transition-new(root) {
-        animation-name: reveal-light${blur ? "-blur" : ""};
-        ${blur ? "filter: blur(2px);" : ""}
-      }
-
-      ::view-transition-old(root) {
-        animation: none;
-        z-index: -1;
-      }
-      
-      @keyframes reveal-light${blur ? "-blur" : ""} {
-        from {
-          clip-path: circle(0% at 50% 50%);
-          ${blur ? "filter: blur(8px);" : ""}
-        }
-        ${blur ? "50% { filter: blur(4px); }" : ""}
-        to {
-          clip-path: circle(100.0% at 50% 50%);
-          ${blur ? "filter: blur(0px);" : ""}
-        }
-      }
-      `,
-    };
-  }
-
-  if (variant === "circle" && start !== "center") {
-    const getClipPathPosition = (position) => {
-      switch (position) {
-        case "top-left":
-          return "0% 0%";
-        case "top-right":
-          return "100% 0%";
-        case "bottom-left":
-          return "0% 100%";
-        case "bottom-right":
-          return "100% 100%";
-        case "top-center":
-          return "50% 0%";
-        case "bottom-center":
-          return "50% 100%";
-        default:
-          return "50% 50%";
-      }
-    };
-
-    const clipPosition = getClipPathPosition(start);
-
-    return {
-      name: `${variant}-${start}${blur ? "-blur" : ""}`,
-      css: `
-       ::view-transition-group(root) {
-        animation-duration: 1s;
-        animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-      }
-            
-      ::view-transition-new(root) {
-        animation-name: reveal${blur ? "-blur" : ""};
-        ${blur ? "filter: blur(2px);" : ""}
-      }
-
-      ::view-transition-old(root) {
-        animation: none;
-        z-index: -1;
-      }
-
-      @keyframes reveal${blur ? "-blur" : ""} {
-        from {
-          clip-path: circle(0% at ${clipPosition});
-          ${blur ? "filter: blur(8px);" : ""}
-        }
-        ${blur ? "50% { filter: blur(4px); }" : ""}
-        to {
-          clip-path: circle(150.0% at ${clipPosition});
-          ${blur ? "filter: blur(0px);" : ""}
-        }
-      }
-      `,
-    };
-  }
-
-  return {
-    name: `${variant}-${start}${blur ? "-blur" : ""}`,
-    css: `
-      ::view-transition-group(root) {
-        animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      ::view-transition-new(root) {
-        mask: url('${svg}') ${start.replace("-", " ")} / 0 no-repeat;
-        mask-origin: content-box;
-        animation: scale 1s;
-        transform-origin: ${transformOrigin};
-        ${blur ? "filter: blur(2px);" : ""}
-      }
-      ::view-transition-old(root) {
-        animation: scale 1s;
-        transform-origin: ${transformOrigin};
-        z-index: -1;
-      }
-      @keyframes scale {
-        to {
-          mask-size: 2000vmax;
-        }
-      }
-    `,
-  };
 };

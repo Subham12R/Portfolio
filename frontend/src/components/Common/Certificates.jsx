@@ -1,24 +1,65 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
+import React from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { HiArrowUpRight } from 'react-icons/hi2'
+import { FaAward, FaCertificate, FaGraduationCap } from 'react-icons/fa'
 import { usePortfolio } from '../../contexts/PortfolioContext'
-
-// Dummy certificate data - now using backend data via PortfolioContext
-// const certificateData = [...]
+import hackerrankLogo from '../../assets/logo/hackerrank.svg'
+import udemyLogo from '../../assets/logo/udemy.png'
 
 const Certificates = () => {
-  const [expandedCertificate, setExpandedCertificate] = useState(0)
   const { data, isLoading, error } = usePortfolio()
+  const navigate = useNavigate()
 
   // Use backend data instead of dummy data
   const certificateData = data?.certificates || []
 
-  const toggleCertificate = (index) => {
-    if (expandedCertificate === index) {
-      setExpandedCertificate(null)
-    } else {
-      setExpandedCertificate(index)
+  // Helper function to format date (DD.MM.YYYY)
+  const formatDate = (dateString) => {
+    if (!dateString) return ''
+    try {
+      const date = new Date(dateString)
+      const day = String(date.getDate()).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const year = date.getFullYear()
+      return `${day}.${month}.${year}`
+    } catch {
+      // If date parsing fails, try to format common formats
+      if (dateString.includes('.')) return dateString
+      // Try to parse "January 2025" format
+      const months = {
+        'january': '01', 'february': '02', 'march': '03', 'april': '04',
+        'may': '05', 'june': '06', 'july': '07', 'august': '08',
+        'september': '09', 'october': '10', 'november': '11', 'december': '12'
+      }
+      const parts = dateString.toLowerCase().split(' ')
+      if (parts.length === 2 && months[parts[0]]) {
+        return `01.${months[parts[0]]}.${parts[1]}`
+      }
+      return dateString
     }
+  }
+
+  // Get logo for certificate based on issuer
+  const getCertificateLogo = (issuer) => {
+    if (!issuer) return null
+    
+    const issuerLower = issuer.toLowerCase()
+    
+    if (issuerLower.includes('hackerrank') || issuerLower.includes('hacker rank')) {
+      return { type: 'svg', src: hackerrankLogo, alt: 'HackerRank' }
+    }
+    
+    if (issuerLower.includes('udemy')) {
+      return { type: 'image', src: udemyLogo, alt: 'Udemy' }
+    }
+    
+    return null
+  }
+
+  // Get fallback icon for certificate
+  const getCertificateIcon = (index) => {
+    const icons = [FaAward, FaCertificate, FaGraduationCap, FaAward, FaCertificate]
+    return icons[index % icons.length]
   }
 
   if (isLoading) {
@@ -37,78 +78,60 @@ const Certificates = () => {
     )
   }
 
+  if (certificateData.length === 0) {
+    return null
+  }
+
   return (
     <div className="mb-4">
-      {certificateData.map((certificate, index) => {
-        const isExpanded = expandedCertificate === index
-        return (
-                           <div key={certificate.id} className="bg-white dark:bg-zinc-950 rounded-xl mb-2 border border-gray-200 dark:border-zinc-700">
-            <div className="flex items-center justify-between p-2 cursor-pointer">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-lg text-black dark:text-white">{certificate.name}</span>
-                  {!isExpanded && (
-                    <button
-                      onClick={() => setExpandedCertificate(index)}
-                      className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
-                    >
-                      <HiChevronDown className="text-xl" />
-                    </button>
-                  )}
-                  {isExpanded && (
-                    <button
-                      onClick={() => setExpandedCertificate(null)}
-                      className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
-                    >
-                      <HiChevronUp className="text-xl" />
-                    </button>
-                  )}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-zinc-400">{certificate.issuer}</div>
-              </div>
-              <div className="text-xs text-gray-400 dark:text-zinc-500 text-right">
-                {certificate.issueDate}
-              </div>
-            </div>
-            {isExpanded && (
-              <div className="px-2 pb-2">
-                {/* Certificate Image */}
-                {certificate.image && (
-                  <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
-                    <img
-                      src={certificate.image}
-                      alt={certificate.name}
-                      className="w-full h-auto object-cover"
-                    />
-                  </div>
+      <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-zinc-950">
+        {certificateData.map((certificate, index) => {
+          const IconComponent = getCertificateIcon(index)
+          const logo = getCertificateLogo(certificate.issuer)
+          const isLast = index === certificateData.length - 1
+          
+          return (
+            <div
+              key={certificate.id || index}
+              onClick={() => navigate('/certificates')}
+              className={`group flex items-center gap-4 px-4 py-4 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer ${
+                !isLast ? 'border-b border-gray-200 dark:border-zinc-800' : ''
+              }`}
+            >
+              {/* Left Icon/Logo */}
+              <div className="w-10 h-10 rounded-lg bg-zinc-800 dark:bg-zinc-800 flex items-center justify-center shrink-0 overflow-hidden">
+                {logo ? (
+                  logo.type === 'svg' ? (
+                    <img src={logo.src} alt={logo.alt} className="w-full h-full object-cover " />
+                  ) : (
+                    <img src={logo.src} alt={logo.alt} className="w-full h-full object-cover " />
+                  )
+                ) : (
+                  <IconComponent className="text-white text-lg" />
                 )}
-                
-                {/* Description */}
-                <div className="mb-3">
-                  <p className="text-gray-600 dark:text-zinc-400 text-sm leading-relaxed">
-                    {certificate.description}
-                  </p>
-                </div>
-
-                {/* Skills */}
-                <div>
-                  <div className="font-semibold text-gray-700 dark:text-zinc-300 mb-2 text-md">Key Topics</div>
-                  <div className="flex flex-wrap gap-2">
-                    {certificate.skills.map((skill, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-md border border-blue-200 dark:border-blue-800 cursor-pointer text-xs font-medium text-blue-700 dark:text-blue-400"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
               </div>
-            )}
-          </div>
-        )
-      })}
+              
+              {/* Main Text Block */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-base text-gray-900 dark:text-white truncate">
+                  {certificate.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 truncate">
+                  @{certificate.issuer || 'Certificate Issuer'}
+                </p>
+              </div>
+              
+              {/* Date */}
+              <div className="text-sm text-gray-900 dark:text-white font-medium whitespace-nowrap shrink-0">
+                {formatDate(certificate.issueDate)}
+              </div>
+              
+              {/* Right Arrow Icon */}
+              <HiArrowUpRight className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 shrink-0 transition-colors" />
+            </div>
+          )
+        })}
+      </div>
       
       <div className="w-full flex justify-center items-center mt-4">
         <Link

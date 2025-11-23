@@ -759,7 +759,7 @@ const Header = () => {
         </div>
 
         {/* Profile Content */}
-        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-6 mb-4 mt-20'>
+        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-6  mt-20'>
                  <div className='w-full inline-flex flex-col justify-center items-start space-y-4'>
                     <div className='mb-1'>
                         
@@ -792,15 +792,15 @@ const Header = () => {
                      <span>. Focusing on <Text as='span' className='dark:text-white text-black'> <strong>UI/UX Design</strong></Text> and learning <Text as='span' className='dark:text-white text-black'> <strong>Three JS</strong></Text>. Currently keeping a close eye on the latest technologies and trends in web development.</span>
                     
                     </p>
-                    <div className='text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-4'>
+                    {/* <div className='text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-4'>
                         <FaBookOpen className='text-zinc-600 dark:text-zinc-400' />
                         <Text>B.Tech CSE Student at <em>Adamas University</em>, Kolkata, India.</Text>
+                    </div> */}
                     </div>
-                    </div>
 
 
 
-                    <div className='mb-8 w-full flex justify-start items-center gap-4'>
+                    <div className='mb-2 w-full flex justify-start items-center gap-4'>
                         <button 
                             onClick={downloadResume}
                             className='inline-flex justify-center items-center gap-2 bg-black/10 dark:bg-white/10 border border-black/20 dark:border-white/30 backdrop-blur-sm text-zinc-900 dark:text-white shadow hover:bg-zinc-100 dark:hover:bg-white/40 transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
@@ -814,7 +814,7 @@ const Header = () => {
                             <BiPaperPlane />Get in Touch
                         </button>              
                     </div>
-
+{/* 
                      <div className='mb-4 flex flex-row justify-center items-center gap-5'>
                         <Tip title="Send me an email" placement="top" arrow isDark={isDark}>
                             <a 
@@ -864,7 +864,7 @@ const Header = () => {
                                 <FaPinterestP size={20}/>
                             </a>
                         </Tip>
-                    </div>
+                    </div> */}
                 </div>
 
         </div>

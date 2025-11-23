@@ -1,6 +1,5 @@
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { useState, lazy, Suspense, useEffect, useRef } from 'react'
-import gsap from 'gsap'
 import Preloader from './components/Common/Preloader'
 import { PortfolioProvider, usePortfolio } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -22,49 +21,23 @@ const WakaTimeCallback = lazy(() => import('./pages/WakaTimeCallback'))
 const UserLayout = lazy(() => import('./components/Layout/UserLayout'))
 
 
-// GSAP Animated Routes wrapper
+// Routes wrapper
 function AnimatedRoutes() {
   const location = useLocation()
-  const routeContainerRef = useRef(null)
   const prevLocationRef = useRef(location.pathname)
 
-  // GSAP page transition animation
+  // Scroll to top on route change
   useEffect(() => {
-    const container = routeContainerRef.current
-    if (!container) return
-
-    // Only animate if route actually changed
+    // Only scroll if route actually changed
     if (prevLocationRef.current !== location.pathname) {
       // Scroll to top instantly
       window.scrollTo({ top: 0, behavior: 'instant' })
-
-      // Kill any existing animations
-      gsap.killTweensOf(container)
-
-      // Animate blur out and in
-      const tl = gsap.timeline()
-      
-      // Exit animation: blur out current page
-      tl.to(container, {
-        filter: 'blur(10px)',
-        opacity: 0.7,
-        duration: 0.3,
-        ease: 'power2.inOut',
-      })
-      // Enter animation: blur in new page
-      .to(container, {
-        filter: 'blur(0px)',
-        opacity: 1,
-        duration: 0.4,
-        ease: 'power2.out',
-      })
-
       prevLocationRef.current = location.pathname
     }
   }, [location.pathname])
 
   return (
-    <div ref={routeContainerRef} style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: '100%' }}>
       <Suspense fallback={null}>
         <Routes location={location}>
           <Route path="/" element={<UserLayout />}>

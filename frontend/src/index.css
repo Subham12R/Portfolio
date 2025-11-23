@@ -3,13 +3,19 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Smooth transitions for theme switching and prevent double-click text selection */
+/* Prevent double-click text selection */
 * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Remove theme transition effects - make theme changes instant */
+*,
+*::before,
+*::after {
+  transition: none !important;
 }
 
 /* Allow text selection in input fields, textareas, and contenteditable elements */
@@ -50,167 +56,10 @@ p, span, div, a, button, input, textarea, select, label {
   font-style: normal;
 }
 
-/* GitHub Calendar Styles */
-.github-calendar-container {
-  overflow: hidden !important;
-  max-height: 200px;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 20px;
-  transition: all 0.3s ease;
-}
 
-.github-calendar-container svg {
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-  pointer-events: auto !important;
-  border-radius: 4px;
-  max-width: 90% !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height:100% !important;
-  margin: auto !important;
-}
-
-/* Light theme GitHub calendar colors */
-.github-calendar-container .react-calendar-heatmap {
-  background: transparent !important;
-}
-
-.github-calendar-container .react-calendar-heatmap text {
-  fill: #64748b !important;
-  font-size: 10px !important;
-  font-family: 'Source Code Pro', monospace !important;
-}
-
-.github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-month-label {
-  fill: #475569 !important;
-  font-size: 11px !important;
-  font-weight: 500 !important;
-}
-
-.github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
-  fill: #64748b !important;
-  font-size: 9px !important;
-}
-
-/* Contribution levels - Light theme */
-.github-calendar-container .react-calendar-heatmap rect[fill="#ebedf0"] {
-  fill: #f1f5f9 !important;
-  stroke: #e2e8f0 !important;
-  stroke-width: 1px !important;
-}
-
-.github-calendar-container .react-calendar-heatmap rect[fill="#c6e48b"] {
-  fill: #dcfce7 !important;
-  stroke: #bbf7d0 !important;
-  stroke-width: 1px !important;
-}
-
-.github-calendar-container .react-calendar-heatmap rect[fill="#7bc96f"] {
-  fill: #86efac !important;
-  stroke: #4ade80 !important;
-  stroke-width: 1px !important;
-}
-
-.github-calendar-container .react-calendar-heatmap rect[fill="#239a3b"] {
-  fill: #22c55e !important;
-  stroke: #16a34a !important;
-  stroke-width: 1px !important;
-}
-
-.github-calendar-container .react-calendar-heatmap rect[fill="#196127"] {
-  fill: #15803d !important;
-  stroke: #166534 !important;
-  stroke-width: 1px !important;
-}
-
-/* Dark theme GitHub calendar */
-.dark .github-calendar-container {
-  background: transparent;
-  border-color: #334155;
-}
-
-.dark .github-calendar-container .react-calendar-heatmap text {
-  fill: #94a3b8 !important;
-}
-
-.dark .github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-month-label {
-  fill: #cbd5e1 !important;
-}
-
-.dark .github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
-  fill: #94a3b8 !important;
-}
-
-/* Dark theme contribution levels */
-.dark .github-calendar-container .react-calendar-heatmap rect[fill="#ebedf0"] {
-  fill: #1e293b !important;
-  stroke: #334155 !important;
-}
-
-.dark .github-calendar-container .react-calendar-heatmap rect[fill="#c6e48b"] {
-  fill: #1e3a8a !important;
-  stroke: #1d4ed8 !important;
-}
-
-.dark .github-calendar-container .react-calendar-heatmap rect[fill="#7bc96f"] {
-  fill: #2563eb !important;
-  stroke: #3b82f6 !important;
-}
-
-.dark .github-calendar-container .react-calendar-heatmap rect[fill="#239a3b"] {
-  fill: #3b82f6 !important;
-  stroke: #60a5fa !important;
-}
-
-.dark .github-calendar-container .react-calendar-heatmap rect[fill="#196127"] {
-  fill: #60a5fa !important;
-  stroke: #93c5fd !important;
-}
-
-/* Hover effects */
-.github-calendar-container .react-calendar-heatmap rect:hover {
-  stroke-width: 2px !important;
-  filter: brightness(1.1) !important;
-  transition: all 0.2s ease !important;
-}
-
-/* Legend styling */
-.github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-legend {
-  font-size: 10px !important;
-  font-family: 'Source Code Pro', monospace !important;
-}
-
-.dark .github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-legend {
-  color: #94a3b8 !important;
-}
 
 /* Responsive adjustments */
-@media (max-width: 640px) {
-  .github-calendar-container {
-    padding: 8px;
-    max-height: 200px;
-  }
-  
-  .github-calendar-container .react-calendar-heatmap text {
-    font-size: 7px !important;
-  }
-  
-  .github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-month-label {
-    font-size: 8px !important;
-  }
-  
-  .github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
-    font-size: 7px !important;
-  }
-}
+
 
 /* Custom Webkit Scrollbar Design */
 ::-webkit-scrollbar {
@@ -364,5 +213,180 @@ p, span, div, a, button, input, textarea, select, label {
 /* Clip overflow to hide any white corners that might appear */
 .blog-embed-container {
   clip-path: inset(0 round 12px);
+}
+
+/* GitHub Calendar Styles - Match GitHub's exact appearance */
+.github-calendar-container {
+  background: transparent !important;
+  border-radius: 6px !important;
+  padding: 2px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif !important;
+  overflow: hidden !important;
+  max-width: 100% !important;
+  transition: none !important;
+}
+
+/* Remove transitions from calendar elements */
+.github-calendar-container * {
+  transition: none !important;
+}
+
+/* Calendar SVG container */
+.github-calendar-container svg {
+  background: transparent !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Calendar wrapper to ensure proper sizing */
+.github-calendar-container .react-calendar-heatmap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+/* Ensure calendar fits within container */
+.github-calendar-container .react-calendar-heatmap svg {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Hide scrollbars on calendar container */
+.github-calendar-container,
+.github-calendar-container * {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.github-calendar-container::-webkit-scrollbar,
+.github-calendar-container *::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+}
+
+/* Month labels - top row */
+.github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-month-label {
+  fill: #8b949e !important;
+  font-size: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif !important;
+  font-weight: 400 !important;
+}
+
+/* Weekday labels - left column (hidden in image but style for consistency) */
+.github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
+  fill: #8b949e !important;
+  font-size: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif !important;
+}
+
+/* Contribution squares - Green color scheme for dark theme */
+/* Level 0 - No contributions */
+.github-calendar-container .react-calendar-heatmap rect[fill="#ebedf0"],
+.github-calendar-container .react-calendar-heatmap rect[data-level="0"] {
+  fill: #161b22 !important;
+  stroke: #30363d !important;
+  stroke-width: 1px !important;
+  rx: 2px !important;
+  ry: 2px !important;
+}
+
+/* Level 1 - Low contributions */
+.github-calendar-container .react-calendar-heatmap rect[fill="#c6e48b"],
+.github-calendar-container .react-calendar-heatmap rect[data-level="1"] {
+  fill: #0e4429 !important;
+  stroke: #30363d !important;
+  stroke-width: 1px !important;
+  rx: 2px !important;
+  ry: 2px !important;
+}
+
+/* Level 2 - Medium contributions */
+.github-calendar-container .react-calendar-heatmap rect[fill="#7bc96f"],
+.github-calendar-container .react-calendar-heatmap rect[data-level="2"] {
+  fill: #006d32 !important;
+  stroke: #30363d !important;
+  stroke-width: 1px !important;
+  rx: 2px !important;
+  ry: 2px !important;
+}
+
+/* Level 3 - High contributions */
+.github-calendar-container .react-calendar-heatmap rect[fill="#239a3b"],
+.github-calendar-container .react-calendar-heatmap rect[data-level="3"] {
+  fill: #26a641 !important;
+  stroke: #30363d !important;
+  stroke-width: 1px !important;
+  rx: 2px !important;
+  ry: 2px !important;
+}
+
+/* Level 4 - Very high contributions */
+.github-calendar-container .react-calendar-heatmap rect[fill="#196127"],
+.github-calendar-container .react-calendar-heatmap rect[data-level="4"] {
+  fill: #39d353 !important;
+  stroke: #30363d !important;
+  stroke-width: 1px !important;
+  rx: 2px !important;
+  ry: 2px !important;
+}
+
+/* All contribution squares - ensure consistent styling */
+.github-calendar-container .react-calendar-heatmap rect {
+  stroke: #30363d !important;
+  stroke-width: 1px !important;
+  rx: 2px !important;
+  ry: 2px !important;
+}
+
+/* Contribution text below calendar */
+.github-calendar-container .react-calendar-heatmap text {
+  fill: #8b949e !important;
+  font-size: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif !important;
+  font-weight: 400 !important;
+}
+
+/* Contribution summary text */
+.github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-summary {
+  fill: #8b949e !important;
+  font-size: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif !important;
+  font-weight: 400 !important;
+}
+
+/* Legend text */
+.github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-legend {
+  fill: #8b949e !important;
+  font-size: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif !important;
+}
+
+/* Legend squares */
+.github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-legend rect {
+  rx: 2px !important;
+  ry: 2px !important;
+}
+
+/* Hover effects - subtle */
+.github-calendar-container .react-calendar-heatmap rect:hover {
+  stroke: #8b949e !important;
+  stroke-width: 1.5px !important;
+}
+
+/* Light theme override - keep dark style even in light mode to match image */
+
+
+.light .github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-month-label {
+  fill: #8b949e !important;
+}
+
+.light .github-calendar-container .react-calendar-heatmap text {
+  fill: #8b949e !important;
+}
+
+.light .github-calendar-container .react-calendar-heatmap .react-calendar-heatmap-legend {
+  fill: #8b949e !important;
 }
 

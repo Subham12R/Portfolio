@@ -152,7 +152,7 @@ const Navbar = () => {
   
 
           <div>
-            <ThemeToggleButton className="border shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]" blur={true} />
+            <ThemeToggleButton className="border shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]" />
           </div>
 
           {/* DROPDOWN PANEL - Absolutely positioned to overlay content */}
