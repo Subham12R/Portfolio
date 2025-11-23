@@ -116,9 +116,37 @@ const Spotify = () => {
         });
 
         // Ready event - player is connected and ready
-        player.addListener('ready', ({ device_id }) => {
+        // Note: Device may not be immediately available in Spotify's API after ready event
+        player.addListener('ready', async ({ device_id }) => {
           console.log('Spotify Web Playback SDK ready with Device ID:', device_id);
           setDeviceId(device_id);
+          
+          // Wait a moment for device to be registered in Spotify's API
+          // This helps prevent 404 errors on initial playback attempts
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Verify device is available before marking as ready
+          try {
+            const checkResponse = await fetch(`${API_BASE_URL}/api/spotify/device/${device_id}/available`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              mode: 'cors'
+            });
+
+            if (checkResponse.ok) {
+              const data = await checkResponse.json();
+              if (data.available) {
+                console.log('Device verified as available in Spotify API');
+              } else {
+                console.log('Device not yet available in Spotify API, will retry on playback');
+              }
+            }
+          } catch (error) {
+            console.warn('Could not verify device availability:', error);
+          }
+          
           setPlaybackMethod('sdk');
         });
 
@@ -592,8 +620,43 @@ const Spotify = () => {
     }
   }, [playerStatus, playbackMethod]);
 
-  // Play track using Spotify Web Playback SDK via backend
-  const playTrackWithSDK = async (trackUri) => {
+  // Wait for device to be available in Spotify's API
+  const waitForDeviceAvailability = async (maxRetries = 10, delay = 300) => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/spotify/device/${deviceId}/available`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          mode: 'cors'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.available) {
+            console.log('Device is available in Spotify API');
+            return true;
+          }
+        }
+
+        // Wait before retrying
+        if (i < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      } catch (error) {
+        console.warn(`Device availability check attempt ${i + 1} failed:`, error);
+        if (i < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    console.warn('Device availability check timed out, proceeding anyway');
+    return false;
+  };
+
+  // Play track using Spotify Web Playback SDK via backend with retry logic
+  const playTrackWithSDK = async (trackUri, retryAttempt = 0, maxRetries = 5) => {
     if (!spotifyPlayerRef.current || !deviceId) {
       console.warn('Spotify player not ready');
       return false;
@@ -608,12 +671,32 @@ const Spotify = () => {
         },
         body: JSON.stringify({
           deviceId: deviceId,
-          trackUri: trackUri
+          trackUri: trackUri,
+          retryAttempt: retryAttempt
         }),
         mode: 'cors'
       });
 
+      // Handle retry response (202 with retry flag)
+      if (response.status === 202) {
+        const data = await response.json();
+        if (data.retry && retryAttempt < maxRetries) {
+          const retryDelay = data.retryAfter || Math.min(300 * Math.pow(2, retryAttempt), 2000);
+          console.log(`Playback retry attempt ${retryAttempt + 1}/${maxRetries} after ${retryDelay}ms`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          return await playTrackWithSDK(trackUri, retryAttempt + 1, maxRetries);
+        }
+        return false;
+      }
+
       if (!response.ok) {
+        // If 404 and we haven't retried yet, wait and retry
+        if (response.status === 404 && retryAttempt === 0) {
+          console.log('Got 404, waiting for device to be ready...');
+          await waitForDeviceAvailability(5, 300);
+          return await playTrackWithSDK(trackUri, retryAttempt + 1, maxRetries);
+        }
+
         const error = await response.json().catch(() => ({}));
         console.error('Failed to play track:', error);
         return false;
@@ -621,6 +704,13 @@ const Spotify = () => {
 
       return true;
     } catch (error) {
+      // Network error, retry with exponential backoff
+      if (retryAttempt < maxRetries) {
+        const retryDelay = Math.min(300 * Math.pow(2, retryAttempt), 2000);
+        console.log(`Playback error, retrying after ${retryDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        return await playTrackWithSDK(trackUri, retryAttempt + 1, maxRetries);
+      }
       console.error('Error playing track with SDK:', error);
       return false;
     }
@@ -668,11 +758,14 @@ const Spotify = () => {
           }
         }
       } else {
-        // Play using backend endpoint
+        // Play using backend endpoint with retry logic
+        setIsLoading(true);
         const success = await playTrackWithSDK(track.uri);
+        setIsLoading(false);
+        
         if (success) {
           setIsPlaying(true);
-          // Wait a moment for playback to start
+          // Wait a moment for playback to start, then update state
           setTimeout(() => {
             if (spotifyPlayerRef.current) {
               spotifyPlayerRef.current.getCurrentState().then(state => {
@@ -681,12 +774,14 @@ const Spotify = () => {
                   setCurrentTime(state.position / 1000);
                   setDuration(state.duration / 1000);
                 }
+              }).catch(err => {
+                console.warn('Could not get player state:', err);
               });
             }
           }, 500);
         } else {
-          // Fallback to preview URL
-          console.log('SDK playback failed, falling back to preview URL');
+          // Fallback to preview URL after all retries failed
+          console.log('SDK playback failed after retries, falling back to preview URL');
           setPlaybackMethod('preview');
           handlePlayPause(); // Retry with preview
         }

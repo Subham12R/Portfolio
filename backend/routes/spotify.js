@@ -350,10 +350,47 @@ router.get('/user-token', async (req, res) => {
   }
 });
 
-// Play track using owner's token (for Web Playback SDK)
+// Check if device is available in Spotify's API
+router.get('/device/:deviceId/available', async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    const accessToken = await getValidAccessToken();
+
+    // Check available devices
+    const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        available: false,
+        error: 'Failed to check devices'
+      });
+    }
+
+    const data = await response.json();
+    const device = data.devices?.find(d => d.id === deviceId);
+
+    res.json({
+      available: !!device,
+      device: device || null
+    });
+
+  } catch (error) {
+    console.error('Error checking device availability:', error);
+    res.status(500).json({
+      available: false,
+      error: error.message
+    });
+  }
+});
+
+// Play track using owner's token (for Web Playback SDK) with retry logic
 router.put('/play', async (req, res) => {
   try {
-    const { deviceId, trackUri } = req.body;
+    const { deviceId, trackUri, retryAttempt = 0 } = req.body;
     
     if (!deviceId || !trackUri) {
       return res.status(400).json({
@@ -362,6 +399,31 @@ router.put('/play', async (req, res) => {
     }
 
     const accessToken = await getValidAccessToken();
+
+    // First, verify device is available (with retry on first attempt)
+    if (retryAttempt === 0) {
+      const deviceCheck = await fetch(`https://api.spotify.com/v1/me/player/devices`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        }
+      });
+
+      if (deviceCheck.ok) {
+        const devicesData = await deviceCheck.json();
+        const device = devicesData.devices?.find(d => d.id === deviceId);
+        
+        if (!device) {
+          // Device not yet registered, wait a bit and retry
+          console.log('Device not yet available, waiting...');
+          return res.status(202).json({
+            success: false,
+            retry: true,
+            message: 'Device not yet available, please retry',
+            retryAfter: 500 // milliseconds
+          });
+        }
+      }
+    }
 
     const response = await fetch(
       `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
@@ -378,6 +440,16 @@ router.put('/play', async (req, res) => {
     );
 
     if (!response.ok) {
+      // If 404 and this is first attempt, suggest retry
+      if (response.status === 404 && retryAttempt === 0) {
+        return res.status(202).json({
+          success: false,
+          retry: true,
+          message: 'Device not ready, please retry',
+          retryAfter: 300 // milliseconds
+        });
+      }
+
       const error = await response.json().catch(() => ({}));
       return res.status(response.status).json({
         error: 'Failed to play track',
