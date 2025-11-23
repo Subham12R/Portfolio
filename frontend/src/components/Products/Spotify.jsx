@@ -76,15 +76,14 @@ const Spotify = () => {
     };
   }, []);
 
-  // Initialize Spotify Web Playback SDK player
+  // Initialize Spotify Web Playback SDK player with owner's token
   useEffect(() => {
     if (!sdkReady || !window.Spotify) return;
 
-    // Get access token from backend (needs streaming scope)
+    // Initialize player with owner's access token (visitors don't need to authenticate)
     const initPlayer = async () => {
       try {
-        // Try to get user access token with streaming scope
-        // For now, we'll use a fallback approach - try SDK, fall back to preview
+        // Get owner's access token from backend
         const response = await fetch(`${API_BASE_URL}/api/spotify/user-token`, {
           method: 'GET',
           headers: {
@@ -99,34 +98,37 @@ const Spotify = () => {
           accessToken = data.accessToken;
         }
 
-        // If no user token, we'll use preview URL instead
+        // If no owner token, we'll use preview URL instead
         if (!accessToken) {
-          console.log('No user access token available, will use preview URL');
+          console.log('No access token available, will use preview URL');
           setPlaybackMethod('preview');
           return;
         }
 
+        // Create player instance - uses owner's token so visitors can listen without auth
         const player = new window.Spotify.Player({
-          name: 'Portfolio Web Player',
+          name: 'Portfolio Music Player',
           getOAuthToken: cb => {
+            // Provide owner's token - this allows visitors to listen to owner's music
             cb(accessToken);
           },
           volume: 0.5,
         });
 
-        // Ready event
+        // Ready event - player is connected and ready
         player.addListener('ready', ({ device_id }) => {
-          console.log('Spotify player ready with Device ID:', device_id);
+          console.log('Spotify Web Playback SDK ready with Device ID:', device_id);
           setDeviceId(device_id);
           setPlaybackMethod('sdk');
         });
 
-        // Not ready event
+        // Not ready event - device went offline
         player.addListener('not_ready', ({ device_id }) => {
-          console.log('Device ID has gone offline', device_id);
+          console.log('Spotify device has gone offline:', device_id);
+          setDeviceId(null);
         });
 
-        // Player state changed
+        // Player state changed - update UI when playback state changes
         player.addListener('player_state_changed', (state) => {
           if (!state) {
             setIsPlaying(false);
@@ -134,27 +136,42 @@ const Spotify = () => {
           }
 
           setIsPlaying(!state.paused);
-          setCurrentTime(state.position);
-          setDuration(state.duration);
+          setCurrentTime(state.position / 1000); // Convert from ms to seconds
+          setDuration(state.duration / 1000); // Convert from ms to seconds
         });
 
-        // Error handling
+        // Error handling - fall back to preview on auth errors
         player.addListener('authentication_error', ({ message }) => {
-          console.error('Failed to authenticate:', message);
+          console.error('Spotify authentication error:', message);
+          console.log('Falling back to preview URL playback');
           setPlaybackMethod('preview');
         });
 
         player.addListener('account_error', ({ message }) => {
-          console.error('Failed to validate Spotify account:', message);
+          console.error('Spotify account error (Premium required for Web Playback SDK):', message);
+          console.log('Falling back to preview URL playback');
           setPlaybackMethod('preview');
         });
 
         player.addListener('playback_error', ({ message }) => {
-          console.error('Playback error:', message);
+          console.error('Spotify playback error:', message);
+          // Don't switch to preview on playback errors, just log them
+        });
+
+        player.addListener('initialization_error', ({ message }) => {
+          console.error('Spotify initialization error:', message);
+          setPlaybackMethod('preview');
         });
 
         // Connect to the player
-        player.connect();
+        const connected = await player.connect();
+        
+        if (connected) {
+          console.log('Connected to Spotify Web Playback SDK');
+        } else {
+          console.warn('Failed to connect to Spotify Web Playback SDK');
+          setPlaybackMethod('preview');
+        }
 
         // Store player reference for cleanup
         spotifyPlayerRef.current = player;
@@ -575,7 +592,7 @@ const Spotify = () => {
     }
   }, [playerStatus, playbackMethod]);
 
-  // Play track using Spotify Web Playback SDK
+  // Play track using Spotify Web Playback SDK via backend
   const playTrackWithSDK = async (trackUri) => {
     if (!spotifyPlayerRef.current || !deviceId) {
       console.warn('Spotify player not ready');
@@ -583,29 +600,18 @@ const Spotify = () => {
     }
 
     try {
-      const accessToken = await fetch(`${API_BASE_URL}/api/spotify/user-token`)
-        .then(res => res.ok ? res.json() : null)
-        .then(data => data?.accessToken)
-        .catch(() => null);
-
-      if (!accessToken) {
-        console.warn('No access token available for SDK playback');
-        return false;
-      }
-
-      const response = await fetch(
-        `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            uris: [trackUri]
-          }),
-        }
-      );
+      // Use backend endpoint to play track (uses owner's token)
+      const response = await fetch(`${API_BASE_URL}/api/spotify/play`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          deviceId: deviceId,
+          trackUri: trackUri
+        }),
+        mode: 'cors'
+      });
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
@@ -632,14 +638,52 @@ const Spotify = () => {
     // Try Web Playback SDK first if available
     if (playbackMethod === 'sdk' && spotifyPlayerRef.current && deviceId && track.uri) {
       if (isPlaying) {
-        // Pause
-        await spotifyPlayerRef.current.pause();
-        setIsPlaying(false);
+        // Pause using backend or SDK
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/spotify/player/control`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'pause',
+              deviceId: deviceId
+            }),
+            mode: 'cors'
+          });
+          
+          if (!response.ok) {
+            // Fallback to SDK method
+            await spotifyPlayerRef.current.pause();
+          }
+          setIsPlaying(false);
+        } catch (error) {
+          console.error('Error pausing:', error);
+          // Fallback to SDK method
+          try {
+            await spotifyPlayerRef.current.pause();
+            setIsPlaying(false);
+          } catch (sdkError) {
+            console.error('SDK pause also failed:', sdkError);
+          }
+        }
       } else {
-        // Play
+        // Play using backend endpoint
         const success = await playTrackWithSDK(track.uri);
         if (success) {
           setIsPlaying(true);
+          // Wait a moment for playback to start
+          setTimeout(() => {
+            if (spotifyPlayerRef.current) {
+              spotifyPlayerRef.current.getCurrentState().then(state => {
+                if (state) {
+                  setIsPlaying(!state.paused);
+                  setCurrentTime(state.position / 1000);
+                  setDuration(state.duration / 1000);
+                }
+              });
+            }
+          }, 500);
         } else {
           // Fallback to preview URL
           console.log('SDK playback failed, falling back to preview URL');
@@ -708,13 +752,41 @@ const Spotify = () => {
     const percentage = clickX / rect.width;
     const newTime = percentage * duration;
     
-    // If using SDK, seek using SDK
-    if (playbackMethod === 'sdk' && spotifyPlayerRef.current) {
+    // If using SDK, seek using SDK via backend
+    if (playbackMethod === 'sdk' && spotifyPlayerRef.current && deviceId) {
       try {
-        await spotifyPlayerRef.current.seek(newTime * 1000); // SDK uses milliseconds
-        setCurrentTime(newTime);
+        const position_ms = Math.floor(newTime * 1000); // Convert to milliseconds
+        
+        // Use backend endpoint for seeking
+        const response = await fetch(`${API_BASE_URL}/api/spotify/player/control`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'seek',
+            deviceId: deviceId,
+            position_ms: position_ms
+          }),
+          mode: 'cors'
+        });
+
+        if (response.ok) {
+          setCurrentTime(newTime);
+        } else {
+          // Fallback to SDK method
+          await spotifyPlayerRef.current.seek(position_ms);
+          setCurrentTime(newTime);
+        }
       } catch (error) {
         console.error('Error seeking with SDK:', error);
+        // Fallback to SDK method directly
+        try {
+          await spotifyPlayerRef.current.seek(newTime * 1000);
+          setCurrentTime(newTime);
+        } catch (sdkError) {
+          console.error('SDK seek also failed:', sdkError);
+        }
       }
       return;
     }

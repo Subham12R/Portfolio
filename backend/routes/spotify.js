@@ -329,25 +329,145 @@ router.get('/track/:trackId', async (req, res) => {
   }
 });
 
-// Get user access token for Web Playback SDK (requires streaming scope)
-// Note: This endpoint returns the personal access token if it has streaming scope
-// For full Web Playback SDK support, users need to authenticate with streaming scope
+// Get owner access token for Web Playback SDK (uses owner's token)
+// This allows visitors to listen to owner's music without authentication
 router.get('/user-token', async (req, res) => {
   try {
-    // For now, return the personal access token
-    // In production, you'd want to implement proper user OAuth flow
-    // with scopes: user-read-playback-state, user-modify-playback-state, streaming
+    // Return the owner's personal access token for SDK playback
+    // This enables visitors to listen to the owner's music using the Web Playback SDK
     const accessToken = await getValidAccessToken();
     
     res.json({
       success: true,
-      accessToken: accessToken,
-      note: 'This token may not have streaming scope. For full Web Playback SDK support, implement user OAuth with streaming scope.'
+      accessToken: accessToken
     });
   } catch (error) {
     console.error('Error getting user token:', error);
     res.status(500).json({
       error: 'Failed to get access token',
+      details: error.message
+    });
+  }
+});
+
+// Play track using owner's token (for Web Playback SDK)
+router.put('/play', async (req, res) => {
+  try {
+    const { deviceId, trackUri } = req.body;
+    
+    if (!deviceId || !trackUri) {
+      return res.status(400).json({
+        error: 'deviceId and trackUri are required'
+      });
+    }
+
+    const accessToken = await getValidAccessToken();
+
+    const response = await fetch(
+      `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          uris: [trackUri]
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return res.status(response.status).json({
+        error: 'Failed to play track',
+        details: error
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Track playback initiated'
+    });
+
+  } catch (error) {
+    console.error('Error playing track:', error);
+    res.status(500).json({
+      error: 'Failed to play track',
+      details: error.message
+    });
+  }
+});
+
+// Control playback (pause, resume, seek, volume)
+router.put('/player/control', async (req, res) => {
+  try {
+    const { action, deviceId, position_ms, volume_percent } = req.body;
+    
+    if (!action) {
+      return res.status(400).json({
+        error: 'action is required (play, pause, seek, volume)'
+      });
+    }
+
+    const accessToken = await getValidAccessToken();
+    let endpoint = 'https://api.spotify.com/v1/me/player';
+    let method = 'PUT';
+    let body = {};
+
+    switch (action) {
+      case 'play':
+        endpoint = `https://api.spotify.com/v1/me/player/play`;
+        if (deviceId) endpoint += `?device_id=${deviceId}`;
+        break;
+      case 'pause':
+        endpoint = `https://api.spotify.com/v1/me/player/pause`;
+        if (deviceId) endpoint += `?device_id=${deviceId}`;
+        break;
+      case 'seek':
+        if (position_ms === undefined) {
+          return res.status(400).json({ error: 'position_ms is required for seek' });
+        }
+        endpoint = `https://api.spotify.com/v1/me/player/seek?position_ms=${position_ms}`;
+        if (deviceId) endpoint += `&device_id=${deviceId}`;
+        break;
+      case 'volume':
+        if (volume_percent === undefined) {
+          return res.status(400).json({ error: 'volume_percent is required for volume' });
+        }
+        endpoint = `https://api.spotify.com/v1/me/player/volume?volume_percent=${volume_percent}`;
+        if (deviceId) endpoint += `&device_id=${deviceId}`;
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid action' });
+    }
+
+    const response = await fetch(endpoint, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      ...(Object.keys(body).length > 0 && { body: JSON.stringify(body) })
+    });
+
+    if (!response.ok && response.status !== 204) {
+      const error = await response.json().catch(() => ({}));
+      return res.status(response.status).json({
+        error: `Failed to ${action}`,
+        details: error
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `${action} successful`
+    });
+
+  } catch (error) {
+    console.error('Error controlling playback:', error);
+    res.status(500).json({
+      error: 'Failed to control playback',
       details: error.message
     });
   }
