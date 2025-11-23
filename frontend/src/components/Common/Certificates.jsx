@@ -14,30 +14,7 @@ const Certificates = () => {
   const certificateData = data?.certificates || []
 
   // Helper function to format date (DD.MM.YYYY)
-  const formatDate = (dateString) => {
-    if (!dateString) return ''
-    try {
-      const date = new Date(dateString)
-      const day = String(date.getDate()).padStart(2, '0')
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const year = date.getFullYear()
-      return `${day}.${month}.${year}`
-    } catch {
-      // If date parsing fails, try to format common formats
-      if (dateString.includes('.')) return dateString
-      // Try to parse "January 2025" format
-      const months = {
-        'january': '01', 'february': '02', 'march': '03', 'april': '04',
-        'may': '05', 'june': '06', 'july': '07', 'august': '08',
-        'september': '09', 'october': '10', 'november': '11', 'december': '12'
-      }
-      const parts = dateString.toLowerCase().split(' ')
-      if (parts.length === 2 && months[parts[0]]) {
-        return `01.${months[parts[0]]}.${parts[1]}`
-      }
-      return dateString
-    }
-  }
+
 
   // Get logo for certificate based on issuer
   const getCertificateLogo = (issuer) => {
@@ -122,9 +99,9 @@ const Certificates = () => {
               </div>
               
               {/* Date */}
-              <div className="text-sm text-gray-900 dark:text-white font-medium whitespace-nowrap shrink-0">
+              {/* <div className="text-sm text-gray-900 dark:text-white font-medium whitespace-nowrap shrink-0">
                 {formatDate(certificate.issueDate)}
-              </div>
+              </div> */}
               
               {/* Right Arrow Icon */}
               <HiArrowUpRight className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 shrink-0 transition-colors" />
