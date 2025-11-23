@@ -639,4 +639,90 @@ router.get('/status', (req, res) => {
   });
 });
 
+// Diagnostic endpoint to check token status and test refresh
+router.get('/token-diagnostics', async (req, res) => {
+  try {
+    const hasToken = !!personalAccessToken;
+    const hasRefreshToken = !!personalRefreshToken;
+    const expiresAt = tokenExpiresAt;
+    const isExpired = tokenExpiresAt ? Date.now() >= tokenExpiresAt - 300000 : null;
+    const expiresIn = tokenExpiresAt ? Math.max(0, Math.floor((tokenExpiresAt - Date.now()) / 1000)) : null;
+    
+    // Test current token validity
+    let tokenValid = false;
+    let tokenTestError = null;
+    if (personalAccessToken) {
+      try {
+        const testResponse = await fetch('https://api.spotify.com/v1/me', {
+          headers: {
+            'Authorization': `Bearer ${personalAccessToken}`
+          }
+        });
+        tokenValid = testResponse.ok;
+        if (!testResponse.ok) {
+          const errorData = await testResponse.json().catch(() => ({}));
+          tokenTestError = errorData.error_description || errorData.error || `HTTP ${testResponse.status}`;
+        }
+      } catch (error) {
+        tokenTestError = error.message;
+      }
+    }
+
+    // Test refresh token (if available)
+    let refreshTestWorks = false;
+    let refreshTestError = null;
+    if (hasRefreshToken) {
+      try {
+        const testRefreshToken = personalRefreshToken;
+        const refreshResponse = await fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Basic ${Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64')}`
+          },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: testRefreshToken
+          })
+        });
+
+        const refreshData = await refreshResponse.json();
+        if (refreshData.error) {
+          refreshTestError = refreshData.error_description || refreshData.error;
+        } else {
+          refreshTestWorks = true;
+        }
+      } catch (error) {
+        refreshTestError = error.message;
+      }
+    }
+
+    res.json({
+      accessToken: {
+        exists: hasToken,
+        valid: tokenValid,
+        error: tokenTestError,
+        expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
+        expiresIn: expiresIn ? `${Math.floor(expiresIn / 60)} minutes` : null,
+        isExpired: isExpired
+      },
+      refreshToken: {
+        exists: hasRefreshToken,
+        works: refreshTestWorks,
+        error: refreshTestError
+      },
+      credentials: {
+        hasClientId: !!SPOTIFY_CLIENT_ID,
+        hasClientSecret: !!SPOTIFY_CLIENT_SECRET
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to check diagnostics',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;

@@ -690,6 +690,46 @@ const Spotify = () => {
       }
 
       if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        
+        // If 401 Unauthorized, log detailed error and don't retry (backend handles refresh)
+        if (response.status === 401) {
+          console.error('❌ 401 Unauthorized - Playback failed');
+          console.error('Error response:', error);
+          const errorDetails = error.details || error.error || 'Unknown error';
+          console.error('Error details:', errorDetails);
+          console.error('');
+          console.error('🔍 Troubleshooting steps:');
+          console.error('1. Check backend logs for token refresh errors');
+          console.error('2. Verify your Spotify token has the "streaming" scope');
+          console.error('3. Check /api/spotify/token-diagnostics endpoint');
+          console.error('4. Ensure SPOTIFY_REFRESH_TOKEN is valid in backend .env');
+          console.error('');
+          
+          // Try to get diagnostic info automatically
+          try {
+            const diagResponse = await fetch(`${API_BASE_URL}/api/spotify/token-diagnostics`, {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' },
+              mode: 'cors'
+            });
+            if (diagResponse.ok) {
+              const diagnostics = await diagResponse.json();
+              console.error('📊 Token Diagnostics:', diagnostics);
+              if (diagnostics.refreshToken?.error) {
+                console.error('⚠️ Refresh token error:', diagnostics.refreshToken.error);
+              }
+              if (diagnostics.accessToken?.error) {
+                console.error('⚠️ Access token error:', diagnostics.accessToken.error);
+              }
+            }
+          } catch (diagError) {
+            console.error('Could not fetch diagnostics:', diagError);
+          }
+          
+          return false;
+        }
+        
         // If 404 and we haven't retried yet, wait and retry
         if (response.status === 404 && retryAttempt === 0) {
           console.log('Got 404, waiting for device to be ready...');
@@ -697,7 +737,6 @@ const Spotify = () => {
           return await playTrackWithSDK(trackUri, retryAttempt + 1, maxRetries);
         }
 
-        const error = await response.json().catch(() => ({}));
         console.error('Failed to play track:', error);
         return false;
       }

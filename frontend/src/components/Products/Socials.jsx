@@ -7,8 +7,8 @@ const Socials = () => {
   const socialLinks = [
     {
       name: 'X (Formerly Twitter)',
-      handle: '@Subham12R',
-      url: 'https://twitter.com/Subham12R',
+      handle: '@SubhamKarm65678',
+      url: 'https://x.com/SubhamKarm65678',
       icon: FaXTwitter,
       iconColor: 'text-white',
       bgColor: 'bg-black'
