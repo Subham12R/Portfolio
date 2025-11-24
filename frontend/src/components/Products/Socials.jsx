@@ -51,7 +51,7 @@ const Socials = () => {
               href={social.url}
               target="_blank"
               rel="noopener noreferrer"
-              className='group flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5'
+              className='group flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:shadow-md transition-all duration-200'
             >
               <div className='flex items-center gap-3 flex-1 min-w-0'>
                 {/* Icon */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getCalApi } from "@calcom/embed-react";
 import Spotify from '../components/Products/Spotify'
 import { FaArrowLeft, FaArrowRight, FaAws, FaCode, FaGithub, FaGlobe, FaReact, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt, FaLinkedin, FaQuoteLeft, FaQuoteRight } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill, RiVuejsFill } from 'react-icons/ri'
@@ -12,16 +13,17 @@ import { GoGear } from "react-icons/go";
 import { usePortfolio } from '../contexts/PortfolioContext';
 import Header from '../components/Common/Header'
 import { ProjectMediaPlayer } from '../components/Common/VideoPlayer'
-import ScrollProgress from '../components/Common/ScrollProgress'
+// import ScrollProgress from '../components/Common/ScrollProgress'
 import Socials from '../components/Products/Socials'
 import Tooltip from '@mui/material/Tooltip';
-
+import { FaCalendarAlt } from 'react-icons/fa'
 import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
 import { useTheme } from '../contexts/ThemeContext';
 import { FaSquareXTwitter } from 'react-icons/fa6'
 import Assistant from '../components/Common/Assistant'
 import cursorIcon from '../assets/logo/cursor.webp'
+import Gallery from '../components/Common/Gallery'
 
 const Tip = styled(({ className, ...props }) => (
     <Tooltip {...props} arrow classes={{ popper: className }} />
@@ -41,67 +43,24 @@ const Tip = styled(({ className, ...props }) => (
     },
   }));
 
-// Random quotes data
-const quotes = [
-  {
-    text: "The only way to do great work is to love what you do.",
-    author: "Steve Jobs"
-  },
-  {
-    text: "Innovation distinguishes between a leader and a follower.",
-    author: "Steve Jobs"
-  },
-  {
-    text: "Code is like humor. When you have to explain it, it's bad.",
-    author: "Cory House"
-  },
-  {
-    text: "First, solve the problem. Then, write the code.",
-    author: "John Johnson"
-  },
-  {
-    text: "Experience is the name everyone gives to their mistakes.",
-    author: "Oscar Wilde"
-  },
-  {
-    text: "The best error message is the one that never shows up.",
-    author: "Thomas Fuchs"
-  },
-  {
-    text: "Simplicity is the ultimate sophistication.",
-    author: "Leonardo da Vinci"
-  },
-  {
-    text: "Make it work, make it right, make it fast.",
-    author: "Kent Beck"
-  },
-  {
-    text: "Programs must be written for people to read, and only incidentally for machines to execute.",
-    author: "Harold Abelson"
-  },
-  {
-    text: "The most disastrous thing that you can ever learn is your first programming language.",
-    author: "Alan Kay"
-  }
-];
 
-// Dummy data - now using backend data via PortfolioContext
-// const experienceData = [...]
-// const projectData = [...]
+
 
 const Home = () => {
+  // Initialize Cal.com embed
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi({"namespace":"30min"});
+      cal("ui", {"hideEventTypeDetails":false,"layout":"month_view"});
+    })();
+  }, []);
   const [expandedExperience, setExpandedExperience] = useState(0);
   const [expandedProjects, setExpandedProjects] = useState({});
-  const [randomQuote, setRandomQuote] = useState(null);
+
   const { data } = usePortfolio();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Select a random quote on component mount
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * quotes.length);
-    setRandomQuote(quotes[randomIndex]);
-  }, []);
 
 
   // Function to toggle project description
@@ -251,7 +210,7 @@ const Home = () => {
        <div id="home">
         <Header />
         <Socials />
-        {/* <Spotify /> */}
+        <Spotify />
       </div>
 
 
@@ -493,13 +452,21 @@ const Home = () => {
 
 
       <div className='mt-8 mb-2'>
-        <div className='w-full flex flex-col justify-center items-center p-12 gap-4 border border-gray-200 dark:border-zinc-700 rounded-md border-dashed bg-white dark:bg-zinc-900'>
-            <p className='text-black dark:text-zinc-200'>Hey Scrolled So Far? Lets Connect!</p>
-            <Tip title="Checkout my Topmate profile" placement="top" arrow isDark={isDark}>
-            <a href="https://topmate.io/subham12r" target="_blank" rel="noopener noreferrer" className='text-zinc-900 dark:text-zinc-200 border  px-4 py-1 border-dashed border-zinc-200 dark:border-zinc-700 rounded-md bg-gray-50 dark:bg-zinc-800 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100 cursor-pointer'>
-            Get in Touch
-            </a>
-            </Tip>
+        <div className='w-full flex flex-col justify-center items-center p-4 gap-4 border border-gray-200 dark:border-zinc-700 rounded-md border-dashed bg-zinc-100 dark:bg-zinc-900'>
+            <p className='text-black dark:text-zinc-200'>Hey there! Want to chat? I'm available for quick meetings.</p>
+            <button 
+              data-cal-namespace="30min"
+              data-cal-link="subham12r/30min"
+              data-cal-config='{"layout":"month_view"}'
+              className='text-zinc-900 dark:text-zinc-200 border px-4 py-1 border-dashed border-zinc-200 dark:border-zinc-700 rounded-md bg-gray-50 dark:bg-zinc-800 
+                         hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1),inset_0_0_20px_rgba(255,255,255,0.3),inset_0_0_30px_rgba(255,255,255,0.2)] 
+                         dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1),inset_0_0_20px_rgba(255,255,255,0.1),inset_0_0_30px_rgba(255,255,255,0.1)]
+                         hover:border-white/80 dark:hover:border-white/80
+                         transition-all duration-300 cursor-pointer flex items-center gap-2'
+            >
+              <FaCalendarAlt /> 
+              Book a Meeting
+            </button>
         </div>
       </div>
 
@@ -541,29 +508,9 @@ const Home = () => {
         </Link>
       </div>
       
-      {/* Random Quote Section */}
-      {randomQuote && (
-        <div id="contact" className='mt-8 mb-8 relative'>
-          <div className='relative p-8 bg-gray-50 dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-700'>
-            {/* Large quotation mark background */}
-            <div className='absolute top-5 left-12 text-8xl text-gray-300 dark:text-zinc-700 font-serif opacity-30 select-none pointer-events-none'>
-              <FaQuoteLeft size={40} className='text-gray-300 dark:text-zinc-700' />
-            </div>
-            
-            {/* Quote content */}
-            <div className='relative z-10 text-center justify-center items-center'>
-              <blockquote className='text-lg text-gray-800 dark:text-gray-200 leading-relaxed mb-4 font-medium'>
-                {randomQuote.text}
-              </blockquote>
-              <cite className='text-sm text-gray-600 dark:text-gray-400 font-normal not-italic'>
-                — {randomQuote.author}
-              </cite>
-            </div>
-          </div>
-        </div>
-      )}
+  
     <Assistant />
-    <ScrollProgress />
+    {/* <ScrollProgress /> */}
     </div>
   )
 }

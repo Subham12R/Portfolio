@@ -1,17 +1,25 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { getCalApi } from "@calcom/embed-react";
 import profileImage from '../../assets/profile.png';
 import ResumePdf from '../../assets/Resume.pdf';
-import {FaReact} from 'react-icons/fa';
+import {FaLocationArrow, FaReact, FaClock, FaCalendar} from 'react-icons/fa';
 import {RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "react-icons/ri";
 import { BsEnvelopePaper } from "react-icons/bs";
 import { BiLogoPostgresql, BiPaperPlane } from "react-icons/bi";
 import { Text } from '@radix-ui/themes';
 import TechBadge from './TechBadge';
 import bannerImage from '../../assets/banner.gif';
+import { Link } from 'react-router-dom';
+import DateTimeDisplay from './DateTimeDisplay';
 
 const Header = () => {
-  const navigate = useNavigate();
+  // Initialize Cal.com embed
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi({"namespace":"30min"});
+      cal("ui", {"hideEventTypeDetails":false,"layout":"month_view"});
+    })();
+  }, []);
 
   // Function to download resume from assets
   const downloadResume = () => {
@@ -28,6 +36,7 @@ const Header = () => {
       alert('Failed to download resume. Please try again.');
     }
   };
+
 
   return (
     <header className="border-gray-200">
@@ -51,22 +60,37 @@ const Header = () => {
         </div>
 
         {/* Profile Content */}
-        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-6  mt-20'>
+        <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-6  mt-10'>
                  <div className='w-full inline-flex flex-col justify-center items-start space-y-4'>
                     <div className='mb-1'>
-                        
-                    <h1 className='text-3xl  dark:text-zinc-200 text-zinc-900 tracking-tight font-bold leading-tight'><span className='font-bold text-zinc-800 dark:text-zinc-200'>Hi, I'm Subham</span> - <Text as='span' className='text-zinc-600 font-bold'>A Full Stack Web Developer.</Text></h1>
-                    {/* <DecryptedText
-                        text="A Full Stack Web Developer."
-                        speed={100}
-                        animateOn='view'
-                        maxIterations={20}
-                        characters="101010</>?"
-                        className="revealed text-xl md:text-3xl font-bold text-blue-500 tracking-tighter"
-                        parentClassName="all-letters text-xl  md:text-3xl font-bold text-blue-200 tracking-tighter"
-                        encryptedClassName="encrypted"
-                    />
-                    */}
+
+                      <div className='flex flex-col items-start justify-center w-full '>
+                        <span className='text-3xl font-bold tracking-tight w-full'>Hi, I'm Subham-<Text as='span' className='text-zinc-600 font-bold'>A Full Stack Web Developer.</Text></span>
+                        <div className='w-full mt-2  bg-zinc-100 dark:bg-zinc-900 rounded-md p-2 shadow-[inset_0_0_2px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_2px_rgba(255,255,255,0.1)]'>
+                          {/* Grid Layout for Info Items */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 w-full">
+                            {/* Location - Left Column */}
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0">
+                                <FaLocationArrow className="text-zinc-600 dark:text-zinc-300 text-xs" />
+                              </div>
+                              <span className="text-sm text-zinc-600 dark:text-zinc-400 font-mono">Kolkata, India</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0">
+                                <span className="text-zinc-600 dark:text-zinc-300 text-xs">@</span>
+                              </div>
+                              <span className="text-sm text-zinc-600 dark:text-zinc-400 font-mono">Subham12R</span>
+                            </div>
+                            
+                            {/* Time - Right Column */}
+                            
+                            {/* Date - Left Column (Second Row) */}
+                            <DateTimeDisplay />
+                            <DateTimeDisplay showDate={true} />
+                          </div>
+                        </div> 
+                      </div>
                     </div> 
 
                     <div className='mt-4 w-full'>
@@ -99,12 +123,11 @@ const Header = () => {
                         >
                             <BsEnvelopePaper/> Resume/CV
                         </button>
-                        <button 
-                            onClick={() => navigate('/contact')}
+                        <Link to="/contact"
                             className='inline-flex justify-center items-center gap-2 bg-black dark:bg-white/80 border border-black/20 dark:border-white/30 backdrop-blur-sm text-white dark:text-zinc-900 shadow hover:bg-zinc-900 dark:hover:bg-white transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
                         >
                             <BiPaperPlane />Get in Touch
-                        </button>              
+                        </Link>              
                     </div>
                 </div>
 
