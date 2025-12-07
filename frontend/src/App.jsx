@@ -1,8 +1,9 @@
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import Preloader from './components/Common/Preloader'
-import { PortfolioProvider, usePortfolio } from './contexts/PortfolioContext'
+import { PortfolioProvider } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { PreloaderProvider } from './contexts/PreloaderContext'
 import { ReactLenis } from 'lenis/react'
 import { Toaster } from 'sonner'
 
@@ -61,27 +62,23 @@ function AnimatedRoutes() {
 
 // Inner component that can access portfolio context
 function AppContent() {
-  const [preloaderComplete, setPreloaderComplete] = useState(false)
-  const { isLoading: isDataLoading } = usePortfolio()
+  const [showPreloader, setShowPreloader] = useState(true)
 
-  const handlePreloaderComplete = () => {
-    setPreloaderComplete(true)
-  }
-
-  // Show preloader until animation completes (full 3 seconds)
-  // AND until data is loaded
-  const showPreloader = !preloaderComplete || isDataLoading
-  
-  if (showPreloader) {
-    return <Preloader onComplete={handlePreloaderComplete} showMessage={isDataLoading} />
-  }
+  useEffect(() => {
+    // Preloader stays for 2 seconds ONLY
+    const timer = setTimeout(() => setShowPreloader(false), 2000)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
-    <BrowserRouter>
-      <ReactLenis root />
-      <AnimatedRoutes />
-      <Toaster richColors position="top-center" />
-    </BrowserRouter>
+    <>
+      {showPreloader && <Preloader />}
+      <BrowserRouter>
+        <ReactLenis root />
+        <AnimatedRoutes />
+        <Toaster richColors position="top-center" />
+      </BrowserRouter>
+    </>
   )
 }
 
@@ -89,7 +86,9 @@ function App() {
   return (
     <ThemeProvider>
       <PortfolioProvider>
-        <AppContent />
+        <PreloaderProvider>
+          <AppContent />
+        </PreloaderProvider>
       </PortfolioProvider>
     </ThemeProvider>
   )

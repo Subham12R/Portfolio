@@ -95,3 +95,4 @@ const Gallery = ({ quote }) => {
 
 export default Gallery
 
+

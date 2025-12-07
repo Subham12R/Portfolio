@@ -22,6 +22,7 @@ import { tooltipClasses } from '@mui/material/Tooltip';
 import { useTheme } from '../contexts/ThemeContext';
 import { FaSquareXTwitter } from 'react-icons/fa6'
 import Assistant from '../components/Common/Assistant'
+import { usePreloader } from '../contexts/PreloaderContext'
 import cursorIcon from '../assets/logo/cursor.webp'
 import Gallery from '../components/Common/Gallery'
 
@@ -59,6 +60,7 @@ const Home = () => {
 
   const { data } = usePortfolio();
   const { theme } = useTheme();
+  const { isPreloaderComplete } = usePreloader();
   const isDark = theme === 'dark';
 
 
@@ -509,7 +511,7 @@ const Home = () => {
       </div>
       
   
-    <Assistant />
+    {isPreloaderComplete && <Assistant />}
     {/* <ScrollProgress /> */}
     </div>
   )

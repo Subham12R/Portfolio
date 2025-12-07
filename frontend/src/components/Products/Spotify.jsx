@@ -236,7 +236,7 @@ const Spotify = () => {
     return (
       <div className='w-full h-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
         <div className='flex items-center gap-3'>
-          <div className='h-full w-full rounded bg-linear-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0 animate-pulse'>
+          <div className='h-full rounded bg-linear-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0 animate-pulse'>
             <FaSpotify className='text-green-500' size={32} />
           </div>
           <div className='flex-1 min-w-0'>
