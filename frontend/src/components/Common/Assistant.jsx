@@ -7,7 +7,7 @@ import { BiPaperPlane } from "react-icons/bi";
 import { RiCloseFill, RiAddFill } from "react-icons/ri";
 import { useTheme } from '../../contexts/ThemeContext';
 import apiService from '../../services/api';
-import profileImage from '../../assets/profile.png';
+import profileImage from '../../assets/pfp.jpg';
 
 const Assistant = () => {
   const [isOpen, setIsOpen] = useState(false);
