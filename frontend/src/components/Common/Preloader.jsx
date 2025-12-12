@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import profileImg from '../../assets/profile.png'
+import profileImg from '../../assets/pfp.jpg'
 
 const Preloader = () => {
   const [isVisible, setIsVisible] = useState(true)
