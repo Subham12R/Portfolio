@@ -34,53 +34,7 @@ Welcome! I’m **Subham**, a second-year B.Tech Computer Science student at Adam
 - Supabase account
 - Cloudinary account (for file uploads)
 
-### Getting Started
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yourusername/portfolio.git
-   cd portfolio
-   ```
-
-2. **Backend Setup:**
-   ```bash
-   cd backend
-   npm install
-   ```
-   
-   Create a `.env` file in the `backend` directory:
-   ```env
-   PORT=5000
-   NODE_ENV=development
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_KEY=your_supabase_key
-   SUPABASE_JWT_SECRET=your_jwt_secret
-   CLOUDINARY_CLOUD_NAME=your_cloudinary_name
-   CLOUDINARY_API_KEY=your_cloudinary_key
-   CLOUDINARY_API_SECRET=your_cloudinary_secret
-   JWT_SECRET=your_jwt_secret
-   ```
-   
-   Run the backend:
-   ```bash
-   npm run dev
-   ```
-
-3. **Frontend Setup:**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-   
-   Create a `.env` file in the `frontend` directory:
-   ```env
-   VITE_API_URL=http://localhost:5000
-   ```
-   
-   Run the frontend:
-   ```bash
-   npm run dev
-   ```
 
 For detailed setup instructions, see [Backend README](backend/README.md) and [Frontend README](frontend/README.md).
 
