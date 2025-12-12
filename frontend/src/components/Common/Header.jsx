@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { getCalApi } from "@calcom/embed-react";
-import profileImage from '../../assets/profile.png';
+import profileImage from '../../assets/pfp.jpg';
 import ResumePdf from '../../assets/Resume.pdf';
 import {FaLocationArrow, FaReact, FaClock, FaCalendar} from 'react-icons/fa';
 import {RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "react-icons/ri";
