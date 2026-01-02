@@ -62,39 +62,11 @@ const Header = () => {
         {/* Profile Content */}
         <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-6  mt-10'>
                  <div className='w-full inline-flex flex-col justify-center items-start space-y-4'>
-                    <div className='mb-1'>
-
-                      <div className='flex flex-col items-start justify-center w-full '>
-                        <span className='text-3xl font-bold tracking-tight w-full'>Hi, I'm Subham-<Text as='span' className='text-zinc-600 font-bold'>A Full Stack Web Developer.</Text></span>
-                        <div className='w-full mt-2  bg-zinc-100 dark:bg-zinc-900 rounded-md p-2 shadow-[inset_0_0_2px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_2px_rgba(255,255,255,0.1)]'>
-                          {/* Grid Layout for Info Items */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 w-full">
-                            {/* Location - Left Column */}
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0">
-                                <FaLocationArrow className="text-zinc-600 dark:text-zinc-300 text-xs" />
-                              </div>
-                              <span className="text-sm text-zinc-600 dark:text-zinc-400 font-mono">Kolkata, India</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0">
-                                <span className="text-zinc-600 dark:text-zinc-300 text-xs">@</span>
-                              </div>
-                              <span className="text-sm text-zinc-600 dark:text-zinc-400 font-mono">Subham12R</span>
-                            </div>
-                            
-                            {/* Time - Right Column */}
-                            
-                            {/* Date - Left Column (Second Row) */}
-                            <DateTimeDisplay />
-                            <DateTimeDisplay showDate={true} />
-                          </div>
-                        </div> 
-                      </div>
-                    </div> 
+        
+                
 
                     <div className='mt-4 w-full'>
-                    <p className='gap-1 inline-flex flex-wrap justify-start items-center text-md text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed'>I build interactive and responsive web apps using {" "}  
+                    <p className='gap-2 inline-flex flex-wrap justify-start items-center text-md text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed'>I build interactive and responsive web apps using {" "}  
                      <a href="https://react.dev/" norelopener target="_blank"><TechBadge icon={FaReact} iconClassName='text-blue-500'>React</TechBadge></a>
                     <span>,</span>
                     <a href="https://nextjs.org/" norelopener target="_blank"><TechBadge icon={RiNextjsFill} iconClassName='text-black dark:text-white'>NextJS</TechBadge></a>
@@ -104,8 +76,8 @@ const Header = () => {
                     <a href="https://nodejs.org/" norelopener target="_blank"><TechBadge icon={RiNodejsFill} iconClassName='text-emerald-500'>NodeJs</TechBadge></a>
                     <span>,</span>
                     <span> and </span>
-                    <a href="https://www.postgresql.org/" norelopener target="_blank"><TechBadge icon={BiLogoPostgresql} iconClassName='text-blue-800'>PostgreSQL</TechBadge></a>
-                     <span>. Focusing on <Text as='span' className='dark:text-white text-black'> <strong>UI/UX Design</strong></Text> and learning <Text as='span' className='dark:text-white text-black'> <strong>Three JS</strong></Text>. Currently keeping a close eye on the latest technologies and trends in web development.</span>
+                    <a href="https://www.postgresql.org/" norelopener target="_blank"><TechBadge icon={BiLogoPostgresql} iconClassName='text-blue-800'>PostgreSQL</TechBadge></a>. Focusing on <Text as='span' className='dark:text-white text-black'> <strong>UI/UX Design</strong></Text>
+                     <span> and learning <Text as='span' className='dark:text-white text-black'> <strong>Three JS</strong></Text>. Currently keeping a close eye on the latest technologies and trends in web development.</span>
                     
                     </p>
                     {/* <div className='text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-4'>
@@ -130,7 +102,6 @@ const Header = () => {
                         </Link>              
                     </div>
                 </div>
-
         </div>
 
     </header>

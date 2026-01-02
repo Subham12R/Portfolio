@@ -403,3 +403,89 @@ p, span, div, a, button, input, textarea, select, label {
   fill: #8b949e !important;
 }
 
+/* Apple-like Animated Gradient Border for Assistant */
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes gradient-flow-vertical {
+  0% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 50% 100%;
+  }
+  100% {
+    background-position: 50% 0%;
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+
+.animated-gradient-border {
+  background: linear-gradient(
+    90deg,
+    #3b82f6,
+    #06b6d4,
+    #8b5cf6,
+    #06b6d4,
+    #3b82f6,
+    #22d3ee,
+    #3b82f6
+  );
+  background-size: 300% 100%;
+  animation: gradient-flow 8s ease-in-out infinite;
+}
+
+.animated-gradient-border-vertical {
+  background: linear-gradient(
+    180deg,
+    #3b82f6,
+    #06b6d4,
+    #8b5cf6,
+    #06b6d4,
+    #3b82f6,
+    #22d3ee,
+    #3b82f6
+  );
+  background-size: 100% 300%;
+  animation: gradient-flow-vertical 8s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 5s ease-in-out infinite;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-3000 {
+  animation-delay: 3s;
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+

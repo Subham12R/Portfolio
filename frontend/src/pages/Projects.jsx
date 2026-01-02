@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useLayoutEffect } from 'react'
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
 import { FaGithub, FaGlobe, FaReact, FaAws, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill, RiNodejsFill, RiVuejsFill } from 'react-icons/ri'
@@ -6,6 +6,11 @@ import { SiTypescript, SiPostgresql, SiVercel, SiMongodb, SiExpress, SiNestjs, S
 import { usePortfolio } from '../contexts/PortfolioContext'
 import { ProjectMediaPlayer } from '../components/Common/VideoPlayer'
 import LogoBadge from '../components/Common/LogoBadge'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger)
 
 // Dummy project data - COMMENTED OUT - now using backend data
 /* const projectData = [
@@ -132,6 +137,48 @@ import LogoBadge from '../components/Common/LogoBadge'
 const Projects = () => {
   const [expandedProject, setExpandedProject] = useState(0)
   const { data } = usePortfolio()
+  
+  // GSAP Refs
+  const sectionRef = useRef(null)
+  const headerRef = useRef(null)
+  const cardsContainerRef = useRef(null)
+
+  // GSAP Animations
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      // Header animation
+      gsap.fromTo(headerRef.current,
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out'
+        }
+      );
+
+      // Project cards stagger animation
+      gsap.fromTo('.project-card',
+        { opacity: 0, y: 50, scale: 0.95 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.15,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: cardsContainerRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none reverse'
+          }
+        }
+      );
+
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [data?.projects]);
   
   // Function to get icon for tech stack
   const getTechIcon = (techName) => {
@@ -276,8 +323,8 @@ const Projects = () => {
   }
 
   return (
-    <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
-      <div className="mb-12">
+    <section ref={sectionRef} className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
+      <div ref={headerRef} className="mb-12">
         <p className="text-gray-400 dark:text-gray-500 mb-2">Portfolio</p>
         <h1 className="text-black dark:text-white font-bold text-3xl mb-2">My Projects</h1>
         <p className="text-gray-600 dark:text-zinc-400 mt-3 leading-relaxed">
@@ -288,111 +335,115 @@ const Projects = () => {
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div ref={cardsContainerRef} className="space-y-6">
         {projectData.map((project, index ) => {
           const isExpanded = expandedProject === index
           
           return (
             <div
               key={project.id}
-              className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+              className="project-card bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
             >
+              {/* Project Media - Always visible */}
+              <div className="rounded-t-xl overflow-hidden border-b border-gray-200 dark:border-zinc-700">
+                <ProjectMediaPlayer
+                  mediaUrl={project.image}
+                  mediaType={project.mediaType || 'image'}
+                  alt={project.name}
+                  className="w-full h-auto"
+                  projectId={project.id}
+                />
+              </div>
+
               {/* Project Header */}
-              <div
-                className="flex items-center justify-between p-6 cursor-pointer"
-                onClick={() => toggleProject(index)}
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-lg text-black dark:text-white">
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <h3 className="font-semibold text-lg text-black dark:text-white truncate">
                       {project.name}
                     </h3>
                     {project.status && (
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full shrink-0 ${
                         project.status === 'Working' 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : 'bg-green-100 text-green-800'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' 
+                          : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                       }`}>
                         {project.status}
                       </span>
                     )}
-                    {!isExpanded && (
-                      <button
-                        className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleProject(index)
-                        }}
+                  </div>
+                  
+                  {/* Links on right */}
+                  <div className="flex items-center gap-3 shrink-0 ml-3">
+                    {project.github && (
+                      <a
+                        href={project.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                        title="View Code"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <HiChevronDown className="text-xl" />
-                      </button>
+                        <FaGithub className="text-xl" />
+                      </a>
                     )}
-                    {isExpanded && (
-                      <button
-                        className="text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleProject(index)
-                        }}
+                    {project.liveUrl && (
+                      <a
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                        title="Live Demo"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <HiChevronUp className="text-xl" />
-                      </button>
+                        <FaGlobe className="text-xl" />
+                      </a>
                     )}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
-                    {project.category}
-                  </div>
                 </div>
-                <div className="text-sm text-gray-400 dark:text-zinc-500 text-right">
-                  {project.date}
+                
+                {/* Category and Date */}
+                <div className="flex items-center justify-between mt-1 text-sm text-gray-500 dark:text-zinc-500">
+                  <span>{project.category}</span>
+                  <span>{project.date}</span>
                 </div>
+
+                {/* Read More Button */}
+                <button
+                  className="mt-3 w-full flex items-center justify-center gap-1 text-sm text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                  onClick={() => toggleProject(index)}
+                >
+                  {isExpanded ? (
+                    <>
+                      <span>Show Less</span>
+                      <HiChevronUp className="text-lg transition-transform duration-300" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Read More</span>
+                      <HiChevronDown className="text-lg transition-transform duration-300" />
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Expanded Content */}
-              {isExpanded && (
-                <div className="px-6 pb-6 pt-4 border-t border-gray-100 dark:border-zinc-700">
-                  {/* Project Media */}
-                  <div className="mb-6 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
-                    <ProjectMediaPlayer
-                      mediaUrl={project.image}
-                      mediaType={project.mediaType || 'image'}
-                      alt={project.name}
-                      className="w-full h-auto"
-                      projectId={project.id}
-                    />
-                  </div>
-
-                  {/* Links */}
-                  <div className="flex items-center gap-5 mb-6">
-                    <a
-                      href={project.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white text-sm font-medium cursor-pointer"
-                    >
-                      <FaGithub className="text-lg" />
-                      View Code
-                    </a>
-                    <a
-                      href={project.liveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white text-sm font-medium cursor-pointer"
-                    >
-                      <FaGlobe className="text-lg" />
-                      Live Demo
-                    </a>
-                  </div>
-
+              <div 
+                className={`grid transition-all duration-300 ease-in-out ${
+                  isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-zinc-800">
                   {/* Description */}
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <p className="text-sm text-gray-700 dark:text-zinc-400 leading-relaxed">
                       {project.description}
                     </p>
                   </div>
 
                   {/* Tech Stack */}
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-3">
                       Technologies & Tools
                     </p>
@@ -423,8 +474,9 @@ const Projects = () => {
                       ))}
                     </ul>
                   </div>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           )
         })}

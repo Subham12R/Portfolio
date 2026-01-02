@@ -113,6 +113,40 @@ const Assistant = () => {
       {/* Gooey Filter Provider */}
       <SkiperGooeyFilterProvider />
 
+      {/* Apple-like Animated Gradient Border */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 pointer-events-none z-[9999]"
+          >
+            {/* Animated gradient border */}
+            <div className="absolute inset-0 overflow-hidden">
+              {/* Top border - soft glow */}
+              <div className="absolute -top-2 left-0 right-0 h-8 animated-gradient-border blur-md opacity-20" />
+              {/* Bottom border - soft glow */}
+              <div className="absolute -bottom-2 left-0 right-0 h-8 animated-gradient-border blur-md opacity-20" />
+              {/* Left border - soft glow */}
+              <div className="absolute top-0 -left-2 bottom-0 w-8 animated-gradient-border-vertical blur-md opacity-20" />
+              {/* Right border - soft glow */}
+              <div className="absolute top-0 -right-2 bottom-0 w-8 animated-gradient-border-vertical blur-md opacity-20" />
+              
+              {/* Corner glow effects */}
+              <div className="absolute top-0 left-0 w-36 h-36 bg-gradient-radial from-blue-500/25 via-cyan-400/10 to-transparent blur-2xl animate-pulse-slow" />
+              <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-radial from-cyan-400/25 via-blue-500/10 to-transparent blur-2xl animate-pulse-slow animation-delay-1000" />
+              <div className="absolute bottom-0 left-0 w-36 h-36 bg-gradient-radial from-indigo-500/25 via-blue-400/10 to-transparent blur-2xl animate-pulse-slow animation-delay-2000" />
+              <div className="absolute bottom-0 right-0 w-36 h-36 bg-gradient-radial from-blue-400/25 via-indigo-500/10 to-transparent blur-2xl animate-pulse-slow animation-delay-3000" />
+            </div>
+            
+            {/* Subtle inner glow */}
+            <div className="absolute inset-[4px] rounded-sm pointer-events-none shadow-[inset_0_0_100px_rgba(59,130,246,0.08)]" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (

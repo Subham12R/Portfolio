@@ -15,6 +15,7 @@ import {
 } from "media-chrome/react";
 // import type { ComponentProps } from "react"; // TypeScript syntax not needed in JSX
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 
 import { cn } from "../../lib/utils";
 
@@ -181,7 +182,10 @@ export const ProjectMediaPlayer = ({
         onMouseLeave={() => {
           opacity.set(0);
         }}
-        onClick={() => setShowVideoPopOver(true)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowVideoPopOver(true);
+        }}
         className={`relative cursor-pointer group ${className}`}
       >
         <motion.div
@@ -196,7 +200,7 @@ export const ProjectMediaPlayer = ({
           isGoogleDriveLink ? (
             <iframe
               src={mediaUrl}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover pointer-events-none"
               frameBorder="0"
               allowFullScreen
               onError={() => setVideoError(true)}
@@ -208,7 +212,7 @@ export const ProjectMediaPlayer = ({
               muted
               playsInline
               loop
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover pointer-events-none"
               onError={() => setVideoError(true)}
             >
               <source src={actualMediaUrl} />
@@ -218,22 +222,25 @@ export const ProjectMediaPlayer = ({
           <img
             src={isGoogleDriveLink ? convertDriveLink(mediaUrl) : actualMediaUrl}
             alt={alt}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover pointer-events-none"
             onError={() => setImageError(true)}
           />
         )}
       </div>
 
-      <AnimatePresence>
-        {showVideoPopOver && (
-          <VideoPopOver 
-            setShowVideoPopOver={setShowVideoPopOver} 
-            mediaUrl={actualMediaUrl}
-            isVideo={isVideo}
-            alt={alt}
-          />
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
+          {showVideoPopOver && (
+            <VideoPopOver 
+              setShowVideoPopOver={setShowVideoPopOver} 
+              mediaUrl={actualMediaUrl}
+              isVideo={isVideo}
+              alt={alt}
+            />
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 };
@@ -261,13 +268,13 @@ const VideoPopOver = ({
   // Check if URL is a Google Drive link
   const isGoogleDriveLink = mediaUrl?.includes('drive.google.com');
   return (
-    <div className="fixed left-0 top-0 z-101 flex h-screen w-screen items-center justify-center">
+    <div className="fixed inset-0 z-9999 flex h-screen w-screen items-center justify-center">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="bg-background/90 absolute left-0 top-0 h-full w-full backdrop-blur-lg"
+        className="bg-black/90 absolute left-0 top-0 h-full w-full backdrop-blur-lg"
         onClick={() => setShowVideoPopOver(false)}
       ></motion.div>
       <motion.div

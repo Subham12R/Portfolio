@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { FaSpotify } from 'react-icons/fa'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { FaSpotify, FaPlay, FaPause } from 'react-icons/fa'
 
 // API Base URL - Use production URL by default
 // For local development, set VITE_API_URL in .env file
@@ -27,6 +27,12 @@ const Spotify = () => {
   const [playerStatus, setPlayerStatus] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Audio playback state
+  const audioRef = useRef(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
 
   // Load cached data from localStorage
   const loadCachedData = useCallback(() => {
@@ -216,10 +222,71 @@ const Spotify = () => {
     };
   }, [fetchPlayerStatus, checkNetworkStatus, loadCachedData]);
 
+  // Audio playback handlers
+  const handleTimeUpdate = useCallback(() => {
+    if (audioRef.current) {
+      setAudioProgress(audioRef.current.currentTime);
+    }
+  }, []);
+
+  const handleLoadedMetadata = useCallback(() => {
+    if (audioRef.current) {
+      setAudioDuration(audioRef.current.duration);
+    }
+  }, []);
+
+  const handleAudioEnded = useCallback(() => {
+    setIsAudioPlaying(false);
+    setAudioProgress(0);
+  }, []);
+
+  const toggleAudioPlayback = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!audioRef.current) return;
+    
+    if (isAudioPlaying) {
+      audioRef.current.pause();
+      setIsAudioPlaying(false);
+    } else {
+      audioRef.current.play().catch(err => {
+        console.error('Audio playback failed:', err);
+      });
+      setIsAudioPlaying(true);
+    }
+  }, [isAudioPlaying]);
+
+  const handleProgressChange = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newTime = parseFloat(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
+      setAudioProgress(newTime);
+    }
+  }, []);
+
+  const handleSliderClick = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
   // Get the current track
   const currentTrack = playerStatus?.displayTrack;
   const trackType = playerStatus?.trackType || 'last_played';
   const isNowPlaying = trackType === 'now_playing';
+  const previewUrl = currentTrack?.preview_url;
+
+  // Reset audio when track changes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsAudioPlaying(false);
+      setAudioProgress(0);
+      setAudioDuration(0);
+    }
+  }, [currentTrack?.id]);
 
   // Get Spotify URL for the track
   const getSpotifyUrl = () => {
@@ -234,7 +301,7 @@ const Spotify = () => {
   // Show loading or empty state
   if (isLoading && !playerStatus) {
     return (
-      <div className='w-full h-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
+      <div className='w-full h-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-2 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
         <div className='flex items-center gap-3'>
           <div className='h-full rounded bg-linear-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0 animate-pulse'>
             <FaSpotify className='text-green-500' size={32} />
@@ -250,7 +317,7 @@ const Spotify = () => {
   // Show offline/empty state
   if (!currentTrack) {
     return (
-      <div className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
+      <div className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-2 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'>
         <div className='flex items-center gap-3'>
           <div className='h-16 w-16 rounded bg-linear-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 flex items-center justify-center shrink-0'>
             <FaSpotify className='text-green-500' size={32} />
@@ -267,37 +334,94 @@ const Spotify = () => {
 
   // Show music player card (clickable to open Spotify)
   return (
-    <a
-      href={getSpotifyUrl()}
-      target="_blank"
-      rel="noopener noreferrer"
-      className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200 cursor-pointer block'
-    >
-      <div className='flex items-center gap-3'>
-        <img 
-          src={currentTrack.album?.images[2]?.url || currentTrack.album?.images[0]?.url || 'https://picsum.photos/200'} 
-          alt={currentTrack.name}
-          className='h-16 w-16 rounded object-cover shrink-0'
+    <div className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-2 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200'>
+      {/* Hidden audio element for preview playback */}
+      {previewUrl && (
+        <audio
+          ref={audioRef}
+          src={previewUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleAudioEnded}
+          preload="metadata"
         />
-        
-        <div className='flex-1 min-w-0'>
-          <div className='flex items-center gap-2 mb-1'>
-            <FaSpotify className={`text-green-500 ${isNowPlaying ? 'animate-pulse' : ''}`} size={14} />
-            <span className={`text-xs font-semibold ${isNowPlaying ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`}>
-              {isNowPlaying ? 'Now Playing' : 'Last Played'}
-            </span>
-            {!isOnline && (
-              <span className='text-xs text-gray-400 dark:text-gray-500'>(Offline)</span>
+      )}
+      
+      <a
+        href={getSpotifyUrl()}
+        target="_blank"
+        rel="noopener noreferrer"
+        className='block cursor-pointer'
+      >
+        <div className='flex items-center gap-3'>
+          <div className='relative shrink-0'>
+            <img 
+              src={currentTrack.album?.images[2]?.url || currentTrack.album?.images[0]?.url || 'https://picsum.photos/200'} 
+              alt={currentTrack.name}
+              className='h-16 w-16 rounded object-cover'
+            />
+            {/* Play/Pause button overlay */}
+            {previewUrl && (
+              <button
+                onClick={toggleAudioPlayback}
+                className='absolute inset-0 flex items-center justify-center bg-black/40 rounded opacity-0 hover:opacity-100 transition-opacity duration-200'
+                title={isAudioPlaying ? 'Pause preview' : 'Play preview'}
+              >
+                {isAudioPlaying ? (
+                  <FaPause className='text-white' size={20} />
+                ) : (
+                  <FaPlay className='text-white ml-1' size={20} />
+                )}
+              </button>
             )}
           </div>
-          <p className='text-gray-800 dark:text-gray-200 text-sm font-medium truncate'>{currentTrack.name}</p>
-          <p className='text-gray-500 dark:text-gray-400 text-xs truncate'>
-            {currentTrack.artists?.map(a => a.name).join(', ')}
-          </p>
+          
+          <div className='flex-1 min-w-0'>
+            <div className='flex items-center gap-2 mb-1'>
+              <FaSpotify className={`text-green-500 ${isNowPlaying ? 'animate-pulse' : ''}`} size={14} />
+              <span className={`text-xs font-semibold ${isNowPlaying ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`}>
+                {isNowPlaying ? 'Now Playing' : 'Last Played'}
+              </span>
+              {!isOnline && (
+                <span className='text-xs text-gray-400 dark:text-gray-500'>(Offline)</span>
+              )}
+            </div>
+            <p className='text-gray-800 dark:text-gray-200 text-sm font-medium truncate'>{currentTrack.name}</p>
+            <p className='text-gray-500 dark:text-gray-400 text-xs truncate'>
+              {currentTrack.artists?.map(a => a.name).join(', ')}
+            </p>
+          </div>
         </div>
-      </div>
-    </a>
+      </a>
+      
+      {/* Progress slider - only show when there's a preview URL */}
+      {previewUrl && (
+        <div className='mt-3 px-1' onClick={handleSliderClick}>
+          <input
+            type="range"
+            min="0"
+            max={audioDuration || 30}
+            step="0.1"
+            value={audioProgress}
+            onChange={handleProgressChange}
+            onClick={handleSliderClick}
+            className='w-full h-1 bg-gray-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-green-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-green-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:bg-green-500 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer'
+          />
+          <div className='flex justify-between text-[10px] text-gray-400 dark:text-gray-500 mt-1'>
+            <span>{formatTime(audioProgress)}</span>
+            <span>{formatTime(audioDuration || 30)}</span>
+          </div>
+        </div>
+      )}
+    </div>
   );
+};
+
+// Helper function to format time in mm:ss
+const formatTime = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
 export default Spotify;

@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { getCalApi } from "@calcom/embed-react";
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Spotify from '../components/Products/Spotify'
 import { FaArrowLeft, FaArrowRight, FaAws, FaCode, FaGithub, FaGlobe, FaReact, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt, FaLinkedin, FaQuoteLeft, FaQuoteRight } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill, RiVuejsFill } from 'react-icons/ri'
@@ -25,6 +27,9 @@ import Assistant from '../components/Common/Assistant'
 import { usePreloader } from '../contexts/PreloaderContext'
 import cursorIcon from '../assets/logo/cursor.webp'
 import Gallery from '../components/Common/Gallery'
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger)
 
 const Tip = styled(({ className, ...props }) => (
     <Tooltip {...props} arrow classes={{ popper: className }} />
@@ -56,22 +61,179 @@ const Home = () => {
     })();
   }, []);
   const [expandedExperience, setExpandedExperience] = useState(0);
-  const [expandedProjects, setExpandedProjects] = useState({});
 
   const { data } = usePortfolio();
   const { theme } = useTheme();
   const { isPreloaderComplete } = usePreloader();
   const isDark = theme === 'dark';
 
+  // GSAP Refs
+  const mainRef = useRef(null);
+  const headerRef = useRef(null);
+  const experienceRef = useRef(null);
+  const projectsRef = useRef(null);
+  const aboutRef = useRef(null);
+  const certificatesRef = useRef(null);
+  const meetingRef = useRef(null);
+  const setupRef = useRef(null);
 
+  // GSAP Animations
+  useLayoutEffect(() => {
+    if (!isPreloaderComplete) return;
 
-  // Function to toggle project description
-  const toggleProjectDescription = (projectId) => {
-    setExpandedProjects(prev => ({
-      ...prev,
-      [projectId]: !prev[projectId]
-    }));
-  };
+    const ctx = gsap.context(() => {
+      // Header section animation
+      gsap.fromTo('#home > *', 
+        { 
+          opacity: 0, 
+          y: 30 
+        },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 0.8, 
+          stagger: 0.15,
+          ease: 'power3.out'
+        }
+      );
+
+      // Experience section
+      gsap.fromTo(experienceRef.current,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: experienceRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // Experience cards stagger
+      gsap.fromTo('#experience + div > div',
+        { opacity: 0, x: -30 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.6,
+          stagger: 0.2,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '#experience',
+            start: 'top 80%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // Projects section
+      gsap.fromTo(projectsRef.current,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: projectsRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // Project cards grid animation
+      gsap.fromTo('.project-card',
+        { opacity: 0, y: 40, scale: 0.95 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.15,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '.project-card',
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // About section
+      gsap.fromTo(aboutRef.current,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: aboutRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // Certificates section
+      gsap.fromTo(certificatesRef.current,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: certificatesRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // Meeting CTA
+      gsap.fromTo(meetingRef.current,
+        { opacity: 0, scale: 0.95 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.6,
+          ease: 'back.out(1.2)',
+          scrollTrigger: {
+            trigger: meetingRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // Setup section cards
+      gsap.fromTo('.setup-card',
+        { opacity: 0, x: -40 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.6,
+          stagger: 0.2,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: setupRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+    }, mainRef);
+
+    return () => ctx.revert();
+  }, [isPreloaderComplete]);
+
 
 
   // Function to get icon for tech stack
@@ -201,15 +363,18 @@ const Home = () => {
 
   // Use backend data instead of dummy data
   const experienceData = data?.workExperience?.filter(exp => exp.featured) || [];
-  const projectData = (data?.projects || []).slice(0, 4); // Show only 4 projects on main page
+  const projectData = (data?.projects || []).slice(0, 6); // Show only 6 projects on main page
   
   // Debug: Log data to see what we're receiving
   console.log('Home page data:', data)
   console.log('Projects data:', projectData)
 
     return (
-     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 lg:px-0 mb-4 overflow-x-hidden'>
-       <div id="home">
+     <div ref={mainRef} className='relative bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 lg:px-0 mb-4 overflow-x-hidden'>
+       {/* Bottom fade overlay for smoother scroll feel */}
+       <div className='fixed bottom-0 left-0 right-0 h-24 pointer-events-none z-40 bg-linear-to-t from-white/80 via-white/40 to-transparent dark:from-zinc-950/80 dark:via-zinc-950/40 dark:to-transparent backdrop-blur-[2px]' />
+       
+       <div id="home" ref={headerRef}>
         <Header />
         <Socials />
         <Spotify />
@@ -219,7 +384,7 @@ const Home = () => {
    
 
       {/* Work */}
-      <div id="experience" className='mt-8 mb-2'>
+      <div id="experience" ref={experienceRef} className='mt-12 mb-12'>
         <p className='text-gray-400 dark:text-gray-500 '>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
       </div>
@@ -293,7 +458,7 @@ const Home = () => {
                   
                   {/* Expanded Content */}
                   {isExpanded && (
-                    <div className="mt-6 space-y-6">
+                    <div className="mt-12 space-y-6">
                       {/* Technologies & Tools */}
                       <div>
                         <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm">Technologies & Tools</h5>
@@ -334,15 +499,15 @@ const Home = () => {
           );
         })}
         
-        <div className='w-full flex justify-center items-center mt-8'>
-            <Link to="/work" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-6 py-3 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Work Experiences </Link>
+        <div className='w-full flex justify-center items-center mt-12'>
+            <Link to="/work" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Work Experiences </Link>
         </div>
       </div>
 
     {/* Project */}
-    <div id="projects">
+    <div id="projects" ref={projectsRef}>
 
-     <div className='mt-8 mb-8'>
+     <div className='mt-12 mb-12'>
         <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Projects</h1>
       </div>
@@ -351,7 +516,7 @@ const Home = () => {
 
   <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 cursor-pointer'>
     {projectData.map((project, idx) => (
-      <div key={project.id || idx} className='rounded-xl overflow-hidden border border-gray-200  shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-zinc-950 dark:border-zinc-800'>
+      <div key={project.id || idx} className='project-card rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-zinc-950 dark:border-zinc-800'>
         
         {/* Project Media */}
         <div className='h-48 w-full bg-gray-100 dark:bg-zinc-800'>
@@ -365,48 +530,32 @@ const Home = () => {
         </div>
 
         {/* Project Info */}
-        <div className='p-6'>
-          <div className='flex items-center justify-between'>
-            <h2 className='font-semibold text-xl text-gray-900 dark:text-white'>{project.name}</h2>
-                 {/* Links */}
-          <div className='flex items-center gap-3 text-gray-400 dark:text-gray-500 text-lg'>
-            <Tip title="View github repository" placement="top" arrow isDark={isDark}>
-            <a href={project.github} target="_blank" rel="noopener noreferrer" className='flex items-center gap-1 hover:text-black dark:hover:text-white transition'>
-              <FaGithub />
-            </a>
-            </Tip>
-            <Tip title="View project website" placement="top" arrow isDark={isDark}>
-            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className='flex items-center gap-1 hover:text-black dark:hover:text-white transition'>
-              <FaGlobe /> 
-            </a>
-            </Tip>
-          </div>
-           
-          </div>
-
-          <div className='mt-4 mb-4'>
-            <p className='text-gray-600 dark:text-gray-400 text-md font-medium leading-relaxed'>
-              {expandedProjects[project.id] 
-                ? project.description 
-                : project.description?.length > 100 
-                  ? `${project.description.substring(0, 100)}...` 
-                  : project.description
-              }
-            </p>
-            {project.description?.length > 100 && (
-              <button
-                onClick={() => toggleProjectDescription(project.id)}
-                className='text-blue-600 hover:text-blue-800 text-sm font-medium mt-1 transition-colors'
-              >
-                {expandedProjects[project.id] ? 'Read less' : 'Read more'}
-              </button>
-            )}
+        <div className='p-4'>
+          <div className='flex items-center justify-between mb-2'>
+            <h2 className='font-semibold text-base text-gray-900 dark:text-white truncate'>{project.name}</h2>
+            {/* Links */}
+            <div className='flex items-center gap-2 text-gray-400 dark:text-gray-500'>
+              <Tip title="GitHub" placement="top" arrow isDark={isDark}>
+                <a href={project.github} target="_blank" rel="noopener noreferrer" className='hover:text-black dark:hover:text-white transition'>
+                  <FaGithub size={14} />
+                </a>
+              </Tip>
+              <Tip title="Live Demo" placement="top" arrow isDark={isDark}>
+                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className='hover:text-black dark:hover:text-white transition'>
+                  <FaGlobe size={14} />
+                </a>
+              </Tip>
+            </div>
           </div>
 
-          {/* Tech Stack */}
-          <div className='flex flex-wrap gap-3 mb-4'>
-            <p className='text-gray-600 dark:text-gray-400 text-sm w-full mb-2'>Technologies &amp; Tools</p>
-            {project.tech?.map((tech, i) => {
+          {/* Description - 2 lines max */}
+          <p className='text-gray-600 dark:text-gray-400 text-xs leading-relaxed line-clamp-2 mb-3'>
+            {project.description}
+          </p>
+
+          {/* Tech Stack - limited */}
+          <div className='flex flex-wrap gap-2 mb-3'>
+            {project.tech?.slice(0, 4).map((tech, i) => {
               const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name
               const techLabel = typeof tech === 'string' ? tech : tech.name || tech.icon
 
@@ -420,21 +569,23 @@ const Home = () => {
                 </Tip>
               )
             })}
+            {project.tech?.length > 4 && (
+              <span className="text-xs text-gray-400 dark:text-gray-500 self-center">+{project.tech.length - 4}</span>
+            )}
           </div>
 
-             <span className="text-xs px-2 py-1 rounded-md bg-green-500 text-emerald-900 font-medium ">{project.status || 'Completed'}</span>
-     
+          <span className="text-xs px-2 py-0.5 rounded-md bg-green-500 text-emerald-900 font-medium">{project.status || 'Completed'}</span>
         </div>
       </div>
     ))}
   </div>
           <div className='w-full flex justify-center items-center mt-8'>
-            <Link to="/projects" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-6 py-3 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Projects</Link>
+            <Link to="/projects" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Projects</Link>
         </div>
     </div>
 
 
-    <div id="about" className='mt-8 mb-8'>
+    <div id="about" ref={aboutRef} className='mt-8 mb-8'>
         <p className='text-gray-400 dark:text-gray-500'>About</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Me</h1>
       </div>
@@ -442,7 +593,7 @@ const Home = () => {
         <AboutMe />
       </div>
 
-      <div id="certificates" className='mt-16 mb-8'>
+      <div id="certificates" ref={certificatesRef} className='mt-16 mb-8'>
         <p className='text-gray-400 dark:text-gray-500 '>Certificates</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Certificates</h1>
       </div>
@@ -453,7 +604,7 @@ const Home = () => {
 
 
 
-      <div className='mt-8 mb-2'>
+      <div ref={meetingRef} className='mt-8 mb-2'>
         <div className='w-full flex flex-col justify-center items-center p-4 gap-4 border border-gray-200 dark:border-zinc-700 rounded-md border-dashed bg-zinc-100 dark:bg-zinc-900'>
             <p className='text-black dark:text-zinc-200'>Hey there! Want to chat? I'm available for quick meetings.</p>
             <button 
@@ -472,11 +623,11 @@ const Home = () => {
         </div>
       </div>
 
-      <div id="setup" className='mt-16 mb-8'>
+      <div id="setup" ref={setupRef} className='mt-16 mb-8'>
       <p className='text-gray-400 dark:text-gray-500'>Setup</p>
       <h1 className='text-black dark:text-white font-bold text-3xl'>Development</h1>
         <Link to="/gears">
-        <div className='flex justify-between items-start mt-8 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
+        <div className='setup-card flex justify-between items-start mt-8 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
           <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-6 rounded-md gap-4'>
             <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded'>
               <GoGear size={30} className='text-gray-900 dark:text-zinc-200'/>
@@ -493,7 +644,7 @@ const Home = () => {
         </Link>
 
         <Link to="/setup">
-        <div className='flex justify-between items-start mt-6 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
+        <div className='setup-card flex justify-between items-start mt-6 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
           <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-6 rounded-md gap-4'>
             <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded'>
               <img src={cursorIcon} alt="Cursor" className="w-8 h-8" />
