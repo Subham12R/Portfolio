@@ -26,7 +26,7 @@ import { FaSquareXTwitter } from 'react-icons/fa6'
 import Assistant from '../components/Common/Assistant'
 import { usePreloader } from '../contexts/PreloaderContext'
 import cursorIcon from '../assets/logo/cursor.webp'
-import Gallery from '../components/Common/Gallery'
+import Snowfall from 'react-snowfall'
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger)
@@ -372,6 +372,8 @@ const Home = () => {
     return (
      <div ref={mainRef} className='relative bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 lg:px-0 mb-4 overflow-x-hidden'>
        {/* Bottom fade overlay for smoother scroll feel */}
+        <Snowfall />
+       
        <div className='fixed bottom-0 left-0 right-0 h-24 pointer-events-none z-40 bg-linear-to-t from-white/80 via-white/40 to-transparent dark:from-zinc-950/80 dark:via-zinc-950/40 dark:to-transparent backdrop-blur-[2px]' />
        
        <div id="home" ref={headerRef}>
@@ -385,6 +387,7 @@ const Home = () => {
 
       {/* Work */}
       <div id="experience" ref={experienceRef} className='mt-12 mb-12'>
+        
         <p className='text-gray-400 dark:text-gray-500 '>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
       </div>

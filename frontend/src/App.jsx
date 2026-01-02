@@ -22,6 +22,7 @@ import WakaTimeCallback from './pages/WakaTimeCallback'
 import UserLayout from './components/Layout/UserLayout'
 import Components from './pages/Components'
 
+import Snowfall from 'react-snowfall'
 
 // Routes wrapper
 function AnimatedRoutes() {
@@ -40,6 +41,9 @@ function AnimatedRoutes() {
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
+       
+    <Snowfall snowflakeCount={50} />
+  
       <Routes location={location}>
         <Route path="/" element={<UserLayout />}>
           <Route index element={<Home />} />

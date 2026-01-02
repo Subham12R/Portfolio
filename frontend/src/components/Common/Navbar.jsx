@@ -5,6 +5,7 @@ import { ThemeToggleButton } from '../Layout/ThemeToggle'
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
 import { RiSideBarFill } from "react-icons/ri";
+import Weather from './Weather'
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -147,9 +148,11 @@ const Navbar = () => {
 
           </div>
 
-  
+          {/* Weather Display */}
+         
 
-          <div>
+          <div className='flex flex-row gap-4'>
+             {/* <Weather /> */}
             <ThemeToggleButton className="border shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]" />
           </div>
 
