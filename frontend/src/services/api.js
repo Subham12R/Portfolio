@@ -6,7 +6,7 @@ const getApiBaseUrl = () => {
   }
   
   // Priority 2: Default to production URL (for all deployments)
-  const productionUrl = 'https://portfolio-ea4s.onrender.com';
+  const productionUrl = 'https://portfolio-subham12r-4fso2.ondigitalocean.app/';
   
   // Priority 3: Only use localhost if explicitly in development mode AND running locally
   // This ensures production builds always use the production URL
