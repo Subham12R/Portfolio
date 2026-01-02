@@ -725,4 +725,93 @@ router.get('/token-diagnostics', async (req, res) => {
   }
 });
 
+// Search YouTube and get audio stream URL
+router.get('/youtube-audio', async (req, res) => {
+  try {
+    const { song, artist } = req.query;
+    
+    if (!song) {
+      return res.status(400).json({ error: 'Song name is required' });
+    }
+
+    const searchQuery = `${song} ${artist || ''} official audio`.trim();
+    
+    // Use Invidious API (privacy-respecting YouTube frontend) to search and get audio
+    const invidiousInstances = [
+      'https://inv.nadeko.net',
+      'https://invidious.nerdvpn.de',
+      'https://yt.artemislena.eu',
+      'https://invidious.privacyredirect.com'
+    ];
+
+    let audioUrl = null;
+    let videoTitle = null;
+
+    for (const instance of invidiousInstances) {
+      try {
+        // Search for the video
+        const searchResponse = await fetch(
+          `${instance}/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=video`,
+          { timeout: 5000 }
+        );
+        
+        if (!searchResponse.ok) continue;
+        
+        const searchResults = await searchResponse.json();
+        
+        if (!searchResults || searchResults.length === 0) continue;
+
+        const videoId = searchResults[0].videoId;
+        videoTitle = searchResults[0].title;
+
+        // Get video details with audio format
+        const videoResponse = await fetch(
+          `${instance}/api/v1/videos/${videoId}`,
+          { timeout: 5000 }
+        );
+        
+        if (!videoResponse.ok) continue;
+        
+        const videoData = await videoResponse.json();
+        
+        // Find audio-only format (prefer higher quality)
+        const audioFormats = videoData.adaptiveFormats?.filter(f => 
+          f.type?.startsWith('audio/') || f.encoding === 'opus' || f.encoding === 'aac'
+        ) || [];
+
+        if (audioFormats.length > 0) {
+          // Sort by bitrate and get best quality
+          audioFormats.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+          audioUrl = audioFormats[0].url;
+          break;
+        }
+      } catch (instanceError) {
+        console.log(`Instance ${instance} failed:`, instanceError.message);
+        continue;
+      }
+    }
+
+    if (!audioUrl) {
+      return res.status(404).json({ 
+        error: 'Could not find audio for this track',
+        searchQuery 
+      });
+    }
+
+    res.json({
+      success: true,
+      audioUrl,
+      title: videoTitle,
+      searchQuery
+    });
+
+  } catch (error) {
+    console.error('YouTube audio error:', error);
+    res.status(500).json({
+      error: 'Failed to get YouTube audio',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;
