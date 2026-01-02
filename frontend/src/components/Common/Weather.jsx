@@ -17,7 +17,7 @@ const Weather = () => {
           setTemperature(Math.round(data.current.temperature_2m))
         }
         setLoading(false)
-      } catch (err) {
+      } catch {
         setError('Failed to fetch weather')
         setLoading(false)
       }
@@ -34,7 +34,7 @@ const Weather = () => {
         (position) => {
           fetchWeather(position.coords.latitude, position.coords.longitude)
         },
-        (err) => {
+        () => {
           // Fallback to IP-based location or default
           setError('Location denied')
           setLoading(false)

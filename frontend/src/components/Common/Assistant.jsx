@@ -121,7 +121,7 @@ const Assistant = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 pointer-events-none z-[9999]"
+            className="fixed inset-0 pointer-events-none z-9999"
           >
             {/* Animated gradient border */}
             <div className="absolute inset-0 overflow-hidden">
@@ -142,7 +142,7 @@ const Assistant = () => {
             </div>
             
             {/* Subtle inner glow */}
-            <div className="absolute inset-[4px] rounded-sm pointer-events-none shadow-[inset_0_0_100px_rgba(59,130,246,0.08)]" />
+            <div className="absolute inset-1 rounded-sm pointer-events-none shadow-[inset_0_0_100px_rgba(59,130,246,0.08)]" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -163,7 +163,7 @@ const Assistant = () => {
             style={{
               filter: "url(#SkiperGooeyFilter)",
             }}
-            className={`fixed md:bottom-20 md:right-12 bottom-20 right-4 w-[480px] max-w-[calc(100vw-2rem)] h-[600px] rounded-lg border  border-zinc-300 dark:border-zinc-700 shadow-sm flex flex-col overflow-hidden z-[100] ${
+            className={`fixed md:bottom-20 md:right-12 bottom-20 right-4 w-[480px] max-w-[calc(100vw-2rem)] h-[600px] rounded-lg border border-zinc-300 dark:border-zinc-700 shadow-sm flex flex-col overflow-hidden z-100 ${
               isDark 
                 ? 'bg-zinc-900 border-zinc-700 shadow-[0_20px_50px_rgba(0,0,0,0.5)]' 
                 : 'bg-white border-zinc-300 shadow-[0_20px_50px_rgba(0,0,0,0.15)]'
@@ -420,7 +420,7 @@ const Assistant = () => {
         style={{
           filter: "url(#SkiperGooeyFilter)",
         }}
-        className={`fixed md:bottom-5 md:right-5 bottom-4 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 z-[101] border-2 cursor-grab active:cursor-grabbing ${
+        className={`fixed md:bottom-5 md:right-5 bottom-4 right-4 w-14 h-14 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 z-101 border-2 cursor-grab active:cursor-grabbing ${
           isDark
             ? 'bg-zinc-800 hover:bg-zinc-700 border-zinc-600 shadow-[0_10px_30px_rgba(0,0,0,0.4)]'
             : 'bg-white hover:bg-zinc-50 border-zinc-300 shadow-[0_10px_30px_rgba(0,0,0,0.1)]'
