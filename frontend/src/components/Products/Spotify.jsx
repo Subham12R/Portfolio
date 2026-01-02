@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { FaSpotify } from 'react-icons/fa'
 
 // API Base URL - Use production URL by default
@@ -27,11 +27,6 @@ const Spotify = () => {
   const [playerStatus, setPlayerStatus] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
   // Load cached data from localStorage
   const loadCachedData = useCallback(() => {
@@ -161,27 +156,6 @@ const Spotify = () => {
       setIsOnline(true);
       
       if (data.success && data.displayTrack) {
-        // If no preview_url, try to fetch track details to get it
-        if (!data.displayTrack.preview_url && data.displayTrack.id) {
-          try {
-            const trackResponse = await fetch(`${API_BASE_URL}/api/spotify/track/${data.displayTrack.id}`, {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              mode: 'cors'
-            });
-            if (trackResponse.ok) {
-              const trackData = await trackResponse.json();
-              if (trackData.success && trackData.track?.preview_url) {
-                data.displayTrack.preview_url = trackData.track.preview_url;
-              }
-            }
-          } catch (e) {
-            console.log('Could not fetch track preview URL:', e);
-          }
-        }
-        
         setPlayerStatus(data);
         // Cache the data
         saveCachedData(data);
@@ -242,57 +216,10 @@ const Spotify = () => {
     };
   }, [fetchPlayerStatus, checkNetworkStatus, loadCachedData]);
 
-  // Setup audio element
-  useEffect(() => {
-    const audio = new Audio();
-    audioRef.current = audio;
-
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
-
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    };
-
-    const handleError = () => {
-      console.error('Audio playback error');
-      setIsPlaying(false);
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-      audio.pause();
-    };
-  }, []);
-
   // Get the current track
   const currentTrack = playerStatus?.displayTrack;
   const trackType = playerStatus?.trackType || 'last_played';
   const isNowPlaying = trackType === 'now_playing';
-
-  // Reset audio when track changes
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-      setCurrentTime(0);
-      setDuration(0);
-    }
-  }, [currentTrack?.id]);
 
   // Get Spotify URL for the track
   const getSpotifyUrl = () => {
@@ -302,99 +229,6 @@ const Spotify = () => {
     }
     // Fallback: construct URL from track ID
     return `https://open.spotify.com/track/${currentTrack.id}`;
-  };
-
-  // Format time in MM:SS
-  const formatTime = (seconds) => {
-    if (!seconds || isNaN(seconds)) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Fetch YouTube audio URL
-  const fetchYouTubeAudio = async () => {
-    if (!currentTrack) return null;
-    
-    const songName = currentTrack.name || '';
-    const artistName = currentTrack.artists?.map(a => a.name).join(' ') || '';
-    
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/spotify/youtube-audio?song=${encodeURIComponent(songName)}&artist=${encodeURIComponent(artistName)}`
-      );
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch audio');
-      }
-      
-      const data = await response.json();
-      return data.audioUrl;
-    } catch (error) {
-      console.error('Error fetching YouTube audio:', error);
-      return null;
-    }
-  };
-
-  // Handle audio play/pause
-  const handlePlayPause = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!audioRef.current) return;
-
-    // If already playing, just pause
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-      return;
-    }
-
-    // If we have a source, play it
-    if (audioRef.current.src && audioRef.current.src !== window.location.href) {
-      audioRef.current.play().catch(error => {
-        console.error('Playback error:', error);
-      });
-      setIsPlaying(true);
-      return;
-    }
-
-    // Try Spotify preview first
-    if (currentTrack?.preview_url) {
-      audioRef.current.src = currentTrack.preview_url;
-      audioRef.current.play().catch(error => {
-        console.error('Playback error:', error);
-      });
-      setIsPlaying(true);
-      return;
-    }
-
-    // Fallback: fetch from YouTube
-    setIsLoadingAudio(true);
-    const youtubeAudioUrl = await fetchYouTubeAudio();
-    setIsLoadingAudio(false);
-    
-    if (youtubeAudioUrl) {
-      audioRef.current.src = youtubeAudioUrl;
-      audioRef.current.play().catch(error => {
-        console.error('Playback error:', error);
-      });
-      setIsPlaying(true);
-    } else {
-      console.log('No audio source available');
-    }
-  };
-
-  // Handle progress slider change
-  const handleSliderChange = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!audioRef.current) return;
-    
-    const newTime = parseFloat(e.target.value);
-    audioRef.current.currentTime = newTime;
-    setCurrentTime(newTime);
   };
 
   // Show loading or empty state
@@ -431,34 +265,22 @@ const Spotify = () => {
     );
   }
 
-  // Show music player card
+  // Show music player card (clickable to open Spotify)
   return (
-    <div className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200'>
+    <a
+      href={getSpotifyUrl()}
+      target="_blank"
+      rel="noopener noreferrer"
+      className='w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-lg p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200 cursor-pointer block'
+    >
       <div className='flex items-center gap-3'>
-        {/* Album art */}
-        <div className='relative h-16 w-16 shrink-0'>
-          <img 
-            src={currentTrack.album?.images[2]?.url || currentTrack.album?.images[0]?.url || 'https://picsum.photos/200'} 
-            alt={currentTrack.name}
-            className='h-16 w-16 rounded object-cover'
-          />
-          {/* Show playing indicator */}
-          {isPlaying && (
-            <div className='absolute bottom-1 right-1 flex items-center gap-0.5'>
-              <span className='w-0.5 h-2 bg-green-500 rounded-full animate-pulse'></span>
-              <span className='w-0.5 h-3 bg-green-500 rounded-full animate-pulse' style={{animationDelay: '0.2s'}}></span>
-              <span className='w-0.5 h-2 bg-green-500 rounded-full animate-pulse' style={{animationDelay: '0.4s'}}></span>
-            </div>
-          )}
-        </div>
+        <img 
+          src={currentTrack.album?.images[2]?.url || currentTrack.album?.images[0]?.url || 'https://picsum.photos/200'} 
+          alt={currentTrack.name}
+          className='h-16 w-16 rounded object-cover shrink-0'
+        />
         
-        {/* Track info */}
-        <a
-          href={getSpotifyUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className='flex-1 min-w-0 cursor-pointer'
-        >
+        <div className='flex-1 min-w-0'>
           <div className='flex items-center gap-2 mb-1'>
             <FaSpotify className={`text-green-500 ${isNowPlaying ? 'animate-pulse' : ''}`} size={14} />
             <span className={`text-xs font-semibold ${isNowPlaying ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -472,60 +294,9 @@ const Spotify = () => {
           <p className='text-gray-500 dark:text-gray-400 text-xs truncate'>
             {currentTrack.artists?.map(a => a.name).join(', ')}
           </p>
-        </a>
-
-        {/* Glass-style Play button */}
-        <button
-          onClick={handlePlayPause}
-          disabled={isLoadingAudio}
-          className='shrink-0 w-10 h-10 flex items-center justify-center rounded-full cursor-pointer transition-all duration-200 bg-white/10 dark:bg-white/5 backdrop-blur-sm border border-white/20 dark:border-white/10 hover:bg-white/20 dark:hover:bg-white/10 hover:scale-105 active:scale-95'
-          title={isPlaying ? 'Pause' : 'Play'}
-        >
-          {isLoadingAudio ? (
-            <svg className='w-5 h-5 text-gray-600 dark:text-gray-300 animate-spin' fill='none' viewBox='0 0 24 24'>
-              <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
-              <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
-            </svg>
-          ) : isPlaying ? (
-            <svg className='w-5 h-5 text-gray-600 dark:text-gray-300' fill='currentColor' viewBox='0 0 20 20'>
-              <rect x='5' y='3' width='3' height='14' rx='1' />
-              <rect x='12' y='3' width='3' height='14' rx='1' />
-            </svg>
-          ) : (
-            <svg className='w-5 h-5 text-gray-600 dark:text-gray-300 ml-0.5' fill='currentColor' viewBox='0 0 20 20'>
-              <path d='M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z' />
-            </svg>
-          )}
-        </button>
-      </div>
-
-      {/* Progress bar - show when has audio source */}
-      {(isPlaying || currentTime > 0 || duration > 0) && (
-        <div className='mt-3 pt-3 border-t border-gray-200 dark:border-zinc-700'>
-          <div className='flex items-center gap-2'>
-            <span className='text-xs text-gray-500 dark:text-gray-400 shrink-0 w-8'>
-              {formatTime(currentTime)}
-            </span>
-            
-            <input
-              type='range'
-              min='0'
-              max={duration || 30}
-              value={currentTime}
-              onChange={handleSliderChange}
-              className='flex-1 h-1.5 rounded-lg appearance-none cursor-pointer'
-              style={{
-                background: `linear-gradient(to right, #22c55e 0%, #22c55e ${duration ? (currentTime / duration) * 100 : 0}%, #52525b ${duration ? (currentTime / duration) * 100 : 0}%, #52525b 100%)`
-              }}
-            />
-
-            <span className='text-xs text-gray-500 dark:text-gray-400 shrink-0 w-8 text-right'>
-              {formatTime(duration)}
-            </span>
-          </div>
         </div>
-      )}
-    </div>
+      </div>
+    </a>
   );
 };
 
