@@ -16,6 +16,23 @@ import GitHubCalendar from 'react-github-calendar';
 import { useTheme } from '../../contexts/ThemeContext';
 import Socials from '../Products/Socials';
 
+// Import tech stack logos
+import jsLogo from '../../assets/logo/js.png';
+import typescriptLogo from '../../assets/logo/typescript.png';
+import htmlLogo from '../../assets/logo/html.png';
+import cssLogo from '../../assets/logo/css.png';
+import reactLogo from '../../assets/logo/react.png';
+import nextjsLogo from '../../assets/logo/nextjs.jpeg';
+import tailwindLogo from '../../assets/logo/tailwindcss.jpeg';
+import nodejsLogo from '../../assets/logo/nodejs.png';
+import mongodbLogo from '../../assets/logo/mongodb.png';
+import supabaseLogo from '../../assets/logo/supabase.jpeg';
+import githubLogo from '../../assets/logo/github.png';
+import figmaLogo from '../../assets/logo/figma.png';
+import gsapLogo from '../../assets/logo/gsap.svg';
+import framerLogo from '../../assets/logo/framer.jpeg';
+import lenisLogo from '../../assets/logo/lenis.png';
+
 
 const Header = () => {
   // Initialize Cal.com embed
@@ -111,61 +128,57 @@ const { theme } = useTheme();
                 <div className='grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-3'>
                   {/* Programming Languages */}
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src="/src/assets/logo/js.png" alt="JavaScript" className='w-full h-full object-cover' />
+                    <img src={jsLogo} alt="JavaScript" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src="/src/assets/logo/typescript.png" alt="TypeScript" className='w-full h-full object-cover' />
+                    <img src={typescriptLogo} alt="TypeScript" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform '>
-                    <img src="/src/assets/logo/html.png" alt="HTML" className='w-full h-full object-cover' />
+                    <img src={htmlLogo} alt="HTML" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
-                    <img src="/src/assets/logo/css.png" alt="CSS" className='w-full h-full object-cover' />
+                    <img src={cssLogo} alt="CSS" className='w-full h-full object-cover' />
                   </div>
                   
                   {/* Frontend Frameworks */}
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src="/src/assets/logo/react.png" alt="React" className='w-full h-full object-cover' />
+                    <img src={reactLogo} alt="React" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src="/src/assets/logo/nextjs.jpeg" alt="Next.js" className='w-full h-full object-cover' />
+                    <img src={nextjsLogo} alt="Next.js" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src="/src/assets/logo/tailwindcss.jpeg" alt="Tailwind CSS" className='w-full h-full object-cover' />
+                    <img src={tailwindLogo} alt="Tailwind CSS" className='w-full h-full object-cover' />
                   </div>
                   
                   {/* Backend & Database */}
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src="/src/assets/logo/nodejs.png" alt="Node.js" className='w-full h-full object-cover' />
+                    <img src={nodejsLogo} alt="Node.js" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden '>
-                    <img src="/src/assets/logo/mongodb.png" alt="MongoDB" className='w-full h-full object-cover' />
+                    <img src={mongodbLogo} alt="MongoDB" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src="/src/assets/logo/supabase.jpeg" alt="Supabase" className='w-full h-full object-cover' />
+                    <img src={supabaseLogo} alt="Supabase" className='w-full h-full object-cover' />
                   </div>
                   
                   {/* Tools & Services */}
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
-                    <img src="/src/assets/logo/github.png" alt="GitHub" className='w-full h-full object-cover' />
+                    <img src={githubLogo} alt="GitHub" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
-                    <img src="/src/assets/logo/figma.png" alt="Figma" className='w-full h-full object-cover' />
+                    <img src={figmaLogo} alt="Figma" className='w-full h-full object-cover' />
                   </div>
                   {/* Animation & Libraries */}
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 bg-black transition-transform'>
-                    <img src="/src/assets/logo/gsap.svg" alt="GSAP" className='w-full h-full object-cover' />
+                    <img src={gsapLogo} alt="GSAP" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src="/src/assets/logo/framer.jpeg" alt="Framer Motion" className='w-full h-full object-cover' />
+                    <img src={framerLogo} alt="Framer Motion" className='w-full h-full object-cover' />
                   </div>
                   <div className='w-10 h-10  rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src="/src/assets/logo/lenis.png" alt="Lenis" className='w-full h-full object-cover' />
+                    <img src={lenisLogo} alt="Lenis" className='w-full h-full object-cover' />
                   </div>
-                  
-       
-                  
-              
                 </div>
               </div>
             </div>
