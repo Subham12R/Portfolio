@@ -26,7 +26,7 @@ import Assistant from '../components/Common/Assistant'
 import { usePreloader } from '../contexts/PreloaderContext'
 import Snowfall from 'react-snowfall'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { Calendar02Icon, EarthIcon, GithubIcon, Linkedin01Icon, NewTwitterRectangleIcon, SourceCodeIcon } from '@hugeicons/core-free-icons';
+import { ArrowRight01Icon, Calendar02Icon, EarthIcon, GithubIcon, Linkedin01Icon, NewTwitterRectangleIcon, SourceCodeIcon } from '@hugeicons/core-free-icons';
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger)
 
@@ -75,6 +75,7 @@ const Home = () => {
   const certificatesRef = useRef(null);
   const meetingRef = useRef(null);
   const setupRef = useRef(null);
+  const expandedContentRefs = useRef([]);
 
   // GSAP Animations
   useLayoutEffect(() => {
@@ -233,6 +234,61 @@ const Home = () => {
     return () => ctx.revert();
   }, [isPreloaderComplete]);
 
+  // Animate experience expand/collapse
+  useEffect(() => {
+    const experienceData = data?.workExperience?.filter(exp => exp.featured) || [];
+    if (!experienceData.length) return;
+    
+    experienceData.forEach((_, idx) => {
+      const contentRef = expandedContentRefs.current[idx];
+      if (!contentRef) return;
+
+      if (expandedExperience === idx) {
+        // Set initial state
+        gsap.set(contentRef, {
+          height: 'auto',
+          opacity: 0,
+          y: -20
+        });
+        
+        // Get target height
+        const targetHeight = contentRef.scrollHeight;
+        
+        // Reset and animate
+        gsap.set(contentRef, { height: 0 });
+        gsap.to(contentRef, {
+          height: targetHeight,
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          ease: "power3.out"
+        });
+        
+        // Stagger animate children
+        gsap.fromTo(contentRef.children,
+          { opacity: 0, y: 15 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.4,
+            stagger: 0.1,
+            delay: 0.2,
+            ease: "power2.out"
+          }
+        );
+      } else if (contentRef.style.height !== '0px' && contentRef.style.height !== '') {
+        // Collapse animation
+        gsap.to(contentRef, {
+          height: 0,
+          opacity: 0,
+          y: -20,
+          duration: 0.3,
+          ease: "power3.inOut"
+        });
+      }
+    });
+  }, [expandedExperience, data]);
+
 
 
   // Function to get icon for tech stack
@@ -377,25 +433,26 @@ const Home = () => {
        
        <div id="home" ref={headerRef}>
         <Header />
-        <Socials />
-        <Spotify />
+      {/* <Socials /> */}
+        {/* <Spotify /> */}
       </div>
 
 
    
 
       {/* Work */}
-      <div id="experience" ref={experienceRef} className='mt-12 mb-2'>
+      <div id="experience" ref={experienceRef} className='mt-8 mb-2 underline-offset-4 underline decoration-dashed'>
         
-        <p className='text-gray-400 dark:text-gray-500 '>Featured.</p>
-        <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
+
+        <h1 className='text-black dark:text-white font-bold text-3xl'>Experience.</h1>
       </div>
       <div className="mb-8 space-y-6">
         {experienceData.map((exp, idx) => {
           const isExpanded = expandedExperience === idx;
           const isCurrentJob = exp.status === 'Working' || exp.status === 'Current';
           return (
-            <div key={exp.id || idx} className="bg-white dark:bg-zinc-950">
+            <div key={exp.id || idx} className="bg-white dark:bg-zinc-950 cursor-pointer "
+                 onClick={() => setExpandedExperience(isExpanded ? null : idx)}>
               <div className="flex items-start gap-6 py-6">
                 {/* Company Logo */}
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0" 
@@ -421,31 +478,32 @@ const Home = () => {
                         )}
                         <div className="flex items-center gap-2 sm:ml-auto">
                           <Tip title="Website" placement="top" arrow isDark={isDark}>
-                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'>
+                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'
+                               onClick={(e) => e.stopPropagation()}>
                               <HugeiconsIcon icon={EarthIcon} size={16} />
                             </a>
                           </Tip>
                           <Tip title="X (Twitter)" placement="top" arrow isDark={isDark}>
-                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'>
+                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'
+                               onClick={(e) => e.stopPropagation()}>
                               <HugeiconsIcon icon={NewTwitterRectangleIcon} size={16} />
                             </a>
                           </Tip>
                           <Tip title="LinkedIn" placement="top" arrow isDark={isDark}>
-                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'>
+                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'
+                               onClick={(e) => e.stopPropagation()}>
                               <HugeiconsIcon icon={Linkedin01Icon} size={16} />
                             </a>
                           </Tip>
                           <Tip title="GitHub" placement="top" arrow isDark={isDark}>
-                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'>
+                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'
+                               onClick={(e) => e.stopPropagation()}>
                               <HugeiconsIcon icon={GithubIcon} size={16} />
                             </a>
                           </Tip>
-                          <button
-                            onClick={() => setExpandedExperience(isExpanded ? null : idx)}
-                            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                          >
+                          <div className="text-zinc-400">
                             {isExpanded ? <HiChevronUp className="w-4 h-4" /> : <HiChevronDown className="w-4 h-4" />}
-                          </button>
+                          </div>
                         </div>
                       </div>
                         <h4 className="text-zinc-600 dark:text-zinc-600 text-sm font-medium wrap-break-word">{exp.role}</h4>
@@ -459,7 +517,11 @@ const Home = () => {
                   </div>
                   
                   {/* Expanded Content */}
-                  {isExpanded && (
+                  <div 
+                    ref={el => expandedContentRefs.current[idx] = el}
+                    className="overflow-hidden"
+                    style={{ height: expandedExperience === idx ? 'auto' : '0px' }}
+                  >
                     <div className="mt-4 space-y-6">
                       {/* Technologies & Tools */}
                       <div>
@@ -494,7 +556,7 @@ const Home = () => {
                         </ul>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -509,19 +571,19 @@ const Home = () => {
     {/* Project */}
     <div id="projects" ref={projectsRef}>
 
-     <div className='mt-12 mb-2'>
-        <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
-        <h1 className='text-black dark:text-white font-bold text-3xl'>Projects</h1>
+     <div className='mt-8 mb-2 underline-offset-4 underline decoration-dashed w-full'>
+        
+        <h1 className='text-black dark:text-white font-bold text-4xl'>Projects.</h1>
       </div>
       
   
 
-  <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 '>
+  <div className='grid grid-cols-1 lg:grid-cols-1 gap-4 '>
     {projectData.map((project, idx) => (
-      <div key={project.id || idx} className='project-card  overflow-hidden backdrop-blur-2xl border-2 shadow-sm hover:shadow-lg border-zinc-200 rounded-3xl p-2 transition-all transform duration-500 bg-zinc-50 dark:bg-zinc-950 dark:border-zinc-800'>
+      <div key={project.id || idx} className='project-card flex flex-col w-full h-full overflow-hidden backdrop-blur-2xl border-2 shadow-sm hover:shadow-lg border-zinc-200 rounded-3xl p-2 transition-all transform duration-500 bg-zinc-50 dark:bg-zinc-950 dark:border-zinc-800'>
         
         {/* Project Media */}
-        <div className='h-48 w-full  rounded-2xl overflow-hidden outline-1 outline-gray-200 dark:outline-zinc-700 mb-2 cursor-pointer'>
+        <div className='h-full w-full  rounded-2xl overflow-hidden outline-1 outline-gray-200 dark:outline-zinc-700 mb-2 cursor-pointer'>
           <ProjectMediaPlayer
             mediaUrl={project.image}
             mediaType={project.mediaType || 'image'}
@@ -576,7 +638,11 @@ const Home = () => {
             )}
           </div>
 
+          
+          <div className='flex justify-between'>
           <span className="text-xs px-2 py-1 rounded-md bg-green-400 dark:bg-green-700 outline-emerald-500 text-green-700 dark:text-emerald-200 font-medium outline-dashed outline-1 shadow-[inset_0_0_10px_rgba(132,204,22,0.8)]">{project.status || 'Live'}</span>
+          <Link to={`/projects`} className=" text-sm text-zinc-400 dark:text-zinc-400 hover:underline ml-2"><span className='w-full flex justify-center items-center'>View Details <HugeiconsIcon icon={ArrowRight01Icon} size={14} /></span></Link>
+        </div>
         </div>
       </div>
     ))}
@@ -587,17 +653,16 @@ const Home = () => {
     </div>
 
 
-    <div id="about" ref={aboutRef} className='mt-8 mb-8'>
-        <p className='text-gray-400 dark:text-gray-500'>About</p>
-        <h1 className='text-black dark:text-white font-bold text-3xl'>Me</h1>
+    <div id="about" ref={aboutRef} className='mt-8 mb-2 underline-offset-4 underline decoration-dashed'>
+        <h1 className='text-4xl font-bold'>About Me. </h1>
       </div>
       <div className='mb-8'>
         <AboutMe />
       </div>
 
-      <div id="certificates" ref={certificatesRef} className='mt-16 mb-8'>
-        <p className='text-gray-400 dark:text-gray-500 '>Certificates</p>
-        <h1 className='text-black dark:text-white font-bold text-3xl'>Certificates</h1>
+      <div id="certificates" ref={certificatesRef} className='mt-8 mb-2 underline-offset-4 underline decoration-dashed'>
+        
+        <h1 className='text-black dark:text-white font-bold text-4xl '>Certifications.</h1>
       </div>
       <div className='mb-16'>
         <Certificates />
@@ -607,63 +672,39 @@ const Home = () => {
 
 
       <div ref={meetingRef} className='mt-8 mb-2'>
-        <div className='w-full flex flex-col justify-center items-center p-4 gap-4 border border-gray-200 dark:border-zinc-700 rounded-md border-dashed bg-zinc-100 dark:bg-zinc-900'>
+        <div className='w-full flex flex-col justify-center items-center gap-4 '>
             <p className='text-black dark:text-zinc-200'>Don't be shy to say hello! and give some feedbacks.</p>
-            <button 
-              data-cal-namespace="30min"
-              data-cal-link="subham12r/30min"
-              data-cal-config='{"layout":"month_view"}'
-              className='text-zinc-900 dark:text-zinc-200 border px-4 py-1 border-dashed border-zinc-200 dark:border-zinc-700 rounded-md bg-gray-50 dark:bg-zinc-800 
-                         hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1),inset_0_0_20px_rgba(255,255,255,0.3),inset_0_0_30px_rgba(255,255,255,0.2)] 
-                         dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1),inset_0_0_20px_rgba(255,255,255,0.1),inset_0_0_30px_rgba(255,255,255,0.1)]
-                         hover:border-white/80 dark:hover:border-white/80
-                         transition-all duration-300 cursor-pointer flex items-center gap-2 group'
-            >
-              <HugeiconsIcon icon={Calendar02Icon} size={16}/>
+            <div className='flex flex-col sm:flex-row gap-3 w-full sm:w-auto'>
+              <button 
+                data-cal-namespace="30min"
+                data-cal-link="subham12r/30min"
+                data-cal-config='{"layout":"month_view"}'
+                className='text-zinc-900 dark:text-zinc-200 border px-4 py-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-md bg-gray-50 dark:bg-zinc-800 
+                           hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1),inset_0_0_20px_rgba(255,255,255,0.3),inset_0_0_30px_rgba(255,255,255,0.2)] 
+                           dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1),inset_0_0_20px_rgba(255,255,255,0.1),inset_0_0_30px_rgba(255,255,255,0.1)]
+                           hover:border-white/80 dark:hover:border-white/80
+                           transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 group flex-1 sm:flex-none'
+              >
+                <HugeiconsIcon icon={Calendar02Icon} size={16}/>
+                Book a Meeting
+              </button>
+              
+              <Link 
+                to="/contact"
+                className='text-zinc-900 dark:text-zinc-200 border px-4 py-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-md bg-gray-50 dark:bg-zinc-800 
+                           hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1),inset_0_0_20px_rgba(255,255,255,0.3),inset_0_0_30px_rgba(255,255,255,0.2)] 
+                           dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1),inset_0_0_20px_rgba(255,255,255,0.1),inset_0_0_30px_rgba(255,255,255,0.1)]
+                           hover:border-white/80 dark:hover:border-white/80
+                           transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 group flex-1 sm:flex-none'
+              >
+                <HugeiconsIcon icon={ArrowRight01Icon} size={16}/>
+                Contact Me
+              </Link>
+            </div>
+        </div>
+      </div>
+
   
-          
-              Book a Meeting
-            </button>
-        </div>
-      </div>
-
-      <div id="setup" ref={setupRef} className='mt-16 mb-8'>
-      <p className='text-gray-400 dark:text-gray-500'>Setup</p>
-      <h1 className='text-black dark:text-white font-bold text-3xl'>Development</h1>
-        <Link to="/gears">
-        <div className='setup-card flex justify-between items-start mt-8 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
-          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-2 rounded-xl gap-4'>
-            <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center'>
-              <GoGear size={30} className='text-gray-900 dark:text-zinc-200'/>
-            </div>
-            <div className='ml-2'>
-              <h1 className='text-lg font-semibold tracking-tighter dark:text-white'>Gears Used</h1>
-              <p className='text-sm tracking-tighter dark:text-zinc-400'>Tools and the setup i use to get the work done.</p>
-            </div>
-            <div className='ml-auto p-4'>
-              <FaArrowRight className='text-sm text-gray-400 dark:text-zinc-500 hover:translate-x-2 transition duration-200 ease-in-out'/>
-            </div>
-          </div>
-        </div>
-        </Link>
-
-        <Link to="/setup">
-        <div className='setup-card flex justify-between items-start mt-6 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
-          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-2 rounded-xl gap-4'>
-            <div className='p-2 bg-gray-100 dark:bg-zinc-800 rounded-xl h-full flex items-center justify-center'>
-              <HugeiconsIcon icon={SourceCodeIcon} size={30} className='text-gray-900 dark:text-zinc-200'/>
-            </div>
-            <div className='ml-2'>
-              <h1 className='text-lg font-semibold tracking-tighter dark:text-white'>Cursor Setup</h1>
-              <p className='text-sm tracking-tighter dark:text-zinc-400'>My IDE setup for my development environment.</p>
-            </div>
-            <div className='ml-auto p-4'>
-              <FaArrowRight className='text-sm text-gray-400 dark:text-zinc-500 hover:translate-x-2 transition duration-200 ease-in-out'/>
-            </div>
-          </div>
-        </div>
-        </Link>
-      </div>
       
   
     {isPreloaderComplete && <Assistant />}

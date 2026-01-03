@@ -383,7 +383,7 @@ const Projects = () => {
       <div ref={headerRef} className="mb-12">
 
         <p className="text-gray-400 dark:text-gray-500 mb-2">Portfolio</p>
-        <h1 className="text-black dark:text-white font-bold text-3xl mb-2">My Projects</h1>
+        <h1 className="text-black dark:text-white font-bold text-3xl mb-2 underline-offset-4 underline decoration-dashed">My Projects</h1>
         <p className="text-gray-600 dark:text-zinc-400 mt-3 leading-relaxed">
           A collection of web applications and projects I've built using modern technologies.
         </p>
@@ -416,7 +416,7 @@ const Projects = () => {
               <div className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <h3 className="font-semibold text-lg text-black dark:text-white truncate">
+                    <h3 className="font-semibold text-lg text-black dark:text-white truncate underline-offset-4 underline decoration-dashed">
                       {project.name}
                     </h3>
                     {project.status && (

@@ -38,7 +38,7 @@ const Neko = () => {
   const [max, setMax] = useState(16)
   const [sprite, setSprite] = useState('down')
   
-  const speed = 0.5
+  const speed = 1
   const scale = 1.0
   const width = 32
   const height = 32

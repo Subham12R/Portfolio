@@ -191,7 +191,7 @@ const Work = () => {
       <Return />
       <div className="mb-12">
         <p className="text-gray-400 dark:text-gray-500 mb-2">Career</p>
-        <h1 className="text-black dark:text-white font-bold text-3xl mb-2">Work Experience</h1>
+        <h1 className="text-black dark:text-white font-bold text-3xl mb-2 underline-offset-4 underline decoration-dashed">Work Experience</h1>
         <p className="text-gray-600 dark:text-zinc-400 mt-3 leading-relaxed">
           My professional journey and the companies I've had the privilege to work with.
         </p>
@@ -220,7 +220,7 @@ const Work = () => {
                   <div className="flex flex-col  sm:flex-row items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-lg text-black dark:text-white truncate">{exp.company}</h3>
+                        <h3 className="font-semibold text-lg text-black dark:text-white truncate underline-offset-4 underline decoration-dashed">{exp.company}</h3>
                         
                         {isCurrentJob && (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500 text-white self-start">
@@ -256,7 +256,7 @@ const Work = () => {
                           </button>
                         </div>
                       </div>
-                        <h4 className="text-gray-600 dark:text-gray-400 text-sm font-medium break-words">{exp.role}</h4>
+                        <h4 className="text-gray-600 dark:text-gray-400 text-sm font-medium break-words underline-offset-4 underline decoration-dashed">{exp.role}</h4>
                     </div>
                     
                     {/* Date and Location */}
@@ -271,7 +271,7 @@ const Work = () => {
                     <div className="mt-6 space-y-6">
                       {/* Technologies & Tools */}
                       <div>
-                        <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm">Technologies & Tools</h5>
+                        <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm underline-offset-4 underline decoration-dashed">Technologies & Tools</h5>
                         <div className="flex flex-wrap gap-4">
                           {exp.tech?.map((tech, i) => {
                             const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name

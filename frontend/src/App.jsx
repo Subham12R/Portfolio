@@ -4,7 +4,6 @@ import Preloader from './components/Common/Preloader'
 import { PortfolioProvider } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { PreloaderProvider } from './contexts/PreloaderContext'
-import { ReactLenis } from 'lenis/react'
 import { Toaster } from 'sonner'
 
 // Import page components directly
@@ -82,7 +81,7 @@ function AppContent() {
     <>
       {showPreloader && <Preloader />}
       <BrowserRouter>
-        <ReactLenis root />
+        
         <AnimatedRoutes />
         <Toaster richColors position="top-center" />
       </BrowserRouter>

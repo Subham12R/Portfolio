@@ -1,302 +1,71 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import profileImage from '../../assets/pfp.jpeg'
+import csImage from '../../assets/cs.jpeg'
+import ctrlsImage from '../../assets/ctrls.jpeg'
+import devfestImage from '../../assets/devfest.jpeg'
 import { SiJavascript, SiExpress, SiPostgresql } from 'react-icons/si'
 import { DiVisualstudio } from 'react-icons/di'
 import GitHubCalendar from 'react-github-calendar';
 import { usePortfolio } from '../../contexts/PortfolioContext';
-import { useTheme } from '../../contexts/ThemeContext';
-import apiService from '../../services/api';
-import cursorIcon from '../../assets/logo/cursor.webp';
 import LogoBadge from './LogoBadge';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { HugeiconsIcon } from '@hugeicons/react'
+import { GithubIcon, NewTwitterRectangleIcon, Linkedin01Icon, YoutubeIcon, InstagramIcon, PinterestIcon, Mail01Icon } from '@hugeicons/core-free-icons'
+
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger);
 
 // Helper to check if editor is Cursor
-const isCursorEditor = (editorName) => {
-  if (!editorName) return false;
-  const editor = editorName.toLowerCase();
-  return editor.includes('cursor');
-};
 
-// Helper to check if editor is VS Code
-const isVSCodeEditor = (editorName) => {
-  if (!editorName) return false;
-  const editor = editorName.toLowerCase();
-  return editor.includes('vscode') || editor.includes('visual studio code') || editor.includes('code');
-};
-
-// Get editor icon component
-const getEditorIcon = (editorName) => {
-  if (!editorName) return null;
-  
-  if (isCursorEditor(editorName)) {
-    return <img src={cursorIcon} alt="Cursor" className="inline-block mr-1.5" style={{ width: '16px', height: '16px' }} />;
-  } else if (isVSCodeEditor(editorName)) {
-    return <DiVisualstudio size={16} className="inline-block mr-1.5 text-blue-500" />;
-  }
-  
-  // Default: try VS Code icon in blue
-  return <DiVisualstudio size={16} className="inline-block mr-1.5 text-blue-500" />;
-};
 
 const AboutMe = () => {
   const { data, isLoading, error } = usePortfolio()
-  const { theme } = useTheme()
-  const [wakatimeData, setWakatimeData] = useState(null)
-  const [wakatimeLoading, setWakatimeLoading] = useState(true)
-  const [isActive, setIsActive] = useState(false)
-  const [currentEditor, setCurrentEditor] = useState(null)
-  const [sessionTime, setSessionTime] = useState(0)
-  const [sessionStartTime, setSessionStartTime] = useState(null)
-  const [totalTimeToday, setTotalTimeToday] = useState(null) // Total time coded today (text)
-  const [allTimeData, setAllTimeData] = useState(null) // Full all_time_since_today data
-  const lastResponseTimeRef = useRef(null)
-  const lastSessionStartRef = useRef(null) // Track last session start time for resuming
   
-  // Helper to get/set last session start from localStorage
-  const getLastSessionStart = () => {
-    try {
-      const stored = localStorage.getItem('wakatime_last_session_start')
-      return stored ? new Date(stored) : null
-    } catch {
-      return null
-    }
-  }
+  const slideImagesRef = useRef([]);
   
-  const setLastSessionStart = (date) => {
-    try {
-      if (date) {
-        localStorage.setItem('wakatime_last_session_start', date.toISOString())
-      } else {
-        localStorage.removeItem('wakatime_last_session_start')
-      }
-    } catch {
-      // Ignore localStorage errors
-    }
-  }
-
-  // Helper function to format time
-  const formatTime = (seconds) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`
-    } else if (minutes > 0) {
-      return `${minutes}m ${secs}s`
-    } else {
-      return `${secs}s`
-    }
-  }
-
-  // Timer that runs when session is active
+  // Animation for sliding images
   useEffect(() => {
-    let timerIntervalId = null
-    
-    if (sessionStartTime && isActive) {
-      timerIntervalId = setInterval(() => {
-        setSessionTime(prev => {
-          if (sessionStartTime) {
-            const now = new Date()
-            const start = new Date(sessionStartTime)
-            return Math.floor((now - start) / 1000)
-          }
-          return prev + 1
-        })
-      }, 1000)
-    } else {
-      setSessionTime(0)
-    }
-    
-    return () => {
-      if (timerIntervalId) clearInterval(timerIntervalId)
-    }
-  }, [sessionStartTime, isActive])
+    const slideImages = slideImagesRef.current.filter(el => el !== null);
+    if (!slideImages.length) return;
 
-  // Fetch WakaTime data and manage timer
-  useEffect(() => {
-    let pollIntervalId = null
-    const POLL_INTERVAL = 30000 // Poll every 30 seconds
-    const NO_RESPONSE_THRESHOLD = 60 * 60 * 1000 // 1 hour in milliseconds
+    // Set initial state
+    gsap.set(slideImages, {
+      y: 50,
+      opacity: 0
+    });
 
-    const fetchWakatime = async () => {
-      try {
-        // Fetch current status
-        const statusResponse = await apiService.getWakaTimeStatus().catch((error) => {
-          console.warn('WakaTime status fetch failed:', error);
-          return { success: false, data: null, error: error?.message || 'Unknown error' };
-        });
-        
-        // Log status response for debugging
-        if (!statusResponse.success) {
-          console.warn('WakaTime status response failed:', statusResponse.error || statusResponse.details);
-        }
-        
-        if (statusResponse.success && statusResponse.data?.data) {
-          const statusData = statusResponse.data.data
-          const lastHeartbeat = statusData.last_heartbeat_at
-          const editor = statusData.editor
-          const hasEntity = statusData.entity // Entity means actively coding
-          
-          // Update last response time
-          lastResponseTimeRef.current = new Date()
-          
-          // Check if we have recent activity (within last 2 minutes)
-          let hasRecentActivity = false
-          if (lastHeartbeat) {
-            const heartbeatTime = new Date(lastHeartbeat)
-            const now = new Date()
-            const diffMinutes = (now - heartbeatTime) / (1000 * 60)
-            hasRecentActivity = diffMinutes < 2 && hasEntity
-          }
-          
-          // If we have recent activity, start/continue the timer
-          if (hasRecentActivity) {
-            const heartbeatTime = new Date(lastHeartbeat)
-            
-            if (!sessionStartTime) {
-              // Check if we should resume a previous session or start new
-              const lastSessionStart = getLastSessionStart()
-              const RESUME_THRESHOLD = 60 * 60 * 1000 // 1 hour - if heartbeat is within 1 hour of last session, resume
-              
-              if (lastSessionStart && lastSessionStartRef.current) {
-                const timeSinceLastSession = heartbeatTime - lastSessionStart
-                // If heartbeat is within 1 hour of last session start, resume it
-                if (timeSinceLastSession >= 0 && timeSinceLastSession < RESUME_THRESHOLD) {
-                  // Resume previous session
-                  setSessionStartTime(lastSessionStart)
-                  lastSessionStartRef.current = lastSessionStart
-                  setLastSessionStart(lastSessionStart)
-                } else {
-                  // Start new session from heartbeat
-                  setSessionStartTime(heartbeatTime)
-                  lastSessionStartRef.current = heartbeatTime
-                  setLastSessionStart(heartbeatTime)
-                }
-              } else {
-                // No previous session - start new from heartbeat
-                setSessionStartTime(heartbeatTime)
-                lastSessionStartRef.current = heartbeatTime
-                setLastSessionStart(heartbeatTime)
-              }
-              setSessionTime(0)
-            } else {
-              // Session already running - update stored time if needed
-              if (lastSessionStartRef.current !== sessionStartTime) {
-                lastSessionStartRef.current = sessionStartTime
-                setLastSessionStart(sessionStartTime)
-              }
-            }
-            setIsActive(true)
-            setCurrentEditor(editor)
-            // Clear total time when active (we show live timer instead)
-            setTotalTimeToday(null)
-          } else {
-            // No recent activity - stop timer but keep session start for potential resume
-            setIsActive(false)
-            // Don't clear sessionStartTime immediately - keep it for potential resume
-            // Only clear if we're sure the session is over (no heartbeat for >1 hour)
-            if (lastHeartbeat) {
-              const heartbeatTime = new Date(lastHeartbeat)
-              const now = new Date()
-              const diffMinutes = (now - heartbeatTime) / (1000 * 60)
-              if (diffMinutes > 60) {
-                // No activity for >1 hour - clear session
-                setSessionStartTime(null)
-                lastSessionStartRef.current = null
-                setLastSessionStart(null)
-                setSessionTime(0)
-              }
-            }
-            
-            // Fetch total time today and heartbeats when no live activity
-            // Note: We check isActive state here, but don't add it to deps to avoid infinite loops
-            // The effect runs on statusResponse changes, which is sufficient
-            try {
-              const allTimeResponse = await apiService.getWakaTimeAllTimeSinceToday()
-              if (allTimeResponse.success && allTimeResponse.data?.data) {
-                const allTimeData = allTimeResponse.data.data
-                setAllTimeData(allTimeData)
-                setTotalTimeToday(allTimeData.text || null)
-              }
-            } catch (error) {
-              console.error('Failed to fetch total time today:', error)
-            }
-          }
-          
-          setWakatimeData({
-            success: true,
-            editor: editor,
-            lastHeartbeat: lastHeartbeat,
-            hasEntity: hasEntity
-          })
-          // Always set editor and last heartbeat if available (even if old)
-          if (editor) {
-            setCurrentEditor(editor)
-          }
-          setWakatimeLoading(false)
-        } else {
-          // No data available - try to fetch all-time data anyway
-          setWakatimeLoading(false)
-          
-          // Even if status fails, try to fetch all-time data
-          try {
-            const allTimeResponse = await apiService.getWakaTimeAllTimeSinceToday()
-            if (allTimeResponse.success && allTimeResponse.data?.data) {
-              const allTimeData = allTimeResponse.data.data
-              setAllTimeData(allTimeData)
-              setTotalTimeToday(allTimeData.text || null)
-            }
-          } catch (error) {
-            console.error('Failed to fetch total time today:', error)
-          }
-          
-          // Check if we haven't had a response for more than 1 hour
-          if (lastResponseTimeRef.current) {
-            const timeSinceLastResponse = new Date() - lastResponseTimeRef.current
-            if (timeSinceLastResponse > NO_RESPONSE_THRESHOLD) {
-              // Stop timer if no response for >1 hour
-              setIsActive(false)
-              setSessionStartTime(null)
-              lastSessionStartRef.current = null
-              setLastSessionStart(null)
-              setSessionTime(0)
-              setCurrentEditor(null)
-            }
-          }
-          setWakatimeLoading(false)
-        }
-      } catch (error) {
-        // Only log unexpected errors (not timeouts/network issues)
-        if (!error.message?.includes('timeout') && !error.message?.includes('Failed to fetch')) {
-          console.error('Failed to fetch WakaTime data:', error)
-        }
-        // Check if we haven't had a response for more than 1 hour
-        if (lastResponseTimeRef.current) {
-          const timeSinceLastResponse = new Date() - lastResponseTimeRef.current
-          if (timeSinceLastResponse > NO_RESPONSE_THRESHOLD) {
-            // Stop timer if no response for >1 hour
-            setIsActive(false)
-            setSessionStartTime(null)
-            lastSessionStartRef.current = null
-            setLastSessionStart(null)
-            setSessionTime(0)
-            setCurrentEditor(null)
-          }
-        }
-        setWakatimeLoading(false)
+    // Create the animation timeline
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: ".slide-container",
+        start: "top 85%",
+        end: "bottom 20%",
+        toggleActions: "play none none none",
+        markers: false
       }
-    }
+    });
 
-    // Initial fetch
-    fetchWakatime()
-    
-    // Poll every 30 seconds
-    pollIntervalId = setInterval(fetchWakatime, POLL_INTERVAL)
-    
+    // Animate images sliding up when in view
+    tl.to(slideImages, {
+      y: 0,
+      opacity: 1,
+      duration: 0.6,
+      stagger: 0.15,
+      ease: "power2.out"
+    });
+
     return () => {
-      if (pollIntervalId) clearInterval(pollIntervalId)
-    }
-  }, [sessionStartTime])
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, []);
+  
+
+
+
+
 
   // Note: Commits fetching removed - focusing on all-time-since-today data for now
   
@@ -334,174 +103,113 @@ const AboutMe = () => {
     <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto  py-2 mb-2'>
     <div className='flex lg:flex-row flex-col justify-start items-start gap-2'>
         <div className='w-[450px] flex justify-start items-start'>
-            <img src={profileImage} alt="profile image" className='w-64 h-64 rounded object-cover shadow-md ' />
+            <img src={profileImage} alt="profile image" className='w-64 h-full rounded object-cover shadow-md ' />
         </div>
 
         <div className=' w-full flex flex-col justify-start items-start gap-4'>
             <h1 className='text-3xl font-bold dark:text-white'>{aboutMeData.name}</h1>
             <p className='text-gray-600 dark:text-zinc-400 text-md '>{aboutMeData.bio}</p>
-
-            <div className='flex flex-col justify-center items-start gap-2 mt-4'>
-                <h1 className='text-xl font-bold dark:text-white'>Skills</h1>
-                <div className='flex flex-wrap justify-start items-center gap-3'>
-                  {[
-                    { label: 'React', key: 'react' },
-                    { label: 'Next.js', key: 'nextjs' },
-                    { label: 'Tailwind CSS', key: 'tailwindcss' },
-                    { label: 'TypeScript', key: 'typescript' },
-                    { label: 'JavaScript', key: 'javascript', fallback: <SiJavascript className='text-yellow-500 text-xl' /> },
-                    { label: 'Express', key: 'express', fallback: <SiExpress className='text-gray-700 dark:text-gray-300 text-xl' /> },
-                    { label: 'PostgreSQL', key: 'postgresql', fallback: <SiPostgresql className='text-blue-700 text-xl' /> },
-                  ].map((skill) => (
-                    <div key={skill.label} className='flex flex-col items-center gap-1'>
-                      <LogoBadge name={skill.key}>
-                        {skill.fallback || <span className='text-sm font-semibold text-zinc-500 dark:text-zinc-300'>{skill.label[0]}</span>}
-                      </LogoBadge>
-                    </div>
-                  ))}
-                </div>
-            </div>
-            </div>
-        </div>
-        {/* GitHub Activity Section */}
-        <div className='mt-8'>
-            <h1 className='text-2xl font-bold dark:text-white mb-1'>GitHub Activity</h1>
-            <p className='text-gray-600 dark:text-zinc-400 text-sm mb-4'>
-              <span className='font-semibold'>@Subham12R</span> • Coding journey over the years
-            </p>
-            
-            {/* Stats Bar */}
-            <div className='mb-4 p-3 rounded-lg border border-gray-200 dark:border-zinc-800'>
-              <div className='text-sm text-gray-700 dark:text-zinc-300'>
-              {wakatimeLoading ? (
-                'Loading coding stats...'
-              ) : isActive && currentEditor ? (
-                <span className='inline-flex items-center gap-1 flex-wrap'>
-                  <span className='w-2 h-2 rounded-full bg-green-500 animate-pulse mr-1'></span>
-                  {getEditorIcon(currentEditor)}
-                  <span className='font-semibold text-green-600 dark:text-green-400'>Currently coding</span>
-                  <span>:</span>
-                  <span className='font-semibold'>{formatTime(sessionTime)} <span className='text-xs text-green-600 dark:text-green-400 opacity-75'>(live)</span></span>
-                </span>
-              ) : currentEditor && wakatimeData?.lastHeartbeat ? (
-                <span className='inline-flex items-center gap-1 flex-wrap'>
-                  {getEditorIcon(currentEditor)}
-                  <span className='font-semibold'>{currentEditor}</span>
-                  <span>:</span>
-                  <span className='opacity-75'>
-                    Last activity {(() => {
-                      const lastHeartbeat = new Date(wakatimeData.lastHeartbeat)
-                      const now = new Date()
-                      const diffMinutes = Math.floor((now - lastHeartbeat) / (1000 * 60))
-                      return diffMinutes < 60 ? `${diffMinutes}m ago` : `${Math.floor(diffMinutes / 60)}h ago`
-                    })()}
-                  </span>
-                  {allTimeData && (
-                    <>
-                      <span>•</span>
-                      <span className='font-semibold'>Total: {allTimeData.text || totalTimeToday}</span>
-                      {allTimeData.daily_average && (
-                        <>
-                          <span>•</span>
-                          <span className='opacity-75 text-sm'>
-                            Avg: {(() => {
-                              const avgHours = Math.floor(allTimeData.daily_average / 3600);
-                              const avgMins = Math.floor((allTimeData.daily_average % 3600) / 60);
-                              return `${avgHours}h ${avgMins}m`;
-                            })()}
-                          </span>
-                        </>
-                      )}
-                    </>
-                  )}
-                </span>
-              ) : currentEditor && wakatimeData?.lastHeartbeat ? (
-                <span className='inline-flex items-center gap-1 flex-wrap'>
-                  {getEditorIcon(currentEditor)}
-                  <span className='font-semibold'>{currentEditor}</span>
-                  <span>:</span>
-                  <span className='opacity-75'>
-                    Last active {(() => {
-                      const lastHeartbeat = new Date(wakatimeData.lastHeartbeat)
-                      const now = new Date()
-                      const diffMinutes = Math.floor((now - lastHeartbeat) / (1000 * 60))
-                      const diffHours = Math.floor(diffMinutes / 60)
-                      const diffDays = Math.floor(diffHours / 24)
-                      
-                      if (diffDays > 0) {
-                        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-                      } else if (diffHours > 0) {
-                        return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-                      } else if (diffMinutes > 0) {
-                        return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`
-                      } else {
-                        return 'just now'
-                      }
-                    })()}
-                  </span>
-                  {allTimeData && (
-                    <>
-                      <span>•</span>
-                      <span className='font-semibold'>Total: {allTimeData.text || totalTimeToday}</span>
-                      {allTimeData.daily_average && (
-                        <>
-                          <span>•</span>
-                          <span className='opacity-75 text-sm'>
-                            Avg: {(() => {
-                              const avgHours = Math.floor(allTimeData.daily_average / 3600);
-                              const avgMins = Math.floor((allTimeData.daily_average % 3600) / 60);
-                              return `${avgHours}h ${avgMins}m`;
-                            })()}
-                          </span>
-                        </>
-                      )}
-                    </>
-                  )}
-                </span>
-              ) : (
-                <span className='inline-flex items-center gap-1 flex-wrap'>
-                  {allTimeData ? (
-                    <>
-                      <span className='font-semibold'>Total: {totalTimeToday}</span>
-                      {allTimeData.daily_average && (
-                        <>
-                          <span>•</span>
-                          <span className='opacity-75 text-sm'>
-                            Daily avg: {(() => {
-                              const avgHours = Math.floor(allTimeData.daily_average / 3600);
-                              const avgMins = Math.floor((allTimeData.daily_average % 3600) / 60);
-                              return `${avgHours}h ${avgMins}m`;
-                            })()}
-                          </span>
-                        </>
-                      )}
+              <div id="setup" >
+       
         
-                    </>
-                  ) : (
-                    <>
-                      <span className='opacity-75'>Check out my GitHub activity below!</span>
-                    </>
-                  )}
-                </span>
-              )}
+        {/* Gear Used and IDE Setup */}
+        <div className='mt-2'>
+
+          <p className='text-base leading-relaxed dark:text-zinc-400 text-zinc-600 max-w-3xl'>
+            I believe that having the right tools and environment is crucial for productive development work. 
+            My <Link to="/gears" className='text-zinc-900 hover:text-zinc-400 dark:text-zinc-200 dark:hover:text-zinc-300 underline text-sm transition-colors'>gear</Link> includes 
+            my go to requirements.
+            Additionally, my IDE <Link to="/setup" className='text-zinc-900 hover:text-zinc-400 dark:text-zinc-200 dark:hover:text-zinc-300 underline text-sm transition-colors'>setup</Link> is 
+            tailored to enhance efficiency, with extensions and configurations that support my coding style and project requirements.
+          </p>
+        </div>
+      </div>
+            {/* Social Media Links */}
+            <div className='flex gap-2 mt-2'>
+              <a 
+                href="https://www.linkedin.com/in/subham-karmakar12/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className='flex items-center gap-2 text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors'
+              >
+                <HugeiconsIcon icon={Linkedin01Icon} size={24} />
+                
+              </a>
+              <a 
+                href="https://x.com/Subham12R" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className='flex items-center gap-2 text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors'
+              >
+                <HugeiconsIcon icon={NewTwitterRectangleIcon} size={24} />
+                
+              </a>
+              <a 
+                href="https://www.instagram.com/subham12r" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className='flex items-center gap-2 text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors'
+              >
+                <HugeiconsIcon icon={InstagramIcon} size={24} />
+                
+              </a>
+            </div>
+            </div>
+        </div>
+
+        {/* Year in a Nutshell Section */}
+        <div className='slide-container mt-8 w-full'>
+          <h2 className='text-2xl font-bold dark:text-white mb-2 '>2025 In a Wrap.</h2>
+          <div className='w-full h-px bg-gray-200 dark:bg-zinc-700 mb-6'></div>
+          
+          <div className='space-2'>
+            {/* Item 1 - Full width */}
+            <div 
+              ref={el => slideImagesRef.current[0] = el}
+              className='h-64 w-full rounded-lg overflow-hidden flex items-stretch'
+            >
+              <div className='flex-1 py-6 pr-6 flex flex-col justify-start items-start'>
+                <h3 className='text-xl font-semibold dark:text-white mb-2'>Visited some lovely kids.</h3>
+                <p className='text-zinc-600 dark:text-zinc-400'>Visited a ngo for some community service and support along with my friends.</p>
+                <p className='text-sm text-zinc-400 dark:text-zinc-500 mt-2'>March 2025</p>
+              </div>
+              <div className='w-1/2 h-full py-4 flex items-center justify-center'>
+                <img src={csImage} alt="CS Conference" className='w-full h-full object-cover rounded-xl border-2 border-gray-300 dark:border-zinc-600' />
               </div>
             </div>
             
-            {/* Calendar Container */}
-            <div className='w-full rounded-lg border border-dashed border-gray-200 dark:border-zinc-800 bg-transparent dark:bg-zinc-950 p-4 shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.08)] dark:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] flex justify-center items-center'>
-              <div className='github-calendar-container w-full max-w-full overflow-x-auto flex justify-center'>
-                <GitHubCalendar 
-                  username="subham12r" 
-                  showWeekdayLabels={false}
-                  hideTotalCount={false}
-                  fontSize={12}
-                  blockSize={12}
-                  blockMargin={3}
-                  colorScheme={theme}
-                />
+            <div 
+              ref={el => slideImagesRef.current[1] = el}
+              className='h-64 w-full rounded-lg overflow-hidden flex items-stretch'
+            >
+              <div className='w-1/2 h-full py-4 flex items-center justify-center'>
+                <img src={ctrlsImage} alt="CTRLS Event" className='w-full h-full object-cover rounded-xl border-2 border-gray-300 dark:border-zinc-600' />
+              </div>
+              <div className='flex-1 py-6 pl-6 flex flex-col justify-start items-start'>
+                <h3 className='text-xl font-semibold dark:text-white mb-2'>CTRLS Event</h3>
+                <p className='text-zinc-600 dark:text-zinc-400'>Participated in CTRLS tech event, exploring latest trends in software development.</p>
+                <p className='text-sm text-zinc-400 dark:text-zinc-500 mt-2'>August 2025</p>
               </div>
             </div>
+            
+            {/* Item 3 - DevFest */}
+            <div 
+              ref={el => slideImagesRef.current[2] = el}
+              className='h-64 w-full rounded-lg overflow-hidden flex items-stretch'
+            >
+              <div className='flex-1 py-6 pr-6 flex flex-col justify-start items-start'>
+                <h3 className='text-xl font-semibold dark:text-white mb-2'>DevFest 2025</h3>
+                <p className='text-gray-600 dark:text-zinc-400'>Joined Google DevFest to learn about cutting-edge technologies and connect with developers.</p>
+                <p className='text-sm text-gray-400 dark:text-zinc-500 mt-2'>October 2025</p>
+              </div>
+              <div className='w-1/2 h-full py-4 flex items-center justify-center'>
+                <img src={devfestImage} alt="DevFest 2025" className='w-full h-full object-cover rounded-xl border-2 border-gray-300 dark:border-zinc-600' />
+              </div>
+            </div>
+          </div>
         </div>
+
+ 
     </div>
   )
 }

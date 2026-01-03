@@ -12,4 +12,5 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+  assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.hdr', '**/*.exr']
 })
