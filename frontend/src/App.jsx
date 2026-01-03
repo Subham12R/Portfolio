@@ -1,9 +1,7 @@
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
-import Preloader from './components/Common/Preloader'
 import { PortfolioProvider } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
-import { PreloaderProvider } from './contexts/PreloaderContext'
 import { Toaster } from 'sonner'
 
 // Import page components directly
@@ -42,7 +40,7 @@ function AnimatedRoutes() {
   return (
     <div style={{ width: '100%', height: '100%' }}>
        
-    <Snowfall snowflakeCount={50} />
+    <Snowfall snowflakeCount={10} />
   
       <Routes location={location}>
         <Route path="/" element={<UserLayout />}>
@@ -69,17 +67,8 @@ function AnimatedRoutes() {
 
 // Inner component that can access portfolio context
 function AppContent() {
-  const [showPreloader, setShowPreloader] = useState(true)
-
-  useEffect(() => {
-    // Preloader stays for 2 seconds ONLY
-    const timer = setTimeout(() => setShowPreloader(false), 2000)
-    return () => clearTimeout(timer)
-  }, [])
-
   return (
     <>
-      {showPreloader && <Preloader />}
       <BrowserRouter>
         
         <AnimatedRoutes />
@@ -93,9 +82,7 @@ function App() {
   return (
     <ThemeProvider>
       <PortfolioProvider>
-        <PreloaderProvider>
-          <AppContent />
-        </PreloaderProvider>
+        <AppContent />
       </PortfolioProvider>
     </ThemeProvider>
   )

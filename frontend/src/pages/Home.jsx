@@ -23,7 +23,6 @@ import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
 import { useTheme } from '../contexts/ThemeContext';
 import Assistant from '../components/Common/Assistant'
-import { usePreloader } from '../contexts/PreloaderContext'
 import Snowfall from 'react-snowfall'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowRight01Icon, Calendar02Icon, EarthIcon, GithubIcon, Linkedin01Icon, NewTwitterRectangleIcon, SourceCodeIcon } from '@hugeicons/core-free-icons';
@@ -63,7 +62,6 @@ const Home = () => {
 
   const { data } = usePortfolio();
   const { theme } = useTheme();
-  const { isPreloaderComplete } = usePreloader();
   const isDark = theme === 'dark';
 
   // GSAP Refs
@@ -79,8 +77,6 @@ const Home = () => {
 
   // GSAP Animations
   useLayoutEffect(() => {
-    if (!isPreloaderComplete) return;
-
     const ctx = gsap.context(() => {
       // Header section animation
       gsap.fromTo('#home > *', 
@@ -232,7 +228,7 @@ const Home = () => {
     }, mainRef);
 
     return () => ctx.revert();
-  }, [isPreloaderComplete]);
+  }, []);
 
   // Animate experience expand/collapse
   useEffect(() => {
@@ -707,7 +703,7 @@ const Home = () => {
   
       
   
-    {isPreloaderComplete && <Assistant />}
+    <Assistant />
     {/* <ScrollProgress /> */}
     </div>
   )
