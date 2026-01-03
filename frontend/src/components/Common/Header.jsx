@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { getCalApi } from "@calcom/embed-react";
-import profileImage from '../../assets/pfp.jpg';
+import profileImage from '../../assets/pfp.jpeg';
 import ResumePdf from '../../assets/Resume.pdf';
 import {FaLocationArrow, FaReact, FaClock, FaCalendar} from 'react-icons/fa';
 import {RiNextjsFill, RiNodejsFill, RiTailwindCssFill } from "react-icons/ri";
@@ -10,7 +10,9 @@ import { Text } from '@radix-ui/themes';
 import TechBadge from './TechBadge';
 import bannerImage from '../../assets/banner.gif';
 import { Link } from 'react-router-dom';
-import DateTimeDisplay from './DateTimeDisplay';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Location03Icon } from '@hugeicons/core-free-icons';
+
 
 const Header = () => {
   // Initialize Cal.com embed
@@ -20,22 +22,6 @@ const Header = () => {
       cal("ui", {"hideEventTypeDetails":false,"layout":"month_view"});
     })();
   }, []);
-
-  // Function to download resume from assets
-  const downloadResume = () => {
-    try {
-      // Create a temporary link to download the file
-      const link = document.createElement('a');
-      link.href = ResumePdf;
-      link.download = 'Resume.pdf';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Error downloading resume:', error);
-      alert('Failed to download resume. Please try again.');
-    }
-  };
 
 
   return (
@@ -62,11 +48,11 @@ const Header = () => {
         {/* Profile Content */}
         <div className='bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-6  mt-10'>
                  <div className='w-full inline-flex flex-col justify-center items-start space-y-4'>
-        
-                
+                  <div className='w-full flex justify-start items-start leading-none '><h1 className='dark:text-white text-zinc-900 text-4xl tracking-tighter  font-bold'>Hi, I'm Subham. <span className='mt-6 lg:mt-0 text-blue-400 tracking-tighter text-3xl font-bold  '> @ A FullStack Web Developer.</span> </h1></div>
+                  <div className='w-full flex justify-start items-center text-md  text-zinc-600 gap-2'><HugeiconsIcon icon={Location03Icon} size={16} /><span className='tracking-tighter w-full font-medium'>Kolkata, India.</span></div>
 
-                    <div className='mt-4 w-full'>
-                    <p className='gap-2 inline-flex flex-wrap justify-start items-center text-md text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed'>I build interactive and responsive web apps using {" "}  
+                    <div className='mt-2 w-full'>
+                    <p className='gap-1 inline-flex flex-wrap justify-start items-center text-sm text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed'>Developing and creating web apps with {" "}  
                      <a href="https://react.dev/" norelopener target="_blank"><TechBadge icon={FaReact} iconClassName='text-blue-500'>React</TechBadge></a>
                     <span>,</span>
                     <a href="https://nextjs.org/" norelopener target="_blank"><TechBadge icon={RiNextjsFill} iconClassName='text-black dark:text-white'>NextJS</TechBadge></a>
@@ -76,8 +62,8 @@ const Header = () => {
                     <a href="https://nodejs.org/" norelopener target="_blank"><TechBadge icon={RiNodejsFill} iconClassName='text-emerald-500'>NodeJs</TechBadge></a>
                     <span>,</span>
                     <span> and </span>
-                    <a href="https://www.postgresql.org/" norelopener target="_blank"><TechBadge icon={BiLogoPostgresql} iconClassName='text-blue-800'>PostgreSQL</TechBadge></a>. Focusing on <Text as='span' className='dark:text-white text-black'> <strong>UI/UX Design</strong></Text>
-                     <span> and learning <Text as='span' className='dark:text-white text-black'> <strong>Three JS</strong></Text>. Currently keeping a close eye on the latest technologies and trends in web development.</span>
+                    <a href="https://www.postgresql.org/" norelopener target="_blank"><TechBadge icon={BiLogoPostgresql} iconClassName='text-blue-800'>PostgreSQL</TechBadge></a>. Focusing on <Text as='span' className='dark:text-white text-black'> <strong>UI/UX Design</strong></Text>and learning
+                     <span>  <Text as='span' className='dark:text-white text-black'> <strong>Three JS and App Development</strong></Text>. Currently keeping a close eye on the latest technologies and trends in web development.</span>
                     
                     </p>
                     {/* <div className='text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-4'>
@@ -89,14 +75,14 @@ const Header = () => {
 
 
                     <div className='mb-2 w-full flex justify-start items-center gap-4'>
-                        <button 
-                            onClick={downloadResume}
-                            className='inline-flex justify-center items-center gap-2 bg-black/10 dark:bg-white/10 border border-black/20 dark:border-white/30 backdrop-blur-sm text-zinc-900 dark:text-white shadow hover:bg-zinc-100 dark:hover:bg-white/40 transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
+                        <Link 
+                            to="/resume"
+                            className='active:scale-95 inline-flex justify-center items-center gap-2 bg-black/10 dark:bg-white/10 border border-black/20 dark:border-zinc-400/30 backdrop-blur-sm text-zinc-900 dark:text-white shadow hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all ease-in-out duration-300 py-2 px-2 rounded-xl cursor-pointer text-sm font-medium hover:shadow-md'
                         >
                             <BsEnvelopePaper/> Resume/CV
-                        </button>
+                        </Link>
                         <Link to="/contact"
-                            className='inline-flex justify-center items-center gap-2 bg-black dark:bg-white/80 border border-black/20 dark:border-white/30 backdrop-blur-sm text-white dark:text-zinc-900 shadow hover:bg-zinc-900 dark:hover:bg-white transition-all ease-in-out duration-300 py-2 px-4 rounded-md cursor-pointer text-sm font-medium hover:shadow-md '
+                            className='active:scale-95 inline-flex justify-center items-center gap-2 bg-black dark:bg-white/80 border border-black/20 dark:border-white/30 backdrop-blur-sm text-white dark:text-zinc-900 shadow hover:bg-zinc-900 dark:hover:bg-white transition-all ease-in-out duration-300 py-2 px-2 rounded-xl cursor-pointer text-sm font-medium hover:shadow-md '
                         >
                             <BiPaperPlane />Get in Touch
                         </Link>              

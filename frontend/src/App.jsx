@@ -16,6 +16,7 @@ import Work from './pages/Work'
 import Gears from './pages/Gears'
 import CursorSetup from './pages/CursorSetup'
 import Blog from './pages/Blog'
+import Resume from './components/Products/Resume.jsx'
 import AdminPage from './admin/AdminPage'
 import UnifiedCallback from './pages/UnifiedCallback'
 import WakaTimeCallback from './pages/WakaTimeCallback'
@@ -54,8 +55,11 @@ function AnimatedRoutes() {
           <Route path="gears" element={<Gears />} />
           <Route path="setup" element={<CursorSetup />} />
           <Route path="blog" element={<Blog />} />
+          
           <Route path="components" element={<Components />} />
         </Route>
+
+        <Route path="/resume" element={<Resume />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/callback" element={<UnifiedCallback />} />
         <Route path="/wakatime/callback" element={<WakaTimeCallback />} />

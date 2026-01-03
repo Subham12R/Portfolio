@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import apiService from '../services/api'
 import { FaBlog } from 'react-icons/fa'
 import { useTheme } from '../contexts/ThemeContext'
+import { Return } from '../components/Products/Return'
 
 const Blog = () => {
   const [blogs, setBlogs] = useState([])
@@ -221,6 +222,7 @@ const Blog = () => {
   // Skeleton component
   const SkeletonCard = () => (
     <div className='rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 shadow-sm bg-white dark:bg-zinc-950 animate-pulse'>
+      
       <div className='p-4 space-y-4'>
         {/* Header skeleton */}
         <div className='flex items-center gap-3'>
@@ -253,7 +255,8 @@ const Blog = () => {
 
 
   return (
-    <div className='bg-white min-h-screen dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto py-2 mb-2 px-4'>
+    <div className='bg-white min-h-screen dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 py-12 mb-2 '>
+      <Return />
       {/* Page Heading */}
       <div className='mb-6'>
         <h1 className='text-3xl font-bold dark:text-white mb-2'>Blog</h1>

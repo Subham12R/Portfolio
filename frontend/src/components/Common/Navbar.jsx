@@ -6,14 +6,13 @@ import gsap from "gsap";
 import { useEffect, useRef } from "react";
 import { RiSideBarFill } from "react-icons/ri";
 import Weather from './Weather'
+import { MenuIcon } from '../Products/Menu';
 
 const navLinks = [
   { to: '/', label: 'Home' },
-  { to: '/components', label: 'Components' },
   { to: '/projects', label: 'Projects' },
-  { to: '/contact', label: 'Contact' },
   { to: '/work', label: 'Work' },
-  { to: '/blog', label: 'Blog' },
+  { to: '/contact', label: 'Contact' },
 ]
 
 const Navbar = () => {
@@ -24,6 +23,7 @@ const Navbar = () => {
   const iconRef = useRef(null);
   const dropdownContainerRef = useRef(null);
   const buttonRef = useRef(null);
+  const menuIconRef = useRef(null);
 
   useEffect(() => {
     if (!dropdownRef.current || !dropdownContentRef.current) return;
@@ -96,6 +96,17 @@ const Navbar = () => {
     }
   }, [isDropdownOpen]);
 
+  // Control MenuIcon animation based on dropdown state
+  useEffect(() => {
+    if (menuIconRef.current) {
+      if (isDropdownOpen) {
+        menuIconRef.current.startAnimation();
+      } else {
+        menuIconRef.current.stopAnimation();
+      }
+    }
+  }, [isDropdownOpen]);
+
   // Outside click handler
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -129,21 +140,16 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="sticky top-0 z-100 w-full lg:max-w-2xl mx-auto ">
+      <div className="sticky top-0 z-100 w-full lg:max-w-2xl  mx-auto px-0 ">
         <nav className="bg-white  dark:bg-zinc-950 backdrop-blur-md border-b  border-gray-200/50 dark:border-zinc-800/50 w-full flex justify-between items-center px-2 relative">
           <div className='flex items-center justify-center py-2'>
             {/* Menu Button - Works for both mobile and desktop */}
             <button
               ref={buttonRef}
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="font-sora"
+              className="size-10 cursor-pointer  active:scale-95 rounded-md p-2 flex items-center justify-center  transition-all duration-300"
             >
-              <span  className="inline-block border border-gray-200 dark:border-zinc-800/50 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] p-2 rounded">
-                <RiSideBarFill 
-                  size={20} 
-                  className="text-xl text-gray-900 dark:text-zinc-100" 
-                />
-              </span>
+              <MenuIcon ref={menuIconRef} size={24} />
             </button>
 
           </div>
@@ -153,19 +159,19 @@ const Navbar = () => {
 
           <div className='flex flex-row gap-4'>
              {/* <Weather /> */}
-            <ThemeToggleButton className="border shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]" />
+            <ThemeToggleButton  />
           </div>
 
           {/* DROPDOWN PANEL - Absolutely positioned to overlay content */}
           <div ref={dropdownContainerRef} className="absolute top-full left-0 right-0">
             <div
               ref={dropdownRef}
-              className="w-full overflow-hidden bg-white dark:bg-zinc-950 backdrop-blur-md border-b border-gray-200/50 dark:border-zinc-800/50 relative "
+              className="w-full overflow-hidden bg-white dark:bg-zinc-950 backdrop-blur-3xl shadow-md dark:drop-shadow-zinc-400/10 border-b border-gray-200/50 dark:border-zinc-800/50 relative "
               style={{ height: 0 }}
             >
               <div
                 ref={dropdownContentRef}
-                className="leading-tight px-4 py-6 mb-4 flex flex-col w-full relative z-10 items-center gap-3"
+                className="leading-tight px-4 py-6 mb-4 flex flex-col w-full relative z-10 items-start gap-3"
               >
                 {navLinks.map((link, i) => {
                   const index = String(i + 1).padStart(2, '0');

@@ -1,6 +1,6 @@
-import React, { useState, useRef, useLayoutEffect } from 'react'
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
-import { FaGithub, FaGlobe, FaReact, FaAws, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt } from 'react-icons/fa'
+import { FaReact, FaAws, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill, RiNodejsFill, RiVuejsFill } from 'react-icons/ri'
 import { SiTypescript, SiPostgresql, SiVercel, SiMongodb, SiExpress, SiNestjs, SiGraphql, SiRedis, SiKubernetes, SiTerraform, SiJest, SiWebpack, SiBabel, SiEslint, SiPrettier, SiSocketdotio, SiStripe, SiChartdotjs, SiAccuweather, SiFigma, SiPostman, SiBun } from 'react-icons/si'
 import { usePortfolio } from '../contexts/PortfolioContext'
@@ -8,7 +8,9 @@ import { ProjectMediaPlayer } from '../components/Common/VideoPlayer'
 import LogoBadge from '../components/Common/LogoBadge'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
+import { HugeiconsIcon } from '@hugeicons/react'
+import { EarthIcon, GithubIcon } from '@hugeicons/core-free-icons'
+import { Return } from '../components/Products/Return'
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger)
 
@@ -142,6 +144,12 @@ const Projects = () => {
   const sectionRef = useRef(null)
   const headerRef = useRef(null)
   const cardsContainerRef = useRef(null)
+  const expandedRefs = useRef([])
+
+  // Initialize refs array
+  useEffect(() => {
+    expandedRefs.current = expandedRefs.current.slice(0, data?.projects?.length || 0)
+  }, [data?.projects?.length])
 
   // GSAP Animations
   useLayoutEffect(() => {
@@ -315,16 +323,65 @@ const Projects = () => {
   console.log('First project status:', projectData[0]?.status)
 
   const toggleProject = (index) => {
+    const targetElement = expandedRefs.current[index]
+    if (!targetElement) return
+
     if (expandedProject === index) {
-      setExpandedProject(null)
+      // Collapse animation
+      gsap.to(targetElement, {
+        height: 0,
+        opacity: 0,
+        duration: 0.4,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          setExpandedProject(null)
+        }
+      })
     } else {
+      // Collapse any currently expanded project first
+      if (expandedProject !== null) {
+        const currentExpanded = expandedRefs.current[expandedProject]
+        if (currentExpanded) {
+          gsap.to(currentExpanded, {
+            height: 0,
+            opacity: 0,
+            duration: 0.3,
+            ease: 'power2.inOut'
+          })
+        }
+      }
+
+      // Expand animation
       setExpandedProject(index)
+      
+      // Set initial state and get natural height
+      gsap.set(targetElement, {
+        height: 'auto'
+      })
+      const naturalHeight = targetElement.scrollHeight
+      
+      // Animate to expanded state
+      gsap.fromTo(targetElement, 
+        {
+          height: 0,
+          opacity: 0
+        },
+        {
+          height: naturalHeight,
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power2.out'
+        }
+      )
     }
   }
 
   return (
     <section ref={sectionRef} className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
+      <Return />
+      
       <div ref={headerRef} className="mb-12">
+
         <p className="text-gray-400 dark:text-gray-500 mb-2">Portfolio</p>
         <h1 className="text-black dark:text-white font-bold text-3xl mb-2">My Projects</h1>
         <p className="text-gray-600 dark:text-zinc-400 mt-3 leading-relaxed">
@@ -336,7 +393,7 @@ const Projects = () => {
       </div>
 
       <div ref={cardsContainerRef} className="space-y-6">
-        {projectData.map((project, index ) => {
+        {projectData.map((project, index) => {
           const isExpanded = expandedProject === index
           
           return (
@@ -384,7 +441,7 @@ const Projects = () => {
                         title="View Code"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <FaGithub className="text-xl" />
+                        <HugeiconsIcon icon={GithubIcon} size={20} />
                       </a>
                     )}
                     {project.liveUrl && (
@@ -396,7 +453,7 @@ const Projects = () => {
                         title="Live Demo"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <FaGlobe className="text-xl" />
+                        <HugeiconsIcon icon={EarthIcon} size={20} />
                       </a>
                     )}
                   </div>
@@ -429,12 +486,11 @@ const Projects = () => {
 
               {/* Expanded Content */}
               <div 
-                className={`grid transition-all duration-300 ease-in-out ${
-                  isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-                }`}
+                ref={el => expandedRefs.current[index] = el}
+                className="overflow-hidden"
+                style={{ height: 0, opacity: 0 }}
               >
-                <div className="overflow-hidden">
-                  <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-zinc-800">
+                <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-zinc-800">
                   {/* Description */}
                   <div className="mb-4">
                     <p className="text-sm text-gray-700 dark:text-zinc-400 leading-relaxed">
@@ -473,7 +529,6 @@ const Projects = () => {
                         <li key={i}>{feature}</li>
                       ))}
                     </ul>
-                  </div>
                   </div>
                 </div>
               </div>

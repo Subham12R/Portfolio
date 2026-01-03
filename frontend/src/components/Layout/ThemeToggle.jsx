@@ -42,7 +42,7 @@ export const ThemeToggleButton = ({
     <motion.button
       type="button"
       className={cn(
-        "size-10 cursor-pointer rounded-full p-2 border border-gray-200 dark:border-zinc-700",
+        "size-10 cursor-pointer active:scale-95 rounded-md p-2 flex items-center justify-center transition-all duration-300",
         isDark ? "bg-transparent text-white" : "bg-transparent text-black",
         className,
       )}

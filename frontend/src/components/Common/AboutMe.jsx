@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import profileImage from '../../assets/pfp.jpg'
+import profileImage from '../../assets/pfp.jpeg'
 import { SiJavascript, SiExpress, SiPostgresql } from 'react-icons/si'
 import { DiVisualstudio } from 'react-icons/di'
 import GitHubCalendar from 'react-github-calendar';

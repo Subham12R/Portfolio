@@ -18,16 +18,15 @@ import { ProjectMediaPlayer } from '../components/Common/VideoPlayer'
 // import ScrollProgress from '../components/Common/ScrollProgress'
 import Socials from '../components/Products/Socials'
 import Tooltip from '@mui/material/Tooltip';
-import { FaCalendarAlt } from 'react-icons/fa'
+
 import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
 import { useTheme } from '../contexts/ThemeContext';
-import { FaSquareXTwitter } from 'react-icons/fa6'
 import Assistant from '../components/Common/Assistant'
 import { usePreloader } from '../contexts/PreloaderContext'
-import cursorIcon from '../assets/logo/cursor.webp'
 import Snowfall from 'react-snowfall'
-
+import { HugeiconsIcon } from '@hugeicons/react'
+import { Calendar02Icon, EarthIcon, GithubIcon, Linkedin01Icon, NewTwitterRectangleIcon, SourceCodeIcon } from '@hugeicons/core-free-icons';
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger)
 
@@ -370,7 +369,7 @@ const Home = () => {
   console.log('Projects data:', projectData)
 
     return (
-     <div ref={mainRef} className='relative bg-white dark:bg-zinc-950 w-full h-full lg:max-w-2xl mx-auto px-4 lg:px-0 mb-4 overflow-x-hidden'>
+     <div ref={mainRef} className='relative bg-white dark:bg-zinc-950 w-full h-full max-w-2xl mx-auto px-4 lg:px-0 mb-4 overflow-x-hidden'>
        {/* Bottom fade overlay for smoother scroll feel */}
         <Snowfall />
        
@@ -386,7 +385,7 @@ const Home = () => {
    
 
       {/* Work */}
-      <div id="experience" ref={experienceRef} className='mt-12 mb-12'>
+      <div id="experience" ref={experienceRef} className='mt-12 mb-2'>
         
         <p className='text-gray-400 dark:text-gray-500 '>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Experience</h1>
@@ -409,7 +408,7 @@ const Home = () => {
                 </div>
                 
                 {/* Main Content */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 ">
                   <div className="flex flex-col  sm:flex-row items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
@@ -422,34 +421,34 @@ const Home = () => {
                         )}
                         <div className="flex items-center gap-2 sm:ml-auto">
                           <Tip title="Website" placement="top" arrow isDark={isDark}>
-                            <a href="" className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
-                              <FaGlobe className="w-4 h-4" />
+                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'>
+                              <HugeiconsIcon icon={EarthIcon} size={16} />
                             </a>
                           </Tip>
                           <Tip title="X (Twitter)" placement="top" arrow isDark={isDark}>
-                            <a href="" className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
-                              <FaSquareXTwitter className="w-4 h-4" />
+                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'>
+                              <HugeiconsIcon icon={NewTwitterRectangleIcon} size={16} />
                             </a>
                           </Tip>
                           <Tip title="LinkedIn" placement="top" arrow isDark={isDark}>
-                            <a href="" className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
-                              <FaLinkedin className="w-4 h-4" />
+                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'>
+                              <HugeiconsIcon icon={Linkedin01Icon} size={16} />
                             </a>
                           </Tip>
                           <Tip title="GitHub" placement="top" arrow isDark={isDark}>
-                            <a href="" className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'>
-                              <FaGithub className="w-4 h-4" />
+                            <a href="" className='text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors'>
+                              <HugeiconsIcon icon={GithubIcon} size={16} />
                             </a>
                           </Tip>
                           <button
                             onClick={() => setExpandedExperience(isExpanded ? null : idx)}
-                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
                           >
                             {isExpanded ? <HiChevronUp className="w-4 h-4" /> : <HiChevronDown className="w-4 h-4" />}
                           </button>
                         </div>
                       </div>
-                        <h4 className="text-gray-600 dark:text-gray-400 text-sm font-medium wrap-break-word">{exp.role}</h4>
+                        <h4 className="text-zinc-600 dark:text-zinc-600 text-sm font-medium wrap-break-word">{exp.role}</h4>
                     </div>
                     
                     {/* Date and Location */}
@@ -461,7 +460,7 @@ const Home = () => {
                   
                   {/* Expanded Content */}
                   {isExpanded && (
-                    <div className="mt-12 space-y-6">
+                    <div className="mt-4 space-y-6">
                       {/* Technologies & Tools */}
                       <div>
                         <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm">Technologies & Tools</h5>
@@ -485,7 +484,7 @@ const Home = () => {
                       
                       {/* Responsibilities */}
                       <div>
-                        <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                        <ul className="space-y-2 text-sm text-gray-800 dark:text-gray-400">
                           {exp.bullets?.map((bullet, i) => (
                             <li key={i} className="flex items-start">
                               <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full mt-2 mr-3 shrink-0"></span>
@@ -502,27 +501,27 @@ const Home = () => {
           );
         })}
         
-        <div className='w-full flex justify-center items-center mt-12'>
-            <Link to="/work" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Work Experiences </Link>
+        <div className='w-full flex justify-center items-center mt-8'>
+            <Link to="/work" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-xl bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Work Experiences </Link>
         </div>
       </div>
 
     {/* Project */}
     <div id="projects" ref={projectsRef}>
 
-     <div className='mt-12 mb-12'>
+     <div className='mt-12 mb-2'>
         <p className='text-gray-400 dark:text-gray-500'>Featured.</p>
         <h1 className='text-black dark:text-white font-bold text-3xl'>Projects</h1>
       </div>
       
   
 
-  <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 cursor-pointer'>
+  <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 '>
     {projectData.map((project, idx) => (
-      <div key={project.id || idx} className='project-card rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-zinc-950 dark:border-zinc-800'>
+      <div key={project.id || idx} className='project-card  overflow-hidden backdrop-blur-2xl border-2 shadow-sm hover:shadow-lg border-zinc-200 rounded-3xl p-2 transition-all transform duration-500 bg-zinc-50 dark:bg-zinc-950 dark:border-zinc-800'>
         
         {/* Project Media */}
-        <div className='h-48 w-full bg-gray-100 dark:bg-zinc-800'>
+        <div className='h-48 w-full  rounded-2xl overflow-hidden outline-1 outline-gray-200 dark:outline-zinc-700 mb-2 cursor-pointer'>
           <ProjectMediaPlayer
             mediaUrl={project.image}
             mediaType={project.mediaType || 'image'}
@@ -533,26 +532,26 @@ const Home = () => {
         </div>
 
         {/* Project Info */}
-        <div className='p-4'>
+        <div className='py-4 px-4'>
           <div className='flex items-center justify-between mb-2'>
-            <h2 className='font-semibold text-base text-gray-900 dark:text-white truncate'>{project.name}</h2>
+            <h2 className='font-semibold  text-gray-900 dark:text-white truncate text-xl'>{project.name}</h2>
             {/* Links */}
             <div className='flex items-center gap-2 text-gray-400 dark:text-gray-500'>
               <Tip title="GitHub" placement="top" arrow isDark={isDark}>
                 <a href={project.github} target="_blank" rel="noopener noreferrer" className='hover:text-black dark:hover:text-white transition'>
-                  <FaGithub size={14} />
+                  <HugeiconsIcon icon={GithubIcon} size={16} />
                 </a>
               </Tip>
               <Tip title="Live Demo" placement="top" arrow isDark={isDark}>
                 <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className='hover:text-black dark:hover:text-white transition'>
-                  <FaGlobe size={14} />
+                  <HugeiconsIcon icon={EarthIcon} size={16} />
                 </a>
               </Tip>
             </div>
           </div>
 
           {/* Description - 2 lines max */}
-          <p className='text-gray-600 dark:text-gray-400 text-xs leading-relaxed line-clamp-2 mb-3'>
+          <p className='text-zinc-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-2 mb-3'>
             {project.description}
           </p>
 
@@ -577,13 +576,13 @@ const Home = () => {
             )}
           </div>
 
-          <span className="text-xs px-2 py-0.5 rounded-md bg-green-500 text-emerald-900 font-medium">{project.status || 'Completed'}</span>
+          <span className="text-xs px-2 py-1 rounded-md bg-green-400 dark:bg-green-700 outline-emerald-500 text-green-700 dark:text-emerald-200 font-medium outline-dashed outline-1 shadow-[inset_0_0_10px_rgba(132,204,22,0.8)]">{project.status || 'Live'}</span>
         </div>
       </div>
     ))}
   </div>
           <div className='w-full flex justify-center items-center mt-8'>
-            <Link to="/projects" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-md bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Projects</Link>
+            <Link to="/projects" className='text-zinc-900 dark:text-zinc-200 border border-gray-100 dark:border-zinc-700 px-4 py-2 rounded-xl bg-gray-50 dark:bg-zinc-900 hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1)] dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] transition-all duration-100'>Show all Projects</Link>
         </div>
     </div>
 
@@ -609,7 +608,7 @@ const Home = () => {
 
       <div ref={meetingRef} className='mt-8 mb-2'>
         <div className='w-full flex flex-col justify-center items-center p-4 gap-4 border border-gray-200 dark:border-zinc-700 rounded-md border-dashed bg-zinc-100 dark:bg-zinc-900'>
-            <p className='text-black dark:text-zinc-200'>Hey there! Want to chat? I'm available for quick meetings.</p>
+            <p className='text-black dark:text-zinc-200'>Don't be shy to say hello! and give some feedbacks.</p>
             <button 
               data-cal-namespace="30min"
               data-cal-link="subham12r/30min"
@@ -618,9 +617,11 @@ const Home = () => {
                          hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1),inset_0_0_20px_rgba(255,255,255,0.3),inset_0_0_30px_rgba(255,255,255,0.2)] 
                          dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1),inset_0_0_20px_rgba(255,255,255,0.1),inset_0_0_30px_rgba(255,255,255,0.1)]
                          hover:border-white/80 dark:hover:border-white/80
-                         transition-all duration-300 cursor-pointer flex items-center gap-2'
+                         transition-all duration-300 cursor-pointer flex items-center gap-2 group'
             >
-              <FaCalendarAlt /> 
+              <HugeiconsIcon icon={Calendar02Icon} size={16}/>
+  
+          
               Book a Meeting
             </button>
         </div>
@@ -631,8 +632,8 @@ const Home = () => {
       <h1 className='text-black dark:text-white font-bold text-3xl'>Development</h1>
         <Link to="/gears">
         <div className='setup-card flex justify-between items-start mt-8 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
-          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-6 rounded-md gap-4'>
-            <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded'>
+          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-2 rounded-xl gap-4'>
+            <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center'>
               <GoGear size={30} className='text-gray-900 dark:text-zinc-200'/>
             </div>
             <div className='ml-2'>
@@ -648,13 +649,13 @@ const Home = () => {
 
         <Link to="/setup">
         <div className='setup-card flex justify-between items-start mt-6 hover:-translate-y-1 hover:shadow-md transition ease-in-out duration-300'>
-          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-6 rounded-md gap-4'>
-            <div className='h-full p-2 bg-gray-100 dark:bg-zinc-800 rounded'>
-              <img src={cursorIcon} alt="Cursor" className="w-8 h-8" />
+          <div className='flex bg-transparent border border-gray-200 dark:border-zinc-700 w-full p-2 rounded-xl gap-4'>
+            <div className='p-2 bg-gray-100 dark:bg-zinc-800 rounded-xl h-full flex items-center justify-center'>
+              <HugeiconsIcon icon={SourceCodeIcon} size={30} className='text-gray-900 dark:text-zinc-200'/>
             </div>
             <div className='ml-2'>
               <h1 className='text-lg font-semibold tracking-tighter dark:text-white'>Cursor Setup</h1>
-              <p className='text-sm tracking-tighter dark:text-zinc-400'>Complete Cursor setup with my extensions, fonts, and preferences.</p>
+              <p className='text-sm tracking-tighter dark:text-zinc-400'>My IDE setup for my development environment.</p>
             </div>
             <div className='ml-auto p-4'>
               <FaArrowRight className='text-sm text-gray-400 dark:text-zinc-500 hover:translate-x-2 transition duration-200 ease-in-out'/>
