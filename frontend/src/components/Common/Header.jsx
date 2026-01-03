@@ -89,14 +89,14 @@ const { theme } = useTheme();
 
                       
               <div className='w-full rounded-lg border border-dashed border-gray-200 dark:border-zinc-800 bg-transparent dark:bg-zinc-950 p-4 shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.08)] dark:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] flex justify-center items-center'>
-              <div className='github-calendar-coverer w-full max-w-full overflow-x-auto flex justify-center'>
+              <div className='github-calendar-coverer w-full flex justify-center'>
                 <GitHubCalendar 
                   username="subham12r" 
                   showWeekdayLabels={false}
                   hideTotalCount={false}
-                  fontSize={12}
-                  blockSize={12}
-                  blockMargin={3}
+                  fontSize={10}
+                  blockSize={8}
+                  blockMargin={2}
                   colorScheme={theme}
                 />
               </div>
