@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fa'
 import { FaComputer } from 'react-icons/fa6'
 import { usePortfolio } from '../contexts/PortfolioContext'
+import { Return } from '../components/Products/Return'
 
 // Dummy devices data - COMMENTED OUT - now using backend data
 /* const devices = [
@@ -118,6 +119,7 @@ const Gears = () => {
   if (devices.length === 0 && extensions.length === 0) {
     return (
       <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
+        <Return />
         <div className="text-center">
           <h1 className="text-black dark:text-white font-bold text-4xl mb-2">Gears</h1>
           <p className="text-gray-600 dark:text-zinc-400 mb-8">

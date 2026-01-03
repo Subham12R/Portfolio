@@ -1,6 +1,7 @@
 import React from 'react'
 import { FaDownload, FaFileAlt, FaCode, FaChevronRight, FaCopy } from 'react-icons/fa'
 import cursorIcon from '../assets/logo/cursor.webp'
+import { Return } from '../components/Products/Return'
 
 // Common Cursor extensions list - Update this with your actual extensions
 const cursorExtensions = [
@@ -168,6 +169,7 @@ const CursorSetup = () => {
 
   return (
     <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
+      <Return />
       <div className="mb-8 flex items-center gap-4">
         <img src={cursorIcon} alt="Cursor" className="w-16 h-16" />
         <div>
