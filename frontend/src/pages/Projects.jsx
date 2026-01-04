@@ -1,6 +1,6 @@
 import React, { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi'
-import { FaReact, FaAws, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt } from 'react-icons/fa'
+import { FaReact, FaAws, FaNode, FaHtml5, FaCss3Alt, FaJs, FaPython, FaJava, FaDocker, FaGitAlt, FaGithub } from 'react-icons/fa'
 import { RiNextjsFill, RiTailwindCssFill, RiNodejsFill, RiVuejsFill } from 'react-icons/ri'
 import { SiTypescript, SiPostgresql, SiVercel, SiMongodb, SiExpress, SiNestjs, SiGraphql, SiRedis, SiKubernetes, SiTerraform, SiJest, SiWebpack, SiBabel, SiEslint, SiPrettier, SiSocketdotio, SiStripe, SiChartdotjs, SiAccuweather, SiFigma, SiPostman, SiBun } from 'react-icons/si'
 import { usePortfolio } from '../contexts/PortfolioContext'
@@ -137,8 +137,8 @@ gsap.registerPlugin(ScrollTrigger)
 ] */
 
 const Projects = () => {
-  const [expandedProject, setExpandedProject] = useState(0)
-  const { data } = usePortfolio()
+  const [expandedProject, setExpandedProject] = useState(null)
+  const { data, loading, error } = usePortfolio()
   
   // GSAP Refs
   const sectionRef = useRef(null)
@@ -146,13 +146,20 @@ const Projects = () => {
   const cardsContainerRef = useRef(null)
   const expandedRefs = useRef([])
 
+  // Use backend data instead of dummy data
+  const projectData = data?.projects || []
+  const hasProjects = projectData && projectData.length > 0
+
   // Initialize refs array
   useEffect(() => {
-    expandedRefs.current = expandedRefs.current.slice(0, data?.projects?.length || 0)
-  }, [data?.projects?.length])
+    expandedRefs.current = expandedRefs.current.slice(0, projectData.length)
+  }, [projectData.length])
 
   // GSAP Animations
   useLayoutEffect(() => {
+    // Only run animations if we have projects data
+    if (!hasProjects || loading) return
+
     const ctx = gsap.context(() => {
       // Header animation
       gsap.fromTo(headerRef.current,
@@ -186,7 +193,7 @@ const Projects = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [data?.projects]);
+  }, [hasProjects, loading])
   
   // Function to get icon for tech stack
   const getTechIcon = (techName) => {
@@ -314,14 +321,66 @@ const Projects = () => {
     }
   };
   
-  // Use backend data instead of dummy data
-  const projectData = data?.projects || []
-  
-  // Debug: Log project data to see what we're receiving
-  console.log('Project data from backend:', projectData)
-  console.log('First project image URL:', projectData[0]?.image)
-  console.log('First project status:', projectData[0]?.status)
+  // Show loading state
+  if (loading) {
+    return (
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
+        <Return />
+        <div className="mb-12">
+          <p className="text-gray-400 dark:text-gray-500 mb-2">Portfolio</p>
+          <h1 className="text-black dark:text-white font-bold text-3xl mb-2 underline-offset-4 underline decoration-dashed">My Projects</h1>
+          <p className="text-gray-600 dark:text-zinc-400 mt-3 leading-relaxed">
+            Loading projects...
+          </p>
+        </div>
+        
+        {/* Loading skeleton */}
+        <div className="space-y-6">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm overflow-hidden animate-pulse">
+              <div className="bg-gray-200 dark:bg-zinc-800 h-48 w-full"></div>
+              <div className="p-4">
+                <div className="bg-gray-200 dark:bg-zinc-800 h-6 w-2/3 rounded mb-2"></div>
+                <div className="bg-gray-200 dark:bg-zinc-800 h-4 w-1/3 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
+  // Show error state
+  if (error) {
+    return (
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
+        <Return />
+        <div className="mb-12">
+          <p className="text-gray-400 dark:text-gray-500 mb-2">Portfolio</p>
+          <h1 className="text-black dark:text-white font-bold text-3xl mb-2 underline-offset-4 underline decoration-dashed">My Projects</h1>
+          <p className="text-red-600 dark:text-red-400 mt-3 leading-relaxed">
+            Error loading projects. Please try again later.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  // Show empty state
+  if (!hasProjects) {
+    return (
+      <section className="max-w-2xl mx-auto px-4 py-12 bg-white dark:bg-zinc-950 min-h-screen">
+        <Return />
+        <div className="mb-12">
+          <p className="text-gray-400 dark:text-gray-500 mb-2">Portfolio</p>
+          <h1 className="text-black dark:text-white font-bold text-3xl mb-2 underline-offset-4 underline decoration-dashed">My Projects</h1>
+          <p className="text-gray-600 dark:text-zinc-400 mt-3 leading-relaxed">
+            No projects available at the moment.
+          </p>
+        </div>
+      </section>
+    )
+  }
   const toggleProject = (index) => {
     const targetElement = expandedRefs.current[index]
     if (!targetElement) return
@@ -416,7 +475,7 @@ const Projects = () => {
               <div className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <h3 className="font-semibold text-lg text-black dark:text-white truncate underline-offset-4 underline decoration-dashed">
+                    <h3 className="font-semibold text-lg text-black dark:text-white truncate">
                       {project.name}
                     </h3>
                     {project.status && (
@@ -504,9 +563,9 @@ const Projects = () => {
                       Technologies & Tools
                     </p>
                     <div className="flex flex-wrap gap-4">
-                      {project.tech.map((tech, i) => {
-                        const techValue = typeof tech === 'string' ? tech : tech.icon || tech.name
-                        const techLabel = typeof tech === 'string' ? tech : tech.name || tech.icon
+                      {project.tech && Array.isArray(project.tech) ? project.tech.map((tech, i) => {
+                        const techValue = typeof tech === 'string' ? tech : tech?.icon || tech?.name || 'Unknown'
+                        const techLabel = typeof tech === 'string' ? tech : tech?.name || tech?.icon || 'Unknown'
 
                         return (
                           <div key={i} title={techLabel} className="cursor-pointer">
@@ -515,7 +574,9 @@ const Projects = () => {
                             </LogoBadge>
                           </div>
                         );
-                      })}
+                      }) : (
+                        <div className="text-sm text-gray-500">No tech stack information available</div>
+                      )}
                     </div>
                   </div>
 
@@ -525,9 +586,11 @@ const Projects = () => {
                       Key Features
                     </p>
                     <ul className="list-disc pl-5 text-gray-600 dark:text-zinc-400 text-sm leading-relaxed space-y-2">
-                      {project.features.map((feature, i) => (
+                      {project.features && Array.isArray(project.features) ? project.features.map((feature, i) => (
                         <li key={i}>{feature}</li>
-                      ))}
+                      )) : (
+                        <li className="text-gray-500">No features information available</li>
+                      )}
                     </ul>
                   </div>
                 </div>
