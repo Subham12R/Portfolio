@@ -160,39 +160,50 @@ const Projects = () => {
     // Only run animations if we have projects data
     if (!hasProjects || loading) return
 
-    const ctx = gsap.context(() => {
-      // Header animation
-      gsap.fromTo(headerRef.current,
-        { opacity: 0, y: 30 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: 'power3.out'
-        }
-      );
-
-      // Project cards stagger animation
-      gsap.fromTo('.project-card',
-        { opacity: 0, y: 50, scale: 0.95 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.15,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: cardsContainerRef.current,
-            start: 'top 85%',
-            toggleActions: 'play none none reverse'
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      const ctx = gsap.context(() => {
+        // Ensure elements are visible first
+        gsap.set([headerRef.current, '.project-card'], { opacity: 1 });
+        
+        // Header animation
+        gsap.fromTo(headerRef.current,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            ease: 'power3.out'
           }
+        );
+
+        // Project cards stagger animation - check if cards exist
+        const projectCards = document.querySelectorAll('.project-card');
+        if (projectCards.length > 0) {
+          gsap.fromTo('.project-card',
+            { opacity: 0, y: 50, scale: 0.95 },
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.6,
+              stagger: 0.15,
+              ease: 'power2.out',
+              scrollTrigger: {
+                trigger: cardsContainerRef.current,
+                start: 'top 85%',
+                toggleActions: 'play none none reverse'
+              }
+            }
+          );
         }
-      );
 
-    }, sectionRef);
+      }, sectionRef);
 
-    return () => ctx.revert();
+      return () => ctx.revert();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [hasProjects, loading])
   
   // Function to get icon for tech stack
@@ -458,7 +469,8 @@ const Projects = () => {
           return (
             <div
               key={project.id}
-              className="project-card bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+              className="project-card bg-white dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden opacity-100"
+              style={{ visibility: 'visible' }}
             >
               {/* Project Media - Always visible */}
               <div className="rounded-t-xl overflow-hidden border-b border-gray-200 dark:border-zinc-700">
