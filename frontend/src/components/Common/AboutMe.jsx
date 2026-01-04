@@ -127,7 +127,7 @@ const AboutMe = () => {
             {/* Social Media Links */}
             <div className='flex gap-2 mt-2'>
               <a 
-                href="https://www.linkedin.com/in/subham-karmakar12/" 
+                href="https://www.linkedin.com/in/subham-karmakar-663b1031b/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className='flex items-center gap-2 text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors'
@@ -145,7 +145,7 @@ const AboutMe = () => {
                 
               </a>
               <a 
-                href="https://www.instagram.com/subham12r" 
+                href="https://www.instagram.com/5ubhamkarmakar" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className='flex items-center gap-2 text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors'

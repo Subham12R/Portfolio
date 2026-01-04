@@ -26,17 +26,12 @@ const Socials = () => {
     },
     {
       name: 'Instagram',
-      url: 'https://instagram.com/subham_karmakar',
+      url: 'https://instagram.com/5ubhamkarmakar',
       icon: InstagramIcon
     },
     {
-      name: 'Pinterest',
-      url: 'https://pinterest.com/subhamkarmakar',
-      icon: PinterestIcon
-    },
-    {
       name: 'Email',
-      url: 'mailto:contact@subham.dev',
+      url: 'mailto:rikk4335@gmail.com',
       icon: Mail01Icon
     }
   ]
