@@ -560,10 +560,13 @@ const AdminPage = () => {
                   />
                 </div>
                 <ImageUpload
-                  onImageUpload={(imageUrl) => setEditingItem({...editingItem, image: imageUrl})}
-                  currentImage={editingItem.image || ''}
-                  label="Project Image"
+                  onImageUpload={(videoUrl) => setEditingItem({...editingItem, video_url: videoUrl})}
+                  currentImage={editingItem.video_url || ''}
+                  label="Video URL"
                   className="mb-4"
+                  onThumbnailUpload={(thumbnailUrl) => setEditingItem({...editingItem, image: thumbnailUrl})}
+                  currentThumbnail={editingItem.image || ''}
+                  showThumbnailField={true}
                 />
                 <div className="grid grid-cols-2 gap-4">
                   <div>

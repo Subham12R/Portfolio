@@ -304,62 +304,6 @@ class ApiService {
     });
   }
 
-  // Upload methods
-  async uploadToCloudinary(formData) {
-    const url = `${this.baseURL}/api/upload/cloudinary`;
-    const headers = {};
-    
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
-    }
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Cloudinary upload failed:', error);
-      throw error;
-    }
-  }
-
-  // Upload video specifically
-  async uploadVideoToCloudinary(formData) {
-    const url = `${this.baseURL}/api/upload/cloudinary/video`;
-    const headers = {};
-    
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
-    }
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Cloudinary video upload failed:', error);
-      throw error;
-    }
-  }
-
   async validateImageUrl(url) {
     return await this.request('/api/upload/validate-url', {
       method: 'POST',
@@ -367,15 +311,9 @@ class ApiService {
     });
   }
 
-  async deleteFromCloudinary(publicId) {
-    return await this.request(`/api/upload/cloudinary/${publicId}`, {
-      method: 'DELETE',
-    });
-  }
-
-  // Resume upload method
-  async uploadResume(formData) {
-    const url = `${this.baseURL}/api/upload/resume`;
+  // Thumbnail upload to DigitalOcean Spaces
+  async uploadThumbnail(formData) {
+    const url = `${this.baseURL}/api/upload/thumbnail`;
     const headers = {};
     
     if (this.token) {
@@ -396,15 +334,14 @@ class ApiService {
 
       return await response.json();
     } catch (error) {
-      console.error('Resume upload failed:', error);
+      console.error('Thumbnail upload failed:', error);
       throw error;
     }
   }
 
-  // Get resume download URL
-  async getResume() {
-    return await this.request('/api/upload/resume', {
-      requireAuth: false,
+  async deleteThumbnail(fileKey) {
+    return await this.request(`/api/upload/thumbnail/${encodeURIComponent(fileKey)}`, {
+      method: 'DELETE',
     });
   }
 

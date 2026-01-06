@@ -581,8 +581,9 @@ const Home = () => {
         {/* Project Media */}
         <div className='h-full w-full  rounded-2xl overflow-hidden outline-1 outline-gray-200 dark:outline-zinc-700 mb-2 cursor-pointer'>
           <ProjectMediaPlayer
-            mediaUrl={project.image}
-            mediaType={project.mediaType || 'image'}
+            mediaUrl={project.video_url || project.image}
+            thumbnailUrl={project.image}
+            mediaType={project.video_url ? 'video' : (project.mediaType || 'image')}
             alt={project.name}
             className="w-full h-full"
             projectId={project.id || idx}

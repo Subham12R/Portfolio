@@ -475,8 +475,9 @@ const Projects = () => {
               {/* Project Media - Always visible */}
               <div className="rounded-t-xl overflow-hidden border-b border-gray-200 dark:border-zinc-700">
                 <ProjectMediaPlayer
-                  mediaUrl={project.image}
-                  mediaType={project.mediaType || 'image'}
+                  mediaUrl={project.video_url || project.image}
+                  thumbnailUrl={project.image}
+                  mediaType={project.video_url ? 'video' : (project.mediaType || 'image')}
                   alt={project.name}
                   className="w-full h-auto"
                   projectId={project.id}

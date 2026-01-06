@@ -96,6 +96,7 @@ export const VideoPlayerContent = ({
 
 export const ProjectMediaPlayer = ({ 
   mediaUrl, 
+  thumbnailUrl: propThumbnailUrl,
   mediaType = 'image', 
   alt = 'Project media',
   className = '',
@@ -104,6 +105,7 @@ export const ProjectMediaPlayer = ({
   const [showVideoPopOver, setShowVideoPopOver] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [videoError, setVideoError] = useState(false);
+  const [thumbnailUrl, setThumbnailUrl] = useState(propThumbnailUrl || null);
 
   const SPRING = {
     mass: 0.1,
@@ -139,6 +141,35 @@ export const ProjectMediaPlayer = ({
     return urlString;
   };
 
+  // Get YouTube video ID from URL
+  const getYouTubeVideoId = (urlString) => {
+    if (!urlString) return null;
+    
+    const watchMatch = urlString.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+    const shortMatch = urlString.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+    const embedMatch = urlString.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/);
+    
+    return watchMatch?.[1] || shortMatch?.[1] || embedMatch?.[1] || null;
+  };
+
+  // Get YouTube thumbnail URL
+  const getYouTubeThumbnail = (urlString) => {
+    const videoId = getYouTubeVideoId(urlString);
+    if (videoId) {
+      return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    }
+    return null;
+  };
+
+  // Convert YouTube URL to embed format
+  const convertYouTubeToEmbed = (urlString) => {
+    const videoId = getYouTubeVideoId(urlString);
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return urlString;
+  };
+
   // Generate fallback URLs based on project ID for consistency
   const getFallbackImageUrl = () => {
     if (projectId) {
@@ -155,14 +186,20 @@ export const ProjectMediaPlayer = ({
   // Check if URL is a Google Drive link
   const isGoogleDriveLink = mediaUrl?.includes('drive.google.com');
   
+  // Check if URL is a YouTube link
+  const isYouTubeLink = mediaUrl?.includes('youtube.com') || mediaUrl?.includes('youtu.be');
+  
   // Determine if this should be treated as video
-  const isVideo = mediaType === 'video' || mediaUrl?.includes('.mp4') || mediaUrl?.includes('.webm') || mediaUrl?.includes('.mov');
+  const isVideo = mediaType === 'video' || mediaUrl?.includes('.mp4') || mediaUrl?.includes('.webm') || mediaUrl?.includes('.mov') || isYouTubeLink;
   
   // Get the actual media URL to use (with fallbacks)
   const getActualMediaUrl = () => {
     if (isVideo) {
       if (videoError || !mediaUrl) {
         return getFallbackVideoUrl();
+      }
+      if (isYouTubeLink) {
+        return convertYouTubeToEmbed(mediaUrl);
       }
       return mediaUrl;
     } else {
@@ -172,6 +209,20 @@ export const ProjectMediaPlayer = ({
       return mediaUrl;
     }
   };
+
+  // Get thumbnail for initial display
+  React.useEffect(() => {
+    if (propThumbnailUrl) {
+      // Use provided thumbnail
+      setThumbnailUrl(propThumbnailUrl);
+    } else if (isYouTubeLink) {
+      const thumb = getYouTubeThumbnail(mediaUrl);
+      setThumbnailUrl(thumb);
+    } else if (isVideo && !isGoogleDriveLink) {
+      // For regular videos, we'll use the first frame as thumbnail
+      setThumbnailUrl(null);
+    }
+  }, [mediaUrl, propThumbnailUrl, isYouTubeLink, isVideo, isGoogleDriveLink]);
 
   const actualMediaUrl = getActualMediaUrl();
 
@@ -197,7 +248,38 @@ export const ProjectMediaPlayer = ({
         </motion.div>
         
         {isVideo ? (
-          isGoogleDriveLink ? (
+          // Show thumbnail initially for all videos, or video itself if no thumbnail
+          thumbnailUrl ? (
+            <div className="relative h-full w-full">
+              <img
+                src={thumbnailUrl}
+                alt={alt}
+                className="h-full w-full object-cover pointer-events-none"
+                onError={() => {
+                  setVideoError(true);
+                  setThumbnailUrl(null); // Clear thumbnail on error to show video
+                }}
+              />
+              {/* Play button overlay */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="bg-red-600 rounded-full p-4 opacity-80">
+                  <Play className="size-8 fill-white" />
+                </div>
+              </div>
+            </div>
+          ) : isYouTubeLink ? (
+            // Show YouTube iframe directly if no thumbnail
+            <div className="relative h-full w-full">
+              <iframe
+                src={actualMediaUrl}
+                className="h-full w-full object-cover pointer-events-none"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={alt}
+              />
+            </div>
+          ) : isGoogleDriveLink ? (
             <iframe
               src={mediaUrl}
               className="h-full w-full object-cover pointer-events-none"
@@ -207,6 +289,7 @@ export const ProjectMediaPlayer = ({
               title={alt}
             />
           ) : (
+            // For non-YouTube videos, show video with muted autoplay as thumbnail
             <video
               autoPlay
               muted
@@ -235,6 +318,7 @@ export const ProjectMediaPlayer = ({
               setShowVideoPopOver={setShowVideoPopOver} 
               mediaUrl={actualMediaUrl}
               isVideo={isVideo}
+              isYouTube={isYouTubeLink}
               alt={alt}
             />
           )}
@@ -249,6 +333,7 @@ const VideoPopOver = ({
   setShowVideoPopOver,
   mediaUrl,
   isVideo,
+  isYouTube,
   alt
 }) => {
   // Convert Google Drive links to proper format
@@ -297,10 +382,31 @@ const VideoPopOver = ({
           stiffness: 100,
           damping: 20,
         }}
-        className="relative aspect-video max-w-7xl"
+        className="relative w-[90vw] h-[90vh] max-w-[1600px]"
       >
         {isVideo ? (
-          isGoogleDriveLink ? (
+          isYouTube ? (
+            // YouTube embed
+            <div className="relative w-full h-full">
+              <iframe
+                src={mediaUrl}
+                className="w-full h-full"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={alt}
+              />
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowVideoPopOver(false);
+                }}
+                className="absolute right-2 top-2 z-[9999] cursor-pointer rounded-full p-2 transition-colors bg-black/70 hover:bg-black/90"
+              >
+                <Plus className="size-5 rotate-45 text-white" />
+              </span>
+            </div>
+          ) : isGoogleDriveLink ? (
             <div className="relative w-full h-full">
               <iframe
                 src={mediaUrl}
@@ -310,8 +416,11 @@ const VideoPopOver = ({
                 title={alt}
               />
               <span
-                onClick={() => setShowVideoPopOver(false)}
-                className="absolute right-2 top-2 z-10 cursor-pointer rounded-full p-1 transition-colors bg-black/50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowVideoPopOver(false);
+                }}
+                className="absolute right-2 top-2 z-[9999] cursor-pointer rounded-full p-2 transition-colors bg-black/70 hover:bg-black/90"
               >
                 <Plus className="size-5 rotate-45 text-white" />
               </span>
@@ -327,8 +436,11 @@ const VideoPopOver = ({
               />
 
               <span
-                onClick={() => setShowVideoPopOver(false)}
-                className="absolute right-2 top-2 z-10 cursor-pointer rounded-full p-1 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowVideoPopOver(false);
+                }}
+                className="absolute right-2 top-2 z-[9999] cursor-pointer rounded-full p-2 transition-colors bg-black/70 hover:bg-black/90"
               >
                 <Plus className="size-5 rotate-45 text-white" />
               </span>
@@ -347,8 +459,11 @@ const VideoPopOver = ({
               className="w-full h-full object-contain"
             />
             <span
-              onClick={() => setShowVideoPopOver(false)}
-              className="absolute right-2 top-2 z-10 cursor-pointer rounded-full p-1 transition-colors bg-black/50"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowVideoPopOver(false);
+              }}
+              className="absolute right-2 top-2 z-[9999] cursor-pointer rounded-full p-2 transition-colors bg-black/70 hover:bg-black/90"
             >
               <Plus className="size-5 rotate-45 text-white" />
             </span>
