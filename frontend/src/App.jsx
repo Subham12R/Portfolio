@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { useState, useEffect, useRef } from 'react'
+import {  useEffect, useRef } from 'react'
 import { PortfolioProvider } from './contexts/PortfolioContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { Toaster } from 'sonner'
@@ -20,7 +20,6 @@ import WakaTimeCallback from './pages/WakaTimeCallback'
 import UserLayout from './components/Layout/UserLayout'
 import Components from './pages/Components'
 
-import Snowfall from 'react-snowfall'
 
 // Routes wrapper
 function AnimatedRoutes() {
@@ -40,7 +39,7 @@ function AnimatedRoutes() {
   return (
     <div style={{ width: '100%', height: '100%' }}>
        
-    <Snowfall snowflakeCount={10} />
+    
   
       <Routes location={location}>
         <Route path="/" element={<UserLayout />}>
