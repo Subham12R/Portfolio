@@ -23,7 +23,7 @@ import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
 import { useTheme } from '../contexts/ThemeContext';
 import Assistant from '../components/Common/Assistant'
-import Snowfall from 'react-snowfall'
+
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowRight01Icon, Calendar02Icon, EarthIcon, GithubIcon, Linkedin01Icon, NewTwitterRectangleIcon, SourceCodeIcon } from '@hugeicons/core-free-icons';
 // Register GSAP plugins
@@ -422,15 +422,13 @@ const Home = () => {
 
     return (
      <div ref={mainRef} className='relative bg-white dark:bg-zinc-950 w-full h-full max-w-2xl mx-auto px-4 lg:px-0 mb-4 overflow-x-hidden'>
-       {/* Bottom fade overlay for smoother scroll feel */}
-        <Snowfall />
+     
        
        <div className='fixed bottom-0 left-0 right-0 h-24 pointer-events-none z-40 bg-linear-to-t from-white/80 via-white/40 to-transparent dark:from-zinc-950/80 dark:via-zinc-950/40 dark:to-transparent backdrop-blur-[2px]' />
        
        <div id="home" ref={headerRef}>
         <Header />
       {/* <Socials /> */}
-        {/* <Spotify /> */}
       </div>
 
 
@@ -677,7 +675,7 @@ const Home = () => {
                 data-cal-link="subham12r/30min"
                 data-cal-config='{"layout":"month_view"}'
                 className='text-zinc-900 dark:text-zinc-200 border px-4 py-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-md bg-gray-50 dark:bg-zinc-800 
-                           hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1),inset_0_0_20px_rgba(255,255,255,0.3),inset_0_0_30px_rgba(255,255,255,0.2)] 
+                hover:shadow-[inset_0_2px_2px_0_rgba(0,0,0,0.1),inset_0_0_20px_rgba(255,255,255,0.3),inset_0_0_30px_rgba(255,255,255,0.2)] 
                            dark:hover:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1),inset_0_0_20px_rgba(255,255,255,0.1),inset_0_0_30px_rgba(255,255,255,0.1)]
                            hover:border-white/80 dark:hover:border-white/80
                            transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 group flex-1 sm:flex-none'
@@ -704,6 +702,7 @@ const Home = () => {
   
       
   
+<Spotify />
     <Assistant />
     {/* <ScrollProgress /> */}
     </div>
