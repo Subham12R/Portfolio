@@ -30,8 +30,7 @@ import supabaseLogo from '../../assets/logo/supabase.jpeg';
 import githubLogo from '../../assets/logo/github.png';
 import figmaLogo from '../../assets/logo/figma.png';
 import gsapLogo from '../../assets/logo/gsap.svg';
-import framerLogo from '../../assets/logo/framer.jpeg';
-import lenisLogo from '../../assets/logo/lenis.png';
+import Tooltip from '@mui/material/Tooltip';
 
 
 const Header = () => {
@@ -103,17 +102,23 @@ const { theme } = useTheme();
                     </div>
 
                     
-              <div className='w-full rounded-lg border border-dashed border-gray-200 dark:border-zinc-800 bg-transparent dark:bg-zinc-950 p-4 shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.08)] dark:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] flex justify-center items-center'>
-              <div className='github-calendar-coverer w-full flex justify-center'>
-                <GitHubCalendar 
-                  username="subham12r" 
-                  showWeekdayLabels={false}
-                  hideTotalCount={false}
-                  fontSize={10}
-                  blockSize={8}
-                  blockMargin={2}
-                  colorScheme={theme}
-                />
+              <div className='w-full mt-8 border p-4 border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.08)] dark:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)] bg-transparent '>
+              <div className="w-full flex justify-center">
+                <div className="max-w-full overflow-x-auto">
+                  <div style={{ minWidth: 320, width: '100%' }}>
+                    <GitHubCalendar 
+                      username="subham12r" 
+                      hideMonthLabels={false}
+                      blockSize={12}
+                      blockRadius={2}
+                      blockMargin={2}
+                      colorScheme={theme}
+                      year={2026}
+                      fontSize={14}
+                      style={{ width: '100%', minWidth: 320 }}
+                    />
+                  </div>
+                </div>
               </div>
 
               
@@ -125,60 +130,77 @@ const { theme } = useTheme();
                 <h2 className='text-zinc-900 dark:text-white font-bold text-2xl sm:text-3xl tracking-tight'>Tech Stack.</h2>
               </div>
               <div className='w-full rounded-lg border border-dashed border-gray-200 dark:border-zinc-800 bg-transparent dark:bg-zinc-950 p-4 shadow-[inset_0_8px_8px_0_rgba(0,0,0,0.08)] dark:shadow-[inset_0_2px_2px_0_rgba(255,255,255,0.1)]'>
-                <div className='grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-15 gap-2 sm:gap-3'>
+                <div className='flex flex-wrap gap-2 justify-center items-center'>
                   {/* Programming Languages */}
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={jsLogo} alt="JavaScript" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={typescriptLogo} alt="TypeScript" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
-                    <img src={htmlLogo} alt="HTML" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
-                    <img src={cssLogo} alt="CSS" className='w-full h-full object-cover' />
-                  </div>
-                  
+                  <Tooltip title="JavaScript" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
+                      <img src={jsLogo} alt="JavaScript" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
+                  <Tooltip title="TypeScript" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
+                      <img src={typescriptLogo} alt="TypeScript" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
+                  <Tooltip title="HTML" placement="top" arrow >
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
+                      <img src={htmlLogo} alt="HTML" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
+                  <Tooltip title="CSS" placement="top" arrow >
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
+                      <img src={cssLogo} alt="CSS" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
                   {/* Frontend Frameworks */}
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={reactLogo} alt="React" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={nextjsLogo} alt="Next.js" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={tailwindLogo} alt="Tailwind CSS" className='w-full h-full object-cover' />
-                  </div>
-                  
+                  <Tooltip title="React" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
+                      <img src={reactLogo} alt="React" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
+                  <Tooltip title="Next.js" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
+                      <img src={nextjsLogo} alt="Next.js" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
+                  <Tooltip title="Tailwind CSS" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
+                      <img src={tailwindLogo} alt="Tailwind CSS" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
                   {/* Backend & Database */}
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={nodejsLogo} alt="Node.js" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={mongodbLogo} alt="MongoDB" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={supabaseLogo} alt="Supabase" className='w-full h-full object-cover' />
-                  </div>
-                  
+                  <Tooltip title="Node.js" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
+                      <img src={nodejsLogo} alt="Node.js" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
+                  <Tooltip title="MongoDB" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
+                      <img src={mongodbLogo} alt="MongoDB" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
+                  <Tooltip title="Supabase" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
+                      <img src={supabaseLogo} alt="Supabase" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
                   {/* Tools & Services */}
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
-                    <img src={githubLogo} alt="GitHub" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
-                    <img src={figmaLogo} alt="Figma" className='w-full h-full object-cover' />
-                  </div>
+                  <Tooltip title="GitHub" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
+                      <img src={githubLogo} alt="GitHub" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
+                  <Tooltip title="Figma" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform'>
+                      <img src={figmaLogo} alt="Figma" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
                   {/* Animation & Libraries */}
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 bg-black transition-transform'>
-                    <img src={gsapLogo} alt="GSAP" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={framerLogo} alt="Framer Motion" className='w-full h-full object-cover' />
-                  </div>
-                  <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 transition-transform overflow-hidden'>
-                    <img src={lenisLogo} alt="Lenis" className='w-full h-full object-cover' />
-                  </div>
+                  <Tooltip title="GSAP" placement="top" arrow>
+                    <div className='w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:scale-110 bg-black transition-transform'>
+                      <img src={gsapLogo} alt="GSAP" className='w-full h-full object-cover' />
+                    </div>
+                  </Tooltip>
                 </div>
               </div>
             </div>

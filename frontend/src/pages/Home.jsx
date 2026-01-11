@@ -462,7 +462,7 @@ const Home = () => {
                 
                 {/* Main Content */}
                 <div className="flex-1 min-w-0 ">
-                  <div className="flex flex-col  sm:flex-row items-start justify-between gap-3">
+                  <div className="flex flex-col  sm:flex-row items-start justify-between gap-3 ">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                         <h3 className="font-semibold text-lg text-black dark:text-white truncate">{exp.company}</h3>
@@ -518,7 +518,7 @@ const Home = () => {
                     className="overflow-hidden"
                     style={{ height: expandedExperience === idx ? 'auto' : '0px' }}
                   >
-                    <div className="mt-4 space-y-6">
+                    <div className="mt-4 space-y-6 border-l-2 border-gray-200 dark:border-zinc-600 pl-4">
                       {/* Technologies & Tools */}
                       <div>
                         <h5 className="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm">Technologies & Tools</h5>
