@@ -6,7 +6,7 @@ const getApiBaseUrl = () => {
   }
   
   // Priority 2: Default to production URL (for all deployments)
-  const productionUrl = 'https://portfolio-subham12r-4fso2.ondigitalocean.app/';
+  const productionUrl = 'https://portfolio-subham12r-4fso2.ondigitalocean.app';
   
   // Priority 3: Only use localhost if explicitly in development mode AND running locally
   // This ensures production builds always use the production URL
@@ -173,13 +173,30 @@ class ApiService {
     return response.experience;
   }
 
-  async createWorkExperience(experienceData) {
-    const response = await this.request('/api/work', {
-      method: 'POST',
-      body: JSON.stringify(experienceData),
-    });
-    return response.experience;
-  }
+async createWorkExperience(experienceData) {
+  const normalizedData = {
+    ...experienceData,
+
+    // REQUIRED fields (force-correct)
+    company: experienceData.company?.trim(),
+    role: experienceData.role?.trim(),
+    status: experienceData.status || 'active',
+    location: experienceData.location?.trim(),
+
+    // Date normalization (CRITICAL)
+    start: experienceData.start || experienceData.start_date,
+    end: experienceData.end?.trim() || null,
+
+    // Optional arrays (avoid undefined)
+    tech: Array.isArray(experienceData.tech) ? experienceData.tech : [],
+    bullets: Array.isArray(experienceData.bullets) ? experienceData.bullets : [],
+  };
+
+  return (await this.request('/api/work', {
+    method: 'POST',
+    body: JSON.stringify(normalizedData),
+  })).experience;
+}
 
   async updateWorkExperience(id, experienceData) {
     const response = await this.request(`/api/work/${id}`, {
