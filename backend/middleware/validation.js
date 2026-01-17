@@ -47,7 +47,7 @@ const validateWorkExperience = [
   body('start').optional().trim(),
   body('start_date').optional().trim(),
   body('location').trim().notEmpty().withMessage('Location is required'),
-  body('status').isIn(['Working', 'Completed']).withMessage('Status must be Working or Completed'),
+  body('status').isIn(['active', 'inactive', 'completed']).withMessage('Status must be active, inactive, or completed'),
   body('tech').optional().isArray().withMessage('Tech must be an array'),
   body('bullets').optional().isArray().withMessage('Bullets must be an array'),
   // Custom validation to ensure at least one start date field is provided

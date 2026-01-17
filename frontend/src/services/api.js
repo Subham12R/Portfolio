@@ -174,28 +174,26 @@ class ApiService {
   }
 
 async createWorkExperience(experienceData) {
-  const normalizedData = {
+  const payload = {
     ...experienceData,
-
-    // REQUIRED fields (force-correct)
     company: experienceData.company?.trim(),
     role: experienceData.role?.trim(),
     status: experienceData.status || 'active',
     location: experienceData.location?.trim(),
-
-    // Date normalization (CRITICAL)
     start: experienceData.start || experienceData.start_date,
-    end: experienceData.end?.trim() || null,
-
-    // Optional arrays (avoid undefined)
+    end: experienceData.end || null,
     tech: Array.isArray(experienceData.tech) ? experienceData.tech : [],
     bullets: Array.isArray(experienceData.bullets) ? experienceData.bullets : [],
   };
 
-  return (await this.request('/api/work', {
+  console.log('SENDING WORK PAYLOAD:', payload);
+
+  const response = await this.request('/api/work', {
     method: 'POST',
-    body: JSON.stringify(normalizedData),
-  })).experience;
+    body: JSON.stringify(payload),
+  });
+
+  return response.experience;
 }
 
   async updateWorkExperience(id, experienceData) {
